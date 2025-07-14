@@ -19,12 +19,12 @@ CREATE TABLE permissions(
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='權限資料表';
 
 -- 角色權限關聯資料表（多對多關聯表)
-CREATE TABLE roles_permissionS(
+CREATE TABLE roles_permissions(
     role_id INT NOT NULL COMMENT '角色 ID',
     permission_id INT NOT NULL COMMENT '權限 ID',
     PRIMARY KEY (role_id, permission_id),
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES permission(id) ON DELETE CASCADE
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '角色權限關聯表';
 
 --  建立使用者資料表
