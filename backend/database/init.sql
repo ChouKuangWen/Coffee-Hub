@@ -8,13 +8,13 @@ USE member_order_management_backend_system;
 
 -- 角色資料表
 CREATE TABLE roles(
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '角色 ID',
+    role_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '角色 ID',
     name VARCHAR(50) NOT NULL COMMENT '角色名稱'
 )ENGINE=InnoDB DEFAULT CHARSET=utf8MB4 COMMENT='角色資料表';
 
 -- 權限資料表
 CREATE TABLE permissions(
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '權限 ID',
+    permission_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '權限 ID',
     name VARCHAR(100) NOT NULL COMMENT '權限名稱'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='權限資料表';
 
@@ -23,13 +23,13 @@ CREATE TABLE roles_permissions(
     role_id INT NOT NULL COMMENT '角色 ID',
     permission_id INT NOT NULL COMMENT '權限 ID',
     PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(permission_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '角色權限關聯表';
 
 --  建立使用者資料表
 CREATE TABLE users(
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT'使用者 ID',
+    user_id INT AUTO_INCREMENT PRIMARY KEY COMMENT'使用者 ID',
     username VARCHAR(50) NOT NULL COMMENT '帳號名稱',
     passeord_hash VARCHAR(255) NOT NULL COMMENT '密碼 hash',
     email VARCHAR(100) NOT NULL COMMENT '信箱',
@@ -39,12 +39,12 @@ CREATE TABLE users(
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP  COMMENT '建立時間',
     UNIQUE KEY unique_username(username),
     UNIQUE KEY unique_email(email),
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
+    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='會員資料表';
 
 -- 建立產品資料表
 CREATE TABLE products(
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '商品ID',
+    product_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '商品ID',
     name VARCHAR(100) NOT NULL COMMENT '商品名稱',
     price DECIMAL(10,2) NOT NULL COMMENT '價格',
     stock INT NOT NULL COMMENT '庫存',
@@ -54,21 +54,21 @@ CREATE TABLE products(
 
 -- 建立訂單資料表
 CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訂單 ID',
+    order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訂單 ID',
     user_id INT NOT NULL COMMENT '下單會員 ID',
     status VARCHAR(50) NOT NULL DEFAULT '待付款' COMMENT '訂單狀態',
     total DECIMAL(10,2) NOT NULL COMMENT '總金額',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單資料表';
 
 -- 建立訂單項目資料表
 CREATE TABLE order_items (
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訂單項目 ID',
+    order_item_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訂單項目 ID',
     order_id INT NOT NULL COMMENT '訂單 ID',
     product_id INT NOT NULL COMMENT '商品 ID',
     quantity INT NOT NULL COMMENT '數量',
     price DECIMAL(10,2) NOT NULL COMMENT '單價',
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單項目資料表';
