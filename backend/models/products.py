@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String,  Text, DECIMAL
-from sqlalchemy.orm import relationship
 from base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 
 class Products(Base):
