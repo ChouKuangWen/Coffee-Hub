@@ -7,7 +7,7 @@ class Users(Base):
     __tablename__ = "users"  #對應資料表名稱
     user_id = Column(Integer, primary_key=True, index=True) # 主鍵，自動遞增使用者編號
     username = Column(String(50), nullable=False, unique=True, comment="帳號名稱")
-    passeord_hash = Column(String(255), nullable= False, comment="密碼 hash")
+    password_hash = Column(String(255), nullable= False, comment="密碼 hash")
     email = Column(String(100), nullable=False, unique=True, comment="信箱")
     phone = Column(String(20), nullable=False, comment="電話")
     address = Column(String(255), nullable=False, comment="地址")
