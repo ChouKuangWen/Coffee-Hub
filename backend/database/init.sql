@@ -31,7 +31,7 @@ CREATE TABLE roles_permissions(
 CREATE TABLE users(
     user_id INT AUTO_INCREMENT PRIMARY KEY COMMENT'使用者 ID',
     username VARCHAR(50) NOT NULL COMMENT '帳號名稱',
-    passeord_hash VARCHAR(255) NOT NULL COMMENT '密碼 hash',
+    password_hash VARCHAR(255) NOT NULL COMMENT '密碼 hash',
     email VARCHAR(100) NOT NULL COMMENT '信箱',
     phone VARCHAR(20) NOT NULL COMMENT '電話',
     address VARCHAR(255) NOT NULL COMMENT '地址',
