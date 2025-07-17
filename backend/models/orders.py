@@ -11,5 +11,5 @@ class Orders(Base):
     total = Column(DECIMAL(10,2), nullable=False, comment="總金額")
     created_at = Column(DateTime, default=func.now(), comment="建立時間")
     status_updated_at = Column(DateTime, default=func.now(), comment="狀態變動時間")
-    user = relationship("Users", backref="orders")
+    user = relationship("Users", backref="order")
 
