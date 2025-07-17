@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
