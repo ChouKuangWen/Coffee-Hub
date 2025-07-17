@@ -11,7 +11,7 @@ class Order_items(Base):
     product_id = Column(Integer, ForeignKey("products.product_id"), nullable=False, comment="商品 ID")
     quantity = Column(Integer, nullable=False, comment="數量")
     price = Column(DECIMAL(10,2), nullable=False, comment="單價")
-    order = relationship("Orders", backref="order_items")
-    product = relationship("Products" ,backref="order_items")
+    order = relationship("Orders", backref="order_item")
+    product = relationship("Products", backref="order_item")
 
 
