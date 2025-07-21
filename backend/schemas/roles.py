@@ -18,7 +18,7 @@ class RoleBase(BaseModel):
 
 class RoleRead(RoleBase):
     role_id: int
-    role_permissions: Optional[list["RolePermissionRead"]] = None
+    role_permissions: Optional[List["RolePermissionRead"]] = None
     #因為一個角色（Role）可以對應多個權限（Permissions）所以用list
     # 尚未建立RolePermissionRead，所以要用forward reference（前向引用)方法
 
