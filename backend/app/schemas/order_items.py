@@ -3,8 +3,7 @@ from typing import Optional
 from decimal import Decimal
 from products import ProductRead
 from orders import OrderRead
-order = relationship("Orders", backref="order_item")
-product = relationship("Products", backref="order_item")
+
 
 # 共用基礎欄位
 class OrderItemBase(BaseModel):
