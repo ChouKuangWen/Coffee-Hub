@@ -73,3 +73,10 @@ CREATE TABLE order_items (
     FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單項目資料表';
+
+CREATE TABLE jwt_blacklist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    jti VARCHAR(36) NOT NULL UNIQUE COMMENT 'JWT 的 jti 值',
+    expires_at DATETIME NOT NULL COMMENT '該 JWT 的過期時間',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='jti黑名單資料表';
