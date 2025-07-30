@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
-from base import Base  # 依你的專案路徑調整
+from base import Base
 
 class UsedJWT(Base):
     __tablename__ = "used_jwts"
