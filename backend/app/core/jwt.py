@@ -5,12 +5,14 @@ from config import settings  # 用來取得 SECRET_KEY、過期時間等設定
 from sqlalchemy.orm import Session
 import uuid # 產生唯一識別碼
 from models.jwt_blacklist import JWTBlacklist
-from models.used_jwt import UsedJWT  # ⬅️ 加入 UsedJWT 模型
+from models.used_jwt import UsedJWT  #  加入 UsedJWT 模型
+from models.refresh_token import RefreshToken
 
 # 加解密參數
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+
 
 # 將 jti 加入黑名單（登出）
 def add_jti_to_blacklist(db: Session, jti: str, expires_at: datetime):
