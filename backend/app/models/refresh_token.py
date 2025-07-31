@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from base import Base  # 假設你有 Base 設定
+from base import Base  # 匯入Base基底
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
