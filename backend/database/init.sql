@@ -86,3 +86,15 @@ CREATE TABLE used_jwts (
     jti VARCHAR(255) NOT NULL UNIQUE COMMENT 'JWT 的唯一識別碼',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入黑名單的時間'
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='儲存已登出或作廢的 JWT ID';
+
+CREATE TABLE refresh_tokens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    token TEXT NOT NULL,
+    jti VARCHAR(255) NOT NULL,
+    issued_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    is_revoked BOOLEAN DEFAULT FALSE,
+    INDEX (user_id),
+    INDEX (jti)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='儲存使用者的 Refresh Token ';
