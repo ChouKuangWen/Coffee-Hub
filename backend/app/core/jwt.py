@@ -130,7 +130,7 @@ async def revoke_tokens(db: AsyncSession, access_jti: str, refresh_jti: str):
         db_token.is_revoked = True
 
     # 提交變更
-     await db.commit()
+    await db.commit()
 
 # 自訂錯誤
 def credentials_exception():
