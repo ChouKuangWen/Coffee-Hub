@@ -15,10 +15,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
-# 將 jti 加入黑名單（登出）
-async def add_jti_to_blacklist(db: AsyncSession, jti: str, expires_at: datetime):
-    db.add(JWTBlacklist(jti=jti, expires_at=expires_at))
-    await db.commit()
 
 # 查詢 jti 是否在黑名單中
 async def is_jti_blacklisted(db: AsyncSession, jti: str) -> bool:
@@ -29,11 +25,6 @@ async def is_jti_blacklisted(db: AsyncSession, jti: str) -> bool:
 async def is_jti_used(db: AsyncSession, jti: str) -> bool:
     result = await db.execute(select(UsedJWT).where(UsedJWT.jti == jti))
     return result.scalars().first() is not None
-
-# 標記 jti 為已使用（用於一次性 token）
-async def mark_jti_as_used(db: AsyncSession, jti: str):
-    db.add(UsedJWT(jti=jti))
-    await db.commit()
 
 # 簽發 JWT Token
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
