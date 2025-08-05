@@ -2,7 +2,8 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
 from config import settings  # 用來取得 SECRET_KEY、過期時間等設定
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select           # 引入 select
 import uuid # 產生唯一識別碼
 from models.jwt_blacklist import JWTBlacklist
 from models.used_jwt import UsedJWT  #  加入 UsedJWT 模型
@@ -15,22 +16,24 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
 # 將 jti 加入黑名單（登出）
-def add_jti_to_blacklist(db: Session, jti: str, expires_at: datetime):
+async def add_jti_to_blacklist(db: AsyncSession, jti: str, expires_at: datetime):
     db.add(JWTBlacklist(jti=jti, expires_at=expires_at))
-    db.commit()
+    await db.commit()
 
 # 查詢 jti 是否在黑名單中
-def is_jti_blacklisted(db: Session, jti: str) -> bool:
-    return db.query(JWTBlacklist).filter(JWTBlacklist.jti == jti).first() is not None
+async def is_jti_blacklisted(db: AsyncSession, jti: str) -> bool:
+    result = await db.execute(select(JWTBlacklist).where(JWTBlacklist.jti == jti))
+    return result.scalars().first() is not None
 
 # 查詢 jti 是否為已使用（一次性 token）
-def is_jti_used(db: Session, jti: str) -> bool:
-    return db.query(UsedJWT).filter(UsedJWT.jti == jti).first() is not None
+async def is_jti_used(db: AsyncSession, jti: str) -> bool:
+    result = await db.execute(select(UsedJWT).where(UsedJWT.jti == jti))
+    return result.scalars().first() is not None
 
 # 標記 jti 為已使用（用於一次性 token）
-def mark_jti_as_used(db: Session, jti: str):
+async def mark_jti_as_used(db: AsyncSession, jti: str):
     db.add(UsedJWT(jti=jti))
-    db.commit()
+    await db.commit()
 
 # 簽發 JWT Token
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
@@ -41,7 +44,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM),  jti_value  # jwt.encode() 加密並簽名資料 建立JWT
 
 # 驗證 Token，檢查 jti 是否已撤銷（黑名單或已使用）
-def verify_access_token(token: str, db: Session) -> dict:
+async def verify_access_token(token: str, db: AsyncSession) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")  # sub是JWT標準欄位， Subject（主體）
@@ -51,7 +54,7 @@ def verify_access_token(token: str, db: Session) -> dict:
             raise credentials_exception()
 
         # 檢查是否在黑名單（如登出）且是否為一次性 token 且已使用
-        if is_jti_blacklisted(db, jti) or is_jti_used(db, jti):
+        if await is_jti_blacklisted(db, jti) or await is_jti_used(db, jti):
             raise credentials_exception()
         return {"username": username, "jti": jti} # 回傳包含 username 和 jti 的字典
 
@@ -59,7 +62,7 @@ def verify_access_token(token: str, db: Session) -> dict:
         raise credentials_exception()
 
 # 建立 Refresh Token（並寫入資料庫）
-def create_refresh_token(user_id: str, db: Session):
+async def create_refresh_token(user_id: str, db: AsyncSession):
     expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)  # 設定過期時間
     jti = str(uuid.uuid4())  # 產生唯一的 jti（JWT ID）
     to_encode = {"sub": user_id, "exp": expire, "jti": jti} # 建立 payload主體
@@ -73,13 +76,13 @@ def create_refresh_token(user_id: str, db: Session):
         issued_at=datetime.now(timezone.utc),
         expires_at=expire
     ))
-    db.commit()
+    await db.commit()
 
     # 回傳 token 給前端
     return token
 
 # 驗證 Refresh Token（檢查是否存在、未撤銷、未過期）
-def verify_refresh_token(token: str, db: Session) -> dict:
+async def verify_refresh_token(token: str, db: AsyncSession) -> dict:
     try:
         # 解碼 JWT，提取 payload
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -91,7 +94,16 @@ def verify_refresh_token(token: str, db: Session) -> dict:
             raise credentials_exception()
 
         # 查詢資料庫中是否存在該筆 token 且尚未撤銷
-        db_token = db.query(RefreshToken).filter_by(jti=jti, token=token, is_revoked=False).first()
+        # 使用 select 和 where 進行非同步查詢
+        result = await db.execute(
+            select(RefreshToken).where(
+                RefreshToken.jti == jti,
+                RefreshToken.token == token,
+                RefreshToken.is_revoked == False
+            )
+        )
+        db_token = result.scalars().first()
+
 
         # 若資料不存在或已過期，視為無效
         if not db_token or db_token.expires_at < datetime.now(timezone.utc):
@@ -106,19 +118,19 @@ def verify_refresh_token(token: str, db: Session) -> dict:
 
 
 # 登出：將 Access Token 加入黑名單、Refresh Token 設為撤銷
-def revoke_tokens(db: Session, access_jti: str, refresh_jti: str):
+async def revoke_tokens(db: AsyncSession, access_jti: str, refresh_jti: str):
     # 計算 access token 的過期時間（將 jti 加入黑名單）
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     db.add(JWTBlacklist(jti=access_jti, expires_at=expires_at))
 
     # 查詢對應的 refresh token，設為撤銷（is_revoked = True）
-    db_token = db.query(RefreshToken).filter_by(jti=refresh_jti).first()
+    result = await db.execute(select(RefreshToken).where(RefreshToken.jti == refresh_jti))
+    db_token = result.scalars().first()
     if db_token:
         db_token.is_revoked = True
 
     # 提交變更
-    db.commit()
-
+     await db.commit()
 
 # 自訂錯誤
 def credentials_exception():
