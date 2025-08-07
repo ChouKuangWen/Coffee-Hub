@@ -21,7 +21,7 @@ class Roles(Base):
 class Permissions(Base):
     __tablename__ = "permissions" # 對應資料表名稱
     permission_id = Column(Integer, primary_key=True, autoincrement=True, comment='權限 ID')
-    name = Column(String(100), nullable=False, comment='權限名稱')
+    name = Column(String(100), nullable=False)
     role_permission = relationship(
         "RolePermissions",
         backref="permission",
@@ -32,7 +32,7 @@ class RolePermissions(Base):
     __tablename__ = 'role_permissions'
     role_id = Column(Integer, ForeignKey('roles.role_id', ondelete='CASCADE'), primary_key=True, comment='角色 ID')
     permission_id = Column(Integer, ForeignKey('permissions.permission_id', ondelete='CASCADE'), primary_key=True, comment='權限 ID')
-    role = relationship("Roles", backref="role_permissions", comment="此關聯物件所屬的角色")
+    role = relationship("Roles", backref="role_permissions")
     permission = relationship(
         "Permissions",
         backref="role_permissions",
