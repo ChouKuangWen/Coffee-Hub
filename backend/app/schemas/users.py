@@ -37,4 +37,10 @@ class UserUpdate(BaseModel):
     class Config:
         orm_model = True
 
+# 使用者登入或刷新 token 時，後端回傳給前端的資料格式
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+
 
