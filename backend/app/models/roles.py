@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
+from .base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 
 class Roles(Base):
     __tablename__ = "roles"  # 對應資料表名稱
@@ -16,7 +16,6 @@ class Roles(Base):
         "RolePermissions",
         backref="role",
         cascade="all, delete-orphan", # 確保刪除角色時，其關聯記錄也被刪除
-        comment="與此角色相關聯的所有角色權限關聯物件"
     )
 
 class Permissions(Base):

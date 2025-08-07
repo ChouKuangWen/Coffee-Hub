@@ -1,6 +1,6 @@
 # tests/test_auth.py
 from fastapi.testclient import TestClient
-from app.main import app  # 直接導入 FastAPI app，不用啟動伺服器
+from backend.app.main import app  # 直接導入 FastAPI app，不用啟動伺服器
 
 client = TestClient(app)
 
