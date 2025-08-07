@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession  # 非同步
 from sqlalchemy.future import select           # 引入 select
 from core.jwt import verify_access_token
-from database import get_db             # 引入非同步資料庫依賴
+from models.base import get_db             # 引入非同步資料庫依賴
 from models.users import Users
 
 # 處理 Token 的提取
