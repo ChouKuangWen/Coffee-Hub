@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
-from config import settings  # 用來取得 SECRET_KEY、過期時間等設定
+from config import Settings  # 用來取得 SECRET_KEY、過期時間等設定
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select           # 引入 select
 import uuid # 產生唯一識別碼
@@ -12,8 +12,8 @@ from models.refresh_token import RefreshToken
 # 加解密參數
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
-REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
+ACCESS_TOKEN_EXPIRE_MINUTES = Settings.ACCESS_TOKEN_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS = Settings.REFRESH_TOKEN_EXPIRE_DAYS
 
 
 # 查詢 jti 是否在黑名單中
