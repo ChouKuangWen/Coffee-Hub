@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from schemas.users import UserCreate, TokenResponse
 from models.users import Users
-from core.security import verify_password, get_password_hash
+from core.security import verify_password, hash_password
 from core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
 from models.base import get_db
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
@@ -31,7 +31,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email 已被註冊")
 
     # 密碼加密
-    hashed_password = get_password_hash(user_data.password)
+    hashed_password = hash_password(user_data.password)
 
     # 建立新使用者實例
     new_user = Users(
