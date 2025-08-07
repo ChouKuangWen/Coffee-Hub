@@ -26,7 +26,6 @@ class Permissions(Base):
         "RolePermissions",
         backref="permission",
         cascade="all, delete-orphan", # 確保刪除權限時，其關聯記錄也被刪除
-        comment="與此權限相關聯的所有角色權限關聯物件"
     )
 
 class RolePermissions(Base):
@@ -37,5 +36,4 @@ class RolePermissions(Base):
     permission = relationship(
         "Permissions",
         backref="role_permissions",
-        comment="此關聯物件所代表的權限"
     )
