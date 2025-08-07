@@ -10,7 +10,7 @@ from models.base import get_db
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from datetime import timedelta
 from jose import jwt, JWTError
-from config import settings
+from core.config import settings
 
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
