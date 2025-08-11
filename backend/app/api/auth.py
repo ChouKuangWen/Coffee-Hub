@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from schemas.users import UserCreate, TokenResponse
+from app.schemas.users import UserCreate, TokenResponse
 from models.users import Users
 from core.security import verify_password, hash_password
 from core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
