@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String,  Text, DECIMAL
-from base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
+from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 
 class Products(Base):
     __tablename__ = "products"  #對應資料表名稱
