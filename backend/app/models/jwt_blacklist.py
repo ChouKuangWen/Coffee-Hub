@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from .base import Base  # 請確保你有初始化 Base
+from app.models.base import Base  # 請確保你有初始化 Base
 from datetime import datetime, timezone
 
 class JWTBlacklist(Base):
