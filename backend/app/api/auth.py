@@ -3,14 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.schemas.users import UserCreate, TokenResponse
-from models.users import Users
-from core.security import verify_password, hash_password
-from core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
-from models.base import get_db
+from app.models.users import Users
+from app.core.security import verify_password, hash_password
+from app.core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
+from app.models.base import get_db
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from datetime import timedelta
 from jose import jwt, JWTError
-from core.config import settings
+from app.core.config import settings
 
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
