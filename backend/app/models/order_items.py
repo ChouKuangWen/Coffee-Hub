@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
+from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 from orders import Orders
 from products import Products
 class Order_items(Base):
