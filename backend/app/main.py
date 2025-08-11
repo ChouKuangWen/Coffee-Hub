@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api import auth  # 載入 auth API 路由模組
+from app.api import auth  # 載入 auth API 路由模組
 
 app = FastAPI(
     title="JWT Auth API",
