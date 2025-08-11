@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
-from config import settings  # 用來取得 SECRET_KEY、過期時間等設定
+from app.core.config import settings  # 用來取得 SECRET_KEY、過期時間等設定
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select           # 引入 select
 import uuid # 產生唯一識別碼
