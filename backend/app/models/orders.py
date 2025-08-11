@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
+from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 from users import Users
 class Orders(Base):
     __tablename__ = "orders"  #對應資料表名稱
