@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
-from base import Base
+from app.models.base import Base
 
 class UsedJWT(Base):
     __tablename__ = "used_jwts"
