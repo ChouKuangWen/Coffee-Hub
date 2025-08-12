@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthoriz
 from datetime import timedelta
 from jose import jwt, JWTError
 from app.core.config import settings
+from sqlalchemy.orm import selectinload
 
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
@@ -55,8 +56,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     - 驗證使用者帳號和密碼。
     - 產生並回傳 access token 和 refresh token。
     """
-    # 根據 username (等同於 email) 查詢使用者
-    result = await db.execute(select(Users).where(Users.email == form_data.username))
+    # 根據 username (等同於 email) 查詢使用者,連帶載入使用者角色
+    result = await db.execute(select(Users).options(selectinload(Users.role)).where(Users.email == form_data.username))
     user = result.scalars().first()
 
     # 若帳號或密碼錯誤
@@ -68,7 +69,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         )
 
     # 產生 access token 和 refresh token
-    access_token, access_jti = create_access_token({"sub": str(user.id)})
+    # JWT payload 加入 role 名稱
+    access_token, access_jti = create_access_token({
+        "sub": str(user.id),
+        "role": user.role.name  # 把角色名稱放進 token payload
+    })
     refresh_token = await create_refresh_token(str(user.id), db)
 
     return {
