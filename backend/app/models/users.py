@@ -15,7 +15,7 @@ class Users(Base):
     """default: 設定欄位的預設值。func.now(): SQLAlchemy 提供的一個函數，它會生成一個 SQL 函數呼叫，
     通常對應到資料庫系統中的 CURRENT_TIMESTAMP 或 NOW() 函數。"""
     created_at = Column(DateTime, default=func.now(), comment='建立時間')
-    role = relationship("Roles", backref="user")  #backref反向引用屬性
+    role = relationship("Roles", back_populates="user")
 
 
 
