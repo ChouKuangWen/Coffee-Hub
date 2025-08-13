@@ -31,7 +31,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     jti_value = str(uuid.uuid4()) # 生成一個唯一的 UUID 作為 jti
-    to_encode.update({"exp": expire, "jti": jti_value})  # 加入過期時間與 jti
+    to_encode.update({
+        "exp": expire,
+        "jti": jti_value,
+        # 新增角色資訊（可選）
+        "role": data.get("role"),
+        # 或直接塞權限列表
+        "permissions": data.get("permissions", [])
+    })
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM),  jti_value  # jwt.encode() 加密並簽名資料 建立JWT
 
 # 驗證 Token，檢查 jti 是否已撤銷（黑名單或已使用）
