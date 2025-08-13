@@ -35,5 +35,5 @@ class RolePermissions(Base):
     role = relationship("Roles", backref="role_permissions")
     permission = relationship(
         "Permissions",
-        backref="role_permissions",
+        back_populates="role_permissions",
     )
