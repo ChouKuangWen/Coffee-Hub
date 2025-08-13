@@ -18,11 +18,11 @@ class Roles(Base):
         cascade="all, delete-orphan", # 確保刪除角色時，其關聯記錄也被刪除
     )
 
-class RolePermissions(Base):
+class Permissions(Base):
     __tablename__ = "permissions" # 對應資料表名稱
     permission_id = Column(Integer, primary_key=True, autoincrement=True, comment='權限 ID')
     name = Column(String(100), nullable=False)
-    role_permission = relationship(
+    role_permissions = relationship(
         "RolePermissions",
         back_populates="permission",
         cascade="all, delete-orphan", # 確保刪除權限時，其關聯記錄也被刪除
@@ -35,5 +35,5 @@ class RolePermissions(Base):
     role = relationship("Roles", back_populates="role_permissions")
     permission = relationship(
         "Permissions",
-        back_populates="role_permission",
+        back_populates="role_permissions",
     )
