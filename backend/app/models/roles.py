@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
-from app.models.users import Users
+
 class Roles(Base):
     __tablename__ = "roles"  # 對應資料表名稱
     role_id =  Column(Integer, primary_key=True, index=True)  # 主鍵，自動遞增角色編號
