@@ -64,7 +64,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     user = result.scalars().first()
 
     # 若帳號或密碼錯誤
-    if not user or not verify_password(form_data.password, user.password):
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=401,
             detail="帳號或密碼錯誤",
@@ -74,10 +74,10 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     # 產生 access token 和 refresh token
     # JWT payload 加入 role 名稱
     access_token, access_jti = create_access_token({
-        "sub": str(user.id),
+        "sub": str(user.user_id),
         "role": user.role.name  # 把角色名稱放進 token payload
     })
-    refresh_token = await create_refresh_token(str(user.id), db)
+    refresh_token = await create_refresh_token(str(user.user_id), db)
 
     return {
         "access_token": access_token,
