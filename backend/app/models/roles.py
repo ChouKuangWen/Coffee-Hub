@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
-
+from app.models.users import Users
 class Roles(Base):
     __tablename__ = "roles"  # 對應資料表名稱
     role_id =  Column(Integer, primary_key=True, index=True)  # 主鍵，自動遞增角色編號
@@ -12,6 +12,8 @@ class Roles(Base):
     backref 指向 RolePermissions 模型中對應此關係的屬性
     這裡使用字串 "RolePermissions" 是為了避免潛在的循環匯入問題，即使在同一個檔案中也是好的習慣
     """
+    # 一對多：角色底下的使用者
+    users = relationship("Users", back_populates="role")
     role_permissions = relationship(
         "RolePermissions",
         back_populates="role",
