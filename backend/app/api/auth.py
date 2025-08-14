@@ -37,8 +37,8 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     # 建立新使用者實例
     new_user = Users(
         email=user_data.email,
-        name=user_data.name,
-        password=hashed_password
+        username=user_data.username,
+        password_hash=hashed_password
     )
 
     db.add(new_user)
