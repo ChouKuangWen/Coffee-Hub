@@ -7,7 +7,12 @@ from app.core.jwt import verify_access_token
 from app.models.base import get_db             # 引入非同步資料庫依賴
 from app.models.users import Users
 
-# 處理 Token 的提取
+"""
+Token 提取設定
+OAuth2PasswordBearer 是 FastAPI 提供的一種安全方案
+它會自動從 Authorization Header 讀取 Bearer token
+tokenUrl 參數是用來生成 swagger UI 的登入表單用 URL
+"""
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> Users:
@@ -46,11 +51,18 @@ def has_permission(required_role: str):
     可重用函式，用於建立一個檢查指定角色的依賴。
     它會返回一個內部函式，該函式會檢查當前使用者是否具備 required_role。
     """
+
+    # 統一處理單一角色或多角色的情況(預留)
+    if isinstance(required_role, str):
+        allowed_roles = [required_role]
+    else:
+        allowed_roles = required_role
+
     def role_checker(current_user: Users = Depends(get_current_user)):
-        if current_user.role != required_role:
+        if current_user.role != allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"只有 '{required_role}' 才能執行此操作"
+                detail=f"只有 '{allowed_roles}' 才能執行此操作"
             )
         return current_user
     return role_checker
