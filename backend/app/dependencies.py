@@ -24,7 +24,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     payload = await verify_access_token(token, db)
 
     # 獲取 token 中的使用者 ID
-    user_id = payload.get("username")
+    user_id = payload.get("user_id")
 
     if not user_id:
         raise HTTPException(
