@@ -20,7 +20,7 @@ async def read_all_users(db: AsyncSession = Depends(get_db),
 @router.get("/{user_id}", response_model=UserRead)
 async def read_user(user_id: int, db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)):
- 
+
     if current_user.role_id != 1 and current_user.user_id != user_id:
         raise HTTPException(status_code=403, detail="無權限查看此使用者")
 
@@ -31,7 +31,7 @@ async def read_user(user_id: int, db: AsyncSession = Depends(get_db),
     return user
 
 # 新增使用者，密碼會先被 hash
-@router.post("/")
+@router.post("/", response_model=UserRead)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),
     current_user=Depends(has_permission(1))):
     # 先將明文密碼做雜湊處理
@@ -41,7 +41,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),
     return new_user
 
 # 更新使用者資料(Admin 或自己)
-@router.put("/{user_id}")
+@router.put("/{user_id}", response_model=UserRead)
 async def update_user(user_id: int, user_update: UserUpdate, db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user)):
 
@@ -58,7 +58,7 @@ async def update_user(user_id: int, user_update: UserUpdate, db: AsyncSession = 
 @router.delete("/{user_id}")
 async def delete_user(user_id: int, db: AsyncSession = Depends(get_db),
     current_user=Depends(has_permission(1))):
-    
+
     success = await delete_user(db, user_id)
     if not success:
         # 找不到使用者，回傳 404 錯誤
