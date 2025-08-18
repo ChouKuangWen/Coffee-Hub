@@ -1,49 +1,65 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from app import schemas, crud
+from app.schemas.users import UserRead, UserCreate, UserUpdate
+from app.crud.users  import get_all_users, get_user_by_id, create_user, update_user, delete_user
 from app.core.security import get_password_hash
 from app.models.base import get_db   # 取得非同步資料庫 Session
+from app.dependencies import has_permission, get_current_user
 
 router = APIRouter()
 
-# 取得所有使用者資料
-@router.get("/", response_model=List[schemas.UserResponse])
-async def read_all_users(db: AsyncSession = Depends(get_db)):
-    users = await crud.user.get_all_users(db)
+# 取得所有使用者資料(僅 Admin 可用)
+@router.get("/", response_model=List[UserRead])
+async def read_all_users(db: AsyncSession = Depends(get_db),
+    current_user=Depends(has_permission(1))):  # 1 = Admin
+    users = await get_all_users(db)
     return users
 
-# 根據 user_id 取得使用者資料
-@router.get("/{user_id}", response_model=schemas.UserResponse)
-async def read_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    user = await crud.user.get_user_by_id(db, user_id)
+# 根據 user_id 取得使用者資料 (Admin 或自己)
+@router.get("/{user_id}", response_model=UserRead)
+async def read_user(user_id: int, db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)):
+ 
+    if current_user.role_id != 1 and current_user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="無權限查看此使用者")
+
+    user = await get_user_by_id(db, user_id)
     if not user:
         # 找不到使用者，回傳 404 錯誤
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 # 新增使用者，密碼會先被 hash
-@router.post("/", response_model=schemas.UserResponse)
-async def create_user(user: schemas.UserCreate, db: AsyncSession = Depends(get_db)):
+@router.post("/")
+async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),
+    current_user=Depends(has_permission(1))):
     # 先將明文密碼做雜湊處理
     hashed_pw = get_password_hash(user.password)
     user.password = hashed_pw
-    new_user = await crud.user.create_user(db, user)
+    new_user = await create_user(db, user)
     return new_user
 
-# 更新使用者資料
-@router.put("/{user_id}", response_model=schemas.UserResponse)
-async def update_user(user_id: int, user_update: schemas.UserUpdate, db: AsyncSession = Depends(get_db)):
-    updated_user = await crud.user.update_user(db, user_id, user_update)
+# 更新使用者資料(Admin 或自己)
+@router.put("/{user_id}")
+async def update_user(user_id: int, user_update: UserUpdate, db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user)):
+
+    if current_user.role_id != 1 and current_user.user_id != user_id:
+        raise HTTPException(status_code=403, detail="無權限修改此使用者")
+
+    updated_user = await update_user(db, user_id, user_update)
     if not updated_user:
         # 找不到使用者，回傳 404 錯誤
         raise HTTPException(status_code=404, detail="User not found")
     return updated_user
 
-# 刪除使用者
+# 刪除使用者 (Admin 可刪)
 @router.delete("/{user_id}")
-async def delete_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    success = await crud.user.delete_user(db, user_id)
+async def delete_user(user_id: int, db: AsyncSession = Depends(get_db),
+    current_user=Depends(has_permission(1))):
+    
+    success = await delete_user(db, user_id)
     if not success:
         # 找不到使用者，回傳 404 錯誤
         raise HTTPException(status_code=404, detail="User not found")

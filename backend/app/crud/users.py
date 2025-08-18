@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
 from app.models.users import Users
-from app.schemas.users import UserCreate, UserRead, UserUpdate
+from app.schemas.users import UserBase, UserCreate, UserRead, UserUpdate
 
 # 非同步取得單一使用者資料
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[Users]:
