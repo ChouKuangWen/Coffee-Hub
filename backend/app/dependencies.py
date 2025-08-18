@@ -31,7 +31,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         )
 
     # 獲取 token 中的使用者 ID
-    user_id = payload.get("user_id")
+    user_id = payload.get("sub")
+    role_name = payload.get("role")
 
     if not user_id:
         raise HTTPException(
@@ -66,7 +67,7 @@ def has_permission(required_role):
         allowed_roles = required_role
 
     def role_checker(current_user: Users = Depends(get_current_user)):
-        if current_user.role not in allowed_roles:
+        if current_user.role_id not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"只有 '{allowed_roles}' 才能執行此操作"
