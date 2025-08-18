@@ -16,12 +16,17 @@ from sqlalchemy.orm import selectinload
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
 
+# 只允許 Manager = 2, Customer = 3
+allowed_roles = [2, 3]
+
 # 註冊使用者
 @router.post("/register", response_model=dict)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """
     註冊新使用者。
     - 檢查電子郵件是否已被註冊。
+    - 僅允許 Manager 與 Customer
+    - Admin 必須手動於資料庫新增
     - 對密碼進行雜湊處理。
     - 將新使用者寫入資料庫。
     """
