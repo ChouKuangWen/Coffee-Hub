@@ -36,6 +36,10 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     if user:
         raise HTTPException(status_code=400, detail="Email 已被註冊")
 
+    # 檢查角色是否合法
+    if user_data.role_id not in allowed_roles:
+        raise HTTPException(status_code=400, detail="只能選擇賣家或買家")
+    
     # 密碼加密
     hashed_password = hash_password(user_data.password)
 
