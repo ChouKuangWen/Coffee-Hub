@@ -87,7 +87,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         "role": user.role.name  # 把角色名稱放進 token payload
     })
     refresh_token = await create_refresh_token(str(user.user_id), db)
-
+    await db.commit()
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
