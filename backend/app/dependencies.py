@@ -46,14 +46,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     return user
 
 # 授權相關依賴
-def has_permission(required_role: str):
+def has_permission(required_role):
     """
     可重用函式，用於建立一個檢查指定角色的依賴。
     它會返回一個內部函式，該函式會檢查當前使用者是否具備 required_role。
     """
 
     # 統一處理單一角色或多角色的情況(預留)
-    if isinstance(required_role, str):
+    if isinstance(required_role, int):
         allowed_roles = [required_role]
     else:
         allowed_roles = required_role
