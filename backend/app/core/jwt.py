@@ -102,6 +102,8 @@ async def verify_refresh_token(token: str, db: AsyncSession) -> dict:
         )
         db_token = result.scalars().first()
 
+        if not db_token:   # 檢查db_token是否存在
+            raise HTTPException(status_code=401, detail="Refresh token 無效或已被撤銷")
 
         # 若資料不存在或已過期，視為無效
         expires_at_aware = db_token.expires_at.replace(tzinfo=timezone.utc)
