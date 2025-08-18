@@ -42,7 +42,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         )
 
     # 查詢資料庫
-    result = await db.execute(select(Users).where(Users.id == int(user_id)))
+    result = await db.execute(select(Users).where(Users.user_id == int(user_id)))
     user = result.scalars().first()
 
     if not user:
