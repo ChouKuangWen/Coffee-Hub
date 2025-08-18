@@ -18,7 +18,7 @@ INSERT INTO roles_permissions (role_id, permission_id) VALUES
 (3, 3), (3, 5);
 
 
-INSERT INTO users (username, passeord_hash, email, phone, address, role_id) VALUES
+INSERT INTO users (username, password_hash, email, phone, address, role_id) VALUES
 ('user1', 'hashed_pwd1', 'user1@example.com', '0900000001', '台灣市xx路1號', 3),
 ('user2', 'hashed_pwd2', 'user2@example.com', '0900000002', '台灣市xx路2號', 3),
 ('user3', 'hashed_pwd3', 'user3@example.com', '0900000003', '台灣市xx路3號', 3),

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.schemas.users import UserRead, UserCreate, UserUpdate
 from app.crud.users  import get_all_users, get_user_by_id, create_user, update_user, delete_user
-from app.core.security import get_password_hash
+from app.core.security import hash_password
 from app.models.base import get_db   # 取得非同步資料庫 Session
 from app.dependencies import has_permission, get_current_user
 
@@ -35,7 +35,7 @@ async def read_user(user_id: int, db: AsyncSession = Depends(get_db),
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),
     current_user=Depends(has_permission(1))):
     # 先將明文密碼做雜湊處理
-    hashed_pw = get_password_hash(user.password)
+    hashed_pw = hash_password(user.password)
     user.password = hashed_pw
     new_user = await create_user(db, user)
     return new_user
