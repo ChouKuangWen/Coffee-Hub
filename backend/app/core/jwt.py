@@ -53,7 +53,7 @@ async def verify_access_token(token: str, db: AsyncSession) -> dict:
             raise credentials_exception()
 
         # 檢查是否在黑名單（如登出）且是否為一次性 token 且已使用
-        if await is_jti_blacklisted(db, jti) or await is_jti_used(db, jti):
+        if await is_jti_blacklisted(db, jti):# or await is_jti_used(db, jti):
             raise credentials_exception()
         return {"username": user_id, "jti": jti, "role": role} # 回傳包含 user_id 和 jti 的字典
 
@@ -75,7 +75,7 @@ async def create_refresh_token(user_id: str, db: AsyncSession):
         issued_at=datetime.now(timezone.utc),
         expires_at=expire
     ))
-    await db.commit()
+    #await db.commit()
 
     # 回傳 token 給前端
     return token
