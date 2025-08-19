@@ -29,9 +29,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
             detail="Token 無效或過期",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
+    print("Payload:", payload)
+    
     # 獲取 token 中的使用者 ID
-    user_id = payload.get("sub")
+    user_id = payload.get("username")
+    jti = payload.get("jti")
     role_name = payload.get("role")
 
     if not user_id:
