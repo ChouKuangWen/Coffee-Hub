@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.schemas.users import UserRead, UserCreate, UserUpdate
-from app.crud.users  import get_all_users, get_user_by_id, create_user, update_user, delete_user
+from app.crud.users  import get_all_users, get_user_by_id, create_user_db, update_user, delete_user
 from app.core.security import hash_password
 from app.models.base import get_db   # 取得非同步資料庫 Session
 from app.dependencies import has_permission, get_current_user
@@ -37,7 +37,7 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db),
     # 先將明文密碼做雜湊處理
     hashed_pw = hash_password(user.password)
     user.password = hashed_pw
-    new_user = await create_user(db, user)
+    new_user = await create_user_db(db, user)
     return new_user
 
 # 更新使用者資料(Admin 或自己)
