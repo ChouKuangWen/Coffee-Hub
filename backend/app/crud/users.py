@@ -24,7 +24,7 @@ async def create_user(db: AsyncSession, user: UserCreate) -> Users:
     db_user = Users(
         email=user.email,
         name=user.name,
-        password=user.password
+        password_hash=user.password
     )
     db.add(db_user)          # 加入當前交易 Session
     await db.commit()        # 提交資料庫變更
