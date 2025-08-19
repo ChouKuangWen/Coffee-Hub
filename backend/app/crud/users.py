@@ -7,7 +7,7 @@ from app.schemas.users import UserBase, UserCreate, UserRead, UserUpdate
 # 非同步取得單一使用者資料
 async def get_user_by_id(db: AsyncSession, user_id: int) -> Optional[Users]:
     # 用 select 查詢符合 user_id 的使用者
-    result = await db.execute(select(Users).where(Users.id == user_id))
+    result = await db.execute(select(Users).where(Users.user_id == user_id))
     # scalars() 把結果轉成 ORM 物件列表，再用 first() 取得第一筆或 None
     return result.scalars().first()
 

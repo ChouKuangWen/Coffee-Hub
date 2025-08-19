@@ -47,7 +47,7 @@ async def verify_access_token(token: str, db: AsyncSession) -> dict:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")  # sub是JWT標準欄位， Subject（主體）
         jti: str = payload.get("jti") # 獲取 jti
-        role: str = payload.get("role")        # 角色名稱
+        role_id: str = payload.get("role")        # 角色名稱
 
         if user_id is None or jti is None: # 檢查 user_id 和 jti 是否都存在
             raise credentials_exception()
@@ -55,7 +55,7 @@ async def verify_access_token(token: str, db: AsyncSession) -> dict:
         # 檢查是否在黑名單（如登出）且是否為一次性 token 且已使用
         if await is_jti_blacklisted(db, jti):# or await is_jti_used(db, jti):
             raise credentials_exception()
-        return {"username": user_id, "jti": jti, "role": role} # 回傳包含 user_id 和 jti 的字典
+        return {"username": user_id, "jti": jti, "role": role_id} # 回傳包含 user_id 和 jti 的字典
 
     except JWTError:
         raise credentials_exception()
