@@ -23,7 +23,7 @@ async def create_user_db(db: AsyncSession, user: UserCreate) -> Users:
     # 建立 ORM 物件，注意密碼為已 hash 版本
     new_user = Users(
         email=user.email,
-        name=user.name,
+        username=user.username,
         password_hash=user.password
     )
     db.add(new_user)          # 加入當前交易 Session
