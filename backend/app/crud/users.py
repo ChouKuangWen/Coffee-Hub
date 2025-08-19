@@ -19,17 +19,17 @@ async def get_all_users(db: AsyncSession) -> List[Users]:
     return result.scalars().all()
 
 # 非同步新增使用者（假設密碼已 hash 過）
-async def create_user(db: AsyncSession, user: UserCreate) -> Users:
+async def create_user_db(db: AsyncSession, user: UserCreate) -> Users:
     # 建立 ORM 物件，注意密碼為已 hash 版本
-    db_user = Users(
+    new_user = Users(
         email=user.email,
         name=user.name,
         password_hash=user.password
     )
-    db.add(db_user)          # 加入當前交易 Session
+    db.add(new_user)          # 加入當前交易 Session
     await db.commit()        # 提交資料庫變更
-    await db.refresh(db_user)  # 重新讀取剛新增的資料（取得 id 等欄位）
-    return db_user           # 回傳 ORM 物件
+    await db.refresh(new_user)  # 重新讀取剛新增的資料（取得 id 等欄位）
+    return new_user           # 回傳 ORM 物件
 
 # 非同步更新使用者，只更新有提供的欄位
 async def update_user(db: AsyncSession, user_id: int, user_update: UserUpdate) -> Optional[Users]:
