@@ -47,7 +47,7 @@ async def update_user_crud(db: AsyncSession, user_id: int, user_update: UserUpda
     return db_user
 
 # 非同步刪除使用者
-async def delete_user(db: AsyncSession, user_id: int) -> bool:
+async def delete_user_crud(db: AsyncSession, user_id: int) -> bool:
     db_user = await get_user_by_id(db, user_id)
     if not db_user:
         return False         # 找不到使用者回傳 False
