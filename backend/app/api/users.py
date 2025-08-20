@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.schemas.users import UserRead, UserCreate, UserUpdate
-from app.crud.users  import get_all_users, get_user_by_id, create_user_db, update_user, delete_user
+from app.crud.users  import get_all_users, get_user_by_id, create_user_db, update_user_crud, delete_user
 from app.core.security import hash_password
 from app.models.base import get_db   # 取得非同步資料庫 Session
 from app.dependencies import has_permission, get_current_user
@@ -48,7 +48,7 @@ async def update_user(user_id: int, user_update: UserUpdate, db: AsyncSession = 
     if current_user.role_id != 1 and current_user.user_id != user_id:
         raise HTTPException(status_code=403, detail="無權限修改此使用者")
 
-    updated_user = await update_user(db, user_id, user_update)
+    updated_user = await update_user_crud(db, user_id, user_update)
     if not updated_user:
         # 找不到使用者，回傳 404 錯誤
         raise HTTPException(status_code=404, detail="User not found")
