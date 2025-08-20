@@ -35,7 +35,7 @@ async def create_user_db(db: AsyncSession, user: UserCreate) -> Users:
     return new_user           # 回傳 ORM 物件
 
 # 非同步更新使用者，只更新有提供的欄位
-async def update_user(db: AsyncSession, user_id: int, user_update: UserUpdate) -> Optional[Users]:
+async def update_user_crud(db: AsyncSession, user_id: int, user_update: UserUpdate) -> Optional[Users]:
     db_user = await get_user_by_id(db, user_id)
     if not db_user:
         return None          # 找不到使用者則回傳 None
