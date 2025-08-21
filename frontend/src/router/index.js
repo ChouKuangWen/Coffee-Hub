@@ -2,9 +2,11 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import LoginPage from '@/pages/LoginPage.vue';
 import UsersPage from '@/pages/UsersPage.vue';
+import RegisterPage from '@/pages/RegisterPage.vue';
 
 const routes = [
   { path: '/login', name: 'Login', component: LoginPage },
+  { path: '/register', name: 'Register', component: RegisterPage }, // 新增註冊頁面路由
   { path: '/users', name: 'Users', component: UsersPage, meta: { requiresAuth: true } },
   { path: '/', redirect: '/users' },
 ];
