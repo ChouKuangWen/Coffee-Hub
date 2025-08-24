@@ -7,8 +7,6 @@ from app.crud.products import get_all_products, get_product, create_new_product,
 from app.models.base import get_db   # 取得非同步資料庫 Session
 from app.dependencies import get_db, has_permission
 
-#router = APIRouter(prefix="/products", tags=["Products"])
-
 router = APIRouter()
 
 # 取得所有商品 (所有角色皆有該權限)
