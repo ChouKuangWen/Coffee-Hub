@@ -23,5 +23,4 @@ class OrderRead(OrderBase):
     created_at: datetime
     status_updated_at: datetime
 
-    class Config:
-        model_config = ConfigDict(from_attributes=True)  # 允許從 SQLAlchemy 物件轉換
+    model_config = ConfigDict(from_attributes=True)  # 允許從 SQLAlchemy 物件轉換
