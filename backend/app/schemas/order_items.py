@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 from decimal import Decimal
-from products import ProductRead
-from orders import OrderRead
+from app.schemas.products import ProductRead
+from app.schemas.orders import OrderRead
 
 
 # 共用基礎欄位
