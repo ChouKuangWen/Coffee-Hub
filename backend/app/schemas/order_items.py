@@ -19,6 +19,7 @@ class OrderItemCreate(OrderItemBase):
 # 讀取資料時使用
 class OrderItemRead(OrderItemBase):
     order_item_id: int
+    subtotal: Decimal  # 自動計算的小計
 
     class Config:
         orm_mode = True
