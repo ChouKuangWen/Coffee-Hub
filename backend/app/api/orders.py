@@ -41,7 +41,7 @@ async def read_order(
 @router.get("/user/{user_id}", response_model=List[OrderRead]) # 因為會回傳所有資訊所以要用list
 async def read_orders_by_user(
     user_id: int, 
-    db: AsyncSession, 
+    db: AsyncSession = Depends(get_db), 
     current_user: Users = Depends(get_current_user)
     ):
     if current_user.role_id != 1 and user_id != current_user.user_id:
@@ -53,7 +53,7 @@ async def read_orders_by_user(
 async def update_status(
     order_id: int,
     status_update: OrderUpdateStatus,
-    db: AsyncSession,
+    db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(has_permission([1, 2]))
     ):
     update_order = await update_order_status(db, order_id, status_update)
