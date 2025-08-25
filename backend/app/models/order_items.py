@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 from orders import Orders
 from products import Products
@@ -13,5 +13,10 @@ class Order_items(Base):
     price = Column(DECIMAL(10,2), nullable=False, comment="單價")
     order = relationship("Orders", backref="order_item")
     product = relationship("Products", backref="order_item")
+
+    # 動態計算小計
+    @hybrid_property
+    def subtotal(self):
+        return self.quantity * self.price
 
 
