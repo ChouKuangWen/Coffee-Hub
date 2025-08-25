@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, users  # 載入 auth API 路由模組
+from app.api import auth, users, products, orders, order_items  # 載入 auth API 路由模組
 
 app = FastAPI(
     title="JWT Auth API",
@@ -22,3 +22,6 @@ app.add_middleware(
 # 註冊路由
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/users", tags=["Authentication"])
+app.include_router(products.router, prefix="/products", tags=["Authentication"])
+app.include_router(orders.router, prefix="/orders", tags=["Authentication"])
+app.include_router(order_items.router, prefix="/order_items", tags=["Authentication"])
