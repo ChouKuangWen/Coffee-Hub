@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
-from orders import Orders
-from products import Products
+from app.models.orders import Orders
+from app.models.products import Products
 class Order_items(Base):
     __tablename__ = "order_items"  #對應資料表名稱
     order_item_id = Column(Integer, primary_key=True, index=True)
