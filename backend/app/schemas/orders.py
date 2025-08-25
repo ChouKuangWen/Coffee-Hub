@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from decimal import Decimal
 from datetime import datetime
@@ -24,4 +24,4 @@ class OrderRead(OrderBase):
     status_updated_at: datetime
 
     class Config:
-        orm_mode = True  # 允許從 SQLAlchemy 物件轉換
+        model_config = ConfigDict(from_attributes=True)  # 允許從 SQLAlchemy 物件轉換
