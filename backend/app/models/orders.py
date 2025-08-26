@@ -6,7 +6,7 @@ from app.models.users import Users
 class Orders(Base):
     __tablename__ = "orders"  #對應資料表名稱
     order_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False, comment="下單會員 ID")
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=True, comment="下單會員 ID")
     status = Column(String(50), nullable=False, default="待付款", comment="訂單狀態")
     total = Column(DECIMAL(10,2), nullable=False, comment="總金額")
     created_at = Column(DateTime, default=func.now(), comment="建立時間")
