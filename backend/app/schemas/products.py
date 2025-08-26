@@ -11,11 +11,12 @@ class ProductBase(BaseModel):
 
 # 建立商品時使用的 schema（要送到後端）
 class ProductCreate(ProductBase):
-    pass
+    owner_id: int  # 後端可自動帶入 current_user.id
 
 # 回傳商品資料用（包含 ID）
 class ProductRead(ProductBase):
     product_id: int
+    owner_id: int
 
     class Config:
         orm_mode = True
