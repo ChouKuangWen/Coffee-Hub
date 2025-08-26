@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, String,  Text, DECIMAL
+from sqlalchemy import Column, Integer, String,  Text, DECIMAL, ForeignKey
+from sqlalchemy.orm import relationship
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
+from app.models.users import Users
 
 class Products(Base):
     __tablename__ = "products"  #對應資料表名稱
@@ -8,5 +10,8 @@ class Products(Base):
     price = Column(DECIMAL(10,2), nullable=False, comment="價格")
     stock = Column(Integer, nullable=False, comment="庫存")
     description = Column(Text, nullable=True, comment='描述')
+    # 商品擁有者
+    owner_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, comment="商品擁有者 (賣家)")
+    owner = relationship("Users", back_populates="products")
 
 
