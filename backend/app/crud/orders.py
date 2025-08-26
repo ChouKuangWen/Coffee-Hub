@@ -21,7 +21,7 @@ async def get_order(db: AsyncSession, order_id: int):
 # 查詢單一會員的所有訂單
 async def get_orders_by_user(db: AsyncSession, user_id: int):
     result = await db.execute(select(Orders).where(Orders.user_id == user_id))
-    return result.scalars().first()
+    return result.scalars().all()
 
 # 更新訂單狀態
 async def update_order_status(db: AsyncSession, existing_order, status_update: OrderUpdateStatus,):
