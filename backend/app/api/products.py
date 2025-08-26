@@ -20,7 +20,7 @@ async def read_all_products(db: AsyncSession = Depends(get_db)):
 async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
     product = await get_product(db, product_id)
     if not product:
-        raise HTTPException(ststus_code=400, deta="商品不存在")
+        raise HTTPException(status_code=400, deta="商品不存在")
     return product
 
 # 新增商品（管理員、賣家有權限）
