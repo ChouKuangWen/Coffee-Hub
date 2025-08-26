@@ -5,7 +5,7 @@ from app.models.base import get_db
 from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus
 from app.crud.orders import create_order, get_order, get_orders_by_user, update_order_status, delete_order
 from typing import List
-from app.dependencies import has_permission, get_current_user
+from app.dependencies import get_current_user
 from app.models.users import Users
 
 router = APIRouter()
