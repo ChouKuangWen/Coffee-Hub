@@ -24,8 +24,8 @@ async def create_new_order(
 # 查詢單筆訂單
 @router.get("/{order_id}", response_model=OrderRead)
 async def read_order(
-    order_id: int, 
-    db: AsyncSession = Depends(get_db), 
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user)
     ):
     db_order = await get_order(db, order_id)
@@ -33,15 +33,17 @@ async def read_order(
     # 如果不是管理員，檢查是不是自己的訂單
     if not db_order:
         raise HTTPException(status_code=404, detail="訂單不存在")
-    if current_user.role_id != 1 and db_order.user_id != current_user.user_id:
+    
+    # 權限檢查：管理員、下單買家、賣家可以查看
+    if current_user.role_id != 1 and db_order.user_id != current_user.user_id and db_order.product_owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權查看此訂單")
     return db_order
 
 # 查詢會員的所有訂單
 @router.get("/user/{user_id}", response_model=List[OrderRead]) # 因為會回傳所有資訊所以要用list
 async def read_orders_by_user(
-    user_id: int, 
-    db: AsyncSession = Depends(get_db), 
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user)
     ):
     if current_user.role_id != 1 and user_id != current_user.user_id:
@@ -54,17 +56,35 @@ async def update_status(
     order_id: int,
     status_update: OrderUpdateStatus,
     db: AsyncSession = Depends(get_db),
-    current_user: Users = Depends(has_permission([1, 2]))
+    current_user: Users = Depends(get_current_user)
     ):
-    update_order = await update_order_status(db, order_id, status_update)
-    if not update_order:
-        raise  HTTPException(status_code=404, detail="訂單不存在")
+
+    existing_order = await get_order(db, order_id)
+    if not existing_order:
+        raise HTTPException(status_code=404, detail="訂單不存在")
+
+    # 權限檢查：管理員或賣家可以更新
+    # 假設 product_owner_id 在 order 裡面
+    if current_user.role_id != 1 and existing_order.product_owner_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="無權更新此訂單")
+
+    update_order = await update_order_status(db, existing_order, status_update)
     return update_order
 
 # 刪除訂單
 @router.delete("/{order_id}", response_model=OrderRead)
-async def remove_order(order_id: int, db: AsyncSession = Depends(get_db)):
-    deleted_order = await delete_order(db, order_id)
-    if not deleted_order:
+async def remove_order(
+    order_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Users = Depends(get_current_user)):
+
+    existing_order = await get_order(db, order_id)
+    if not existing_order:
         raise HTTPException(status_code=404, detail="訂單不存在")
+
+    # 權限檢查：管理員、下單買家、賣家可以刪除
+    if current_user.role_id != 1 and existing_order.user_id != current_user.user_id and existing_order.product_owner_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="無權刪除此訂單")
+
+    deleted_order = await delete_order(db, existing_order)
     return deleted_order
