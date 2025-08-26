@@ -10,7 +10,7 @@ class PermissionRead(PermissionBase):
     permission_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 角色基本資料
 class RoleBase(BaseModel):
@@ -23,7 +23,7 @@ class RoleRead(RoleBase):
     # 尚未建立RolePermissionRead，所以要用forward reference（前向引用)方法
     users: Optional[List["UserRead"]] = None  # 角色底下使用者
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # 角色與權限對應關係）
@@ -34,7 +34,7 @@ class RolePermissionRead(BaseModel):
     role: Optional[RoleRead] = None  # 加上 role 詳細資料
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 為了解決 forward reference 的問題
 RoleRead.model_rebuild()
