@@ -23,7 +23,7 @@ class OrderItemRead(OrderItemBase):
     owner_id: int  # 新增商品擁有者欄位
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 產品詳細資訊
 class OrderItemReadWithDetail(OrderItemRead):
