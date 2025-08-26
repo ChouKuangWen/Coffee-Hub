@@ -19,7 +19,7 @@ class OrderUpdateStatus(BaseModel):
 
 # 回傳訂單資料用
 class OrderRead(OrderBase):
-    order_id: int
+    order_id: Optional[int] = None
     created_at: datetime
     status_updated_at: datetime
 
