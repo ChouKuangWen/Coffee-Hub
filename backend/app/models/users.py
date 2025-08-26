@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
 from app.models.roles import Roles
+from app.models.products import Products
+
 class Users(Base):
     __tablename__ = "users"  #對應資料表名稱
     user_id = Column(Integer, primary_key=True, index=True) # 主鍵，自動遞增使用者編號
@@ -16,6 +18,7 @@ class Users(Base):
     通常對應到資料庫系統中的 CURRENT_TIMESTAMP 或 NOW() 函數。"""
     created_at = Column(DateTime, default=func.now(), comment='建立時間')
     role = relationship("Roles", back_populates="users")
+    products = relationship("Products", back_populates="owner")
 
 
 
