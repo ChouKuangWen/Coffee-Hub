@@ -8,7 +8,7 @@ from app.schemas.orders import OrderRead
 # 共用基礎欄位
 class OrderItemBase(BaseModel):
     order_id: int
-    product_id: int
+    product_id: Optional[int]
     quantity: int
     price: Decimal
 
@@ -20,7 +20,6 @@ class OrderItemCreate(OrderItemBase):
 class OrderItemRead(OrderItemBase):
     order_item_id: int
     subtotal: Decimal  # 自動計算的小計
-    owner_id: int  # 新增商品擁有者欄位
 
     class Config:
         from_attributes = True
