@@ -19,7 +19,7 @@ class ProductRead(ProductBase):
     owner_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 商品更新時使用（允許部分欄位）
 class ProductUpdate(BaseModel):
@@ -29,5 +29,5 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
