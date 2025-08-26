@@ -20,7 +20,7 @@ class UserRead(UserBase):
     created_at: datetime    # 使用者註冊時間（自動生成）
 
     class Config:
-        orm_mode = True     # 用 Pydantic schema 回傳
+        from_attributes = True     # 用 Pydantic schema 回傳
 
 # 使用者登入時傳入帳號與密碼的 Schema
 class UserLogin(BaseModel):
@@ -35,7 +35,7 @@ class UserUpdate(BaseModel):
     role_id: Optional[int] = None
 
     class Config:
-        orm_model = True
+        from_attributes = True
 
 # 使用者登入或刷新 token 時，後端回傳給前端的資料格式
 class TokenResponse(BaseModel):
