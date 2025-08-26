@@ -58,12 +58,12 @@ CREATE TABLE products(
 -- 建立訂單資料表
 CREATE TABLE orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訂單 ID',
-    user_id INT NOT NULL COMMENT '下單會員 ID',
+    user_id INT  NULL COMMENT '下單會員 ID',
     status VARCHAR(50) NOT NULL DEFAULT '待付款' COMMENT '訂單狀態',
     total DECIMAL(10,2) NOT NULL COMMENT '總金額',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
     status_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '狀態變動時間',
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單資料表';
 
 -- 建立訂單項目資料表
