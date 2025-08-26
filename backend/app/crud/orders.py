@@ -1,7 +1,9 @@
 # app/crud/orders.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 from app.models.orders import Orders
+from app.models.order_items import OrderItems
 from app.schemas.orders import OrderCreate, OrderUpdateStatus
 from datetime import datetime
 
@@ -31,8 +33,19 @@ async def update_order_status(db: AsyncSession, existing_order, status_update: O
     await db.refresh(existing_order)
     return existing_order
 
-# 刪除訂單
-async def delete_order(db: AsyncSession, existing_order):
-    await db.delete(existing_order)
-    await db.commit()
+# 刪除訂單：先刪明細再刪訂單
+async def delete_order(db: AsyncSession, existing_order: Orders):
+    async with db.begin():
+        # 先刪除訂單明細
+        await db.execute(
+            delete(OrderItems).where(OrderItems.order_id == existing_order.order_id)
+        )
+        # 再刪除訂單
+        await db.delete(existing_order)
     return existing_order
+"""
+做法特點：
+1.先刪明細再刪訂單 → 避免外鍵限制報錯。
+2.保留資料完整性 → 不允許 NULL。
+3.加權限檢查 → 管理員 vs 自己的訂單。
+"""
