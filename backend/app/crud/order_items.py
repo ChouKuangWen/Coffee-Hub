@@ -1,15 +1,28 @@
 # backend/app/crud/order_items.py
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select  
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.models.order_items import OrderItems
 
 async def get_order_item(db: AsyncSession, order_item_id: int):
-    result = await db.get(OrderItems, order_item_id)
-    return result
+    result = await db.execute(
+        select(OrderItems)
+        .options(
+            selectinload(OrderItems.product),   # 預先載入 product
+            selectinload(OrderItems.order)      # 預先載入 order
+        )
+        .where(OrderItems.order_item_id == order_item_id)
+    )
+    return result.scalars().first()
+
 
 async def get_all_order_items(db: AsyncSession):
     result = await db.execute(
         select(OrderItems)
+        .options(
+            selectinload(OrderItems.product),
+            selectinload(OrderItems.order)
+        )
     )
     return result.scalars().all()
 
