@@ -23,10 +23,7 @@ async def create_new_product(db: AsyncSession, product: ProductCreate):
     return new_product
 
 # 更新商品
-async def update_product_information(db: AsyncSession, product_id, product):
-    existing_product = await get_product(db, product_id)
-    if not existing_product:
-        return None
+async def update_product_information(db: AsyncSession, product, existing_product):
     for field, value in product.dict(exclude_unset=True).items():
         setattr(existing_product, field, value)
     await db.commit()
@@ -34,12 +31,9 @@ async def update_product_information(db: AsyncSession, product_id, product):
     return existing_product
 
 # 刪除商品
-async def delete_one_product(db: AsyncSession, product_id ):
-    product = await get_product(db, product_id)
-    if not product:
-        return None
-    await db.delete(product)
+async def delete_one_product(db: AsyncSession, existing_product):
+    await db.delete(existing_product)
     await db.commit()
-    return product
+    return existing_product
 
 
