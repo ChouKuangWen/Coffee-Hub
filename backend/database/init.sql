@@ -49,6 +49,9 @@ CREATE TABLE products(
     price DECIMAL(10,2) NOT NULL COMMENT '價格',
     stock INT NOT NULL COMMENT '庫存',
     description TEXT DEFAULT NULL COMMENT '描述'
+    owner_id INT NOT NULL COMMENT '商品擁有者 (賣家)',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
+    FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商品資料表';
 
 
