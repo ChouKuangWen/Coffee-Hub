@@ -35,13 +35,13 @@ async def update_order_status(db: AsyncSession, existing_order, status_update: O
 
 # 刪除訂單：先刪明細再刪訂單
 async def delete_order(db: AsyncSession, existing_order: Orders):
-    async with db.begin():
-        # 先刪除訂單明細
-        await db.execute(
-            delete(OrderItems).where(OrderItems.order_id == existing_order.order_id)
-        )
-        # 再刪除訂單
-        await db.delete(existing_order)
+    # 先刪除訂單明細
+    await db.execute(
+        delete(OrderItems).where(OrderItems.order_id == existing_order.order_id)
+    )
+    # 再刪除訂單
+    await db.delete(existing_order)
+    await db.commit()  # 最後 commit
     return existing_order
 """
 做法特點：
