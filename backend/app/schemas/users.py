@@ -43,6 +43,7 @@ class TokenResponse(BaseModel):
     refresh_token: str
     token_type: str
     role: str          # 角色
+    role_id: int       # 角色 ID
     user_id: int       # 使用者 ID
 
 
