@@ -96,6 +96,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         "refresh_token": refresh_token,
         "token_type": "bearer",
         "role": user.role.name,   # 把角色直接回傳  Admin / Manager / Customer
+        "role_id": user.role_id,
         "user_id": user.user_id
     }
 
@@ -127,6 +128,7 @@ async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db))
         "refresh_token": token,  # refresh_token 保持不變
         "token_type": "bearer",
         "role": user.role.name,   # 加上角色
+        "role_id": user.role_id,
         "user_id": user.user_id
     }
 
