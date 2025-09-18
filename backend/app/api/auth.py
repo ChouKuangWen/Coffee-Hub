@@ -111,13 +111,21 @@ async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db))
     payload = await verify_refresh_token(token, db)
     user_id = payload["username"]
 
+    # 查出使用者角色
+    result = await db.execute(select(Users).options(selectinload(Users.role)).where(Users.user_id == user_id))
+    user = result.scalars().first()
+
     # 產生新的 access token
-    access_token, access_jti = create_access_token({"sub": user_id})
+    access_token, access_jti = create_access_token({
+        "sub": user_id,
+        "role": user.role.name
+    })
 
     return {
         "access_token": access_token,
         "refresh_token": token,  # refresh_token 保持不變
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "role": user.role.name   # 加上角色
     }
 
 
