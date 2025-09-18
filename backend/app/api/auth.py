@@ -79,6 +79,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
             detail="帳號或密碼錯誤",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # 印出使用者角色到終端機
+    print(f"User {user.email} role: {user.role.name}")
 
     # 產生 access token 和 refresh token
     # JWT payload 加入 role 名稱
