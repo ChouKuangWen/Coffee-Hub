@@ -81,13 +81,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         )
     
     # 印出使用者角色到終端機
-    print(f"User {user.email} role: {user.role.name}")
+    print(f"User {user.email} role: {user.role.name} role_id: {user.role_id}")
 
     # 產生 access token 和 refresh token
     # JWT payload 加入 role 名稱
     access_token, access_jti = create_access_token({
         "sub": str(user.user_id),
-        "role": user.role.name  # 把角色名稱放進 token payload
+        "role_id": user.role_id   # 把role_id放進 token payload
     })
     refresh_token = await create_refresh_token(str(user.user_id), db)
     await db.commit()
@@ -120,7 +120,7 @@ async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db))
     # 產生新的 access token
     access_token, access_jti = create_access_token({
         "sub": user_id,
-        "role": user.role.name
+        "role_id": user.role_id   # 把role_id放進 token payloa
     })
 
     return {
