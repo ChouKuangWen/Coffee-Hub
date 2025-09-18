@@ -22,16 +22,16 @@ const handleLogin = async () => {
       }
     )
 
-    // 後端回傳 token、role、user_id
+    // 後端回傳 token、role_id、user_id
     const token = response.data.access_token
-    const role = response.data.role // Admin / Manager / Customer
+    const roleId = response.data.role_id // 1=Admin, 2=Manager/Seller, 3=Customer
     const userId = response.data.user_id
 
-    console.log('登入成功，角色:', role)
+    console.log('登入成功，角色 ID:', roleId)
 
     // 存入 localStorage
     localStorage.setItem('access_token', token)
-    localStorage.setItem('role', role.toLowerCase())
+    localStorage.setItem('role_id', roleId)
     localStorage.setItem('user_id', userId)
 
     // 導向 Dashboard
