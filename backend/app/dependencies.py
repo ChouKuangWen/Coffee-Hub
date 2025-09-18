@@ -32,7 +32,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     print("Payload:", payload)
     
     # 獲取 token 中的使用者 ID
-    user_id = payload.get("username")
+    user_id = payload.get("sub")
+    role_id = payload.get("role_id")  # 從 token 拿 role_id
     jti = payload.get("jti")
     role_name = payload.get("role")
 
@@ -53,6 +54,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
             detail="使用者不存在",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    user.role_id = role_id  # ✅ 把 token 裡的 role_id 覆寫給 user
     return user
 
 # 授權相關依賴
@@ -69,6 +72,7 @@ def has_permission(required_role):
         allowed_roles = required_role
 
     def role_checker(current_user: Users = Depends(get_current_user)):
+        print("Checking permission: current_user.role_id =", current_user.role_id, "allowed_roles =", allowed_roles)
         if current_user.role_id not in allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
