@@ -3,22 +3,36 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const role = ref('')
+const roleId = ref(0) // 1=Admin, 2=Seller, 3=Customer
 const showPermissionAlert = ref(false)
 
 onMounted(() => {
-  // 從 localStorage 取得角色名稱
-  role.value = localStorage.getItem('role') || ''
+  // 從 localStorage 取得 role_id
+  roleId.value = Number(localStorage.getItem('role_id')) || 0
+  console.log("Dashboard roleId:", roleId.value)
 })
 
 // 會員管理按鈕點擊事件
 const goUsers = () => {
-  if (role.value === 'admin') {
+  console.log("點擊會員管理，roleId:", roleId.value)
+  const role = Number(roleId.value) // 強制轉型
+  console.log("點擊會員管理，role:", role, "型別:", typeof role)
+  if (roleId.value === 1) {
     router.push('/users')
   } else {
     showPermissionAlert.value = true
     setTimeout(() => { showPermissionAlert.value = false }, 3000)
   }
+}
+
+// 訂單管理按鈕點擊事件
+const goOrders = () => {
+  router.push('/orders')
+}
+
+// 商品管理按鈕點擊事件
+const goProducts = () => {
+  router.push('/products')
 }
 </script>
 
@@ -32,17 +46,17 @@ const goUsers = () => {
 
     <!-- 卡片區 -->
     <div class="card-container">
-      <router-link class="card" to="/orders">
+      <div class="card" @click="goOrders">
         <h3>訂單管理</h3>
-      </router-link>
+      </div>
 
       <div class="card" @click="goUsers">
         <h3>會員管理</h3>
       </div>
 
-      <router-link class="card" to="/products">
+      <div class="card" @click="goProducts">
         <h3>商品管理</h3>
-      </router-link>
+      </div>
     </div>
 
     <!-- 權限不足浮動視窗 -->

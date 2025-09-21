@@ -34,10 +34,12 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({
         "exp": expire,
         "jti": jti_value,
+        "sub": str(data.get("user_id")),  #  加上使用者 ID 當主體
+        "role_id": data.get("role_id")
         # 新增角色資訊（可選）
-        "role": data.get("role"),
+       # "role_id": data.get("role_id"),
         # 或直接塞權限列表
-        "permissions": data.get("permissions", [])
+        #"permissions": data.get("permissions", [])
     })
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM),  jti_value  # jwt.encode() 加密並簽名資料 建立JWT
 
@@ -46,8 +48,10 @@ async def verify_access_token(token: str, db: AsyncSession) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")  # sub是JWT標準欄位， Subject（主體）
+        username: str = payload.get("username") # <-- 💡 新增這行，從 Payload 取得正確的 username
         jti: str = payload.get("jti") # 獲取 jti
-        role_id: str = payload.get("role")        # 角色名稱
+        #role_id: str = payload.get("role")        # 角色名稱
+        role_id: int = int(payload.get("role_id", 0))  # 確保轉成整數
 
         if user_id is None or jti is None: # 檢查 user_id 和 jti 是否都存在
             raise credentials_exception()
@@ -55,7 +59,7 @@ async def verify_access_token(token: str, db: AsyncSession) -> dict:
         # 檢查是否在黑名單（如登出）且是否為一次性 token 且已使用
         if await is_jti_blacklisted(db, jti):# or await is_jti_used(db, jti):
             raise credentials_exception()
-        return {"username": user_id, "jti": jti, "role": role_id} # 回傳包含 user_id 和 jti 的字典
+        return {"sub": user_id, "username": username, "jti": jti, "role_id": role_id} # 回傳包含 username 和 jti 的字典
 
     except JWTError:
         raise credentials_exception()

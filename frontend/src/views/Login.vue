@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import qs from 'qs'
 
 const router = useRouter()
 const email = ref('')
@@ -10,13 +11,15 @@ const error = ref('')
 
 const handleLogin = async () => {
   try {
-    // 改用 JSON 傳送
+    // 修正後：使用 qs 將 JSON 物件轉換為表單數據格式
+    const requestBody = qs.stringify({
+      username: email.value,
+      password: password.value
+    })
+
     const response = await axios.post(
       'http://localhost:8000/auth/login',
-      {
-        username: email.value,
-        password: password.value
-      },
+      requestBody, // 傳送表單數據
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       }
@@ -24,16 +27,17 @@ const handleLogin = async () => {
 
     // 後端回傳 token、role_id、user_id
     const token = response.data.access_token
-    const roleId = response.data.role_id // 1=Admin, 2=Manager/Seller, 3=Customer
+    const roleId = response.data.role_id  // 1=Admin, 2=Manager/Seller, 3=Customer
     const userId = response.data.user_id
-
-    console.log('登入成功，角色 ID:', roleId)
 
     // 存入 localStorage
     localStorage.setItem('access_token', token)
     localStorage.setItem('role_id', roleId)
     localStorage.setItem('user_id', userId)
-
+    
+    // 印出檢查
+    console.log('登入成功，角色 ID:', localStorage.getItem('role_id'))
+    console.log('user_id:', localStorage.getItem('user_id'))
     // 導向 Dashboard
     router.push('/dashboard')
   } catch (err) {

@@ -36,7 +36,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     role_id = payload.get("role_id")  # 從 token 拿 role_id
     jti = payload.get("jti")
     role_name = payload.get("role")
-
+    print()
+    print("role_id from token:", role_id)
+    print()
     if not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

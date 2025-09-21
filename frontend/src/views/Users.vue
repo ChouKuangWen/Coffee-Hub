@@ -2,10 +2,10 @@
   <div class="p-6">
     <h2 class="text-2xl font-bold mb-4">會員管理</h2>
 
-    <!-- 僅限 Admin 可新增使用者 -->
+    <!-- 僅 Admin 可新增使用者 -->
     <button
       v-if="roleId === 1"
-      class="bg-green-500 text-white px-4 py-2 rounded mb-4"
+      class="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600 transition"
       @click="openCreateModal"
     >
       ➕ 新增使用者
@@ -34,7 +34,7 @@
             <!-- Admin 可以編輯任何人，使用者自己也能編輯 -->
             <button
               v-if="roleId === 1 || currentUserId === user.user_id"
-              class="bg-blue-500 text-white px-2 py-1 rounded mr-2"
+              class="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600 transition"
               @click="openEditModal(user)"
             >
               編輯
@@ -43,7 +43,7 @@
             <!-- 只有 Admin 可以刪除 -->
             <button
               v-if="roleId === 1"
-              class="bg-red-500 text-white px-2 py-1 rounded"
+              class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition"
               @click="deleteUser(user.user_id)"
             >
               刪除
@@ -56,9 +56,9 @@
     <!-- Modal -->
     <div
       v-if="showModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
     >
-      <div class="bg-white p-6 rounded w-96">
+      <div class="bg-white p-6 rounded w-96 shadow-lg">
         <h3 class="text-xl font-bold mb-4">
           {{ editingUser ? '編輯使用者' : '新增使用者' }}
         </h3>
@@ -80,24 +80,28 @@
             <label>地址：</label>
             <input v-model="form.address" class="border w-full px-2 py-1" />
           </div>
+
+          <!-- 角色選擇 (僅 Admin 可改) -->
           <div class="mb-2" v-if="roleId === 1">
             <label>角色：</label>
-            <select v-model="form.role_id" class="border w-full px-2 py-1">
-              <option value="1">Admin</option>
-              <option value="2">Seller</option>
-              <option value="3">Customer</option>
+            <select v-model.number="form.role_id" class="border w-full px-2 py-1">
+              <option :value="1">Admin</option>
+              <option :value="2">Seller</option>
+              <option :value="3">Customer</option>
             </select>
           </div>
+
+          <!-- 新增使用者才顯示密碼欄 -->
           <div class="mb-2" v-if="!editingUser">
             <label>密碼：</label>
             <input v-model="form.password" type="password" class="border w-full px-2 py-1" required />
           </div>
 
           <div class="flex justify-end mt-4">
-            <button type="button" class="px-4 py-2 mr-2 border rounded" @click="closeModal">
+            <button type="button" class="px-4 py-2 mr-2 border rounded hover:bg-gray-100 transition" @click="closeModal">
               取消
             </button>
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">
               儲存
             </button>
           </div>
@@ -110,7 +114,7 @@
 <script setup>
 import { ref, onMounted } from "vue"
 import axios from "axios"
-
+import api from "@/api"
 const users = ref([])
 const showModal = ref(false)
 const editingUser = ref(null)
@@ -123,27 +127,31 @@ const form = ref({
   password: ""
 })
 
-// 從 localStorage 拿當前登入者的角色 & ID
-const roleId = Number(localStorage.getItem("role_id")) // 1 = Admin
-const currentUserId = Number(localStorage.getItem("user_id"))
+// 從 localStorage 拿當前登入者的角色 & ID (Number 型態)
+const roleId = Number(localStorage.getItem("role_id") || 0)
+const currentUserId = Number(localStorage.getItem("user_id") || 0)
 
 // 角色對照
-const roleMap = {
-  1: "Admin",
-  2: "Seller",
-  3: "Customer"
-}
+const roleMap = { 1: "Admin", 2: "Seller", 3: "Customer" }
 
-const API_URL = "http://127.0.0.1:8000/users"
+// API URL
+const API_URL = "http://127.0.0.1:8000/users/"
 
 // 讀取所有使用者
 const fetchUsers = async () => {
   try {
-    const res = await axios.get(API_URL, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-    })
+    /*const token = localStorage.getItem("access_token")
+    console.log("fetchUsers called, token:", token)  // ✅ debug token
+
+    if (!token) {
+      alert("未取得 access token，請重新登入")
+      return
+    }*/
+    const res = await api.get(API_URL)
+    console.log("users response:", res.data)
     users.value = res.data
   } catch (err) {
+    console.error("fetchUsers error:", err)
     if (err.response?.status === 403) {
       alert("您沒有權限查看會員資料")
     } else {
@@ -162,7 +170,7 @@ const openCreateModal = () => {
 // 打開編輯 Modal
 const openEditModal = (user) => {
   editingUser.value = user
-  form.value = { ...user }
+  form.value = { ...user } // 保留原資料
   showModal.value = true
 }
 
@@ -174,31 +182,30 @@ const closeModal = () => {
 // 儲存 (新增或編輯)
 const saveUser = async () => {
   try {
+    // 確保 role_id 是數字
+    form.value.role_id = Number(form.value.role_id)
+    // 💡 修正：將所有 axios 呼叫替換為 api
     if (editingUser.value) {
-      await axios.put(`${API_URL}/${editingUser.value.user_id}`, form.value, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-      })
+      await api.put(`${API_URL}/${editingUser.value.user_id}`, form.value)
     } else {
-      await axios.post(API_URL, form.value, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-      })
+      await api.post(API_URL, form.value)
     }
     await fetchUsers()
     closeModal()
   } catch (err) {
+    console.error("saveUser error:", err)
     alert("操作失敗：" + (err.response?.data?.detail || err.message))
   }
 }
 
-// 刪除使用者 (只有 Admin 可刪)
+// 刪除使用者 (僅 Admin)
 const deleteUser = async (id) => {
   if (!confirm("確定要刪除嗎？")) return
   try {
-    await axios.delete(`${API_URL}/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
-    })
+    await api.delete(`${API_URL}/${id}`)
     await fetchUsers()
   } catch (err) {
+    console.error("deleteUser:", err)
     alert("刪除失敗：" + (err.response?.data?.detail || err.message))
   }
 }
