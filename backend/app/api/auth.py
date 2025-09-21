@@ -63,6 +63,8 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 # 使用者登入，回傳 access_token 和 refresh_token
 @router.post("/login", response_model=TokenResponse)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+    print("### Running the login route... ###") # <--- 在這裡加上這行
+
     """
     使用者登入，使用 OAuth2PasswordRequestForm 處理表單資料。
     - 驗證使用者帳號和密碼。
@@ -87,7 +89,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     # JWT payload 加入 role 名稱
     access_token, access_jti = create_access_token({
         "sub": str(user.user_id),
-        "role_id": user.role_id   # 把role_id放進 token payload
+        "username": user.email,
+        "role_id": user.role_id,   # 把role_id放進 token payload
+        "user_id": user.user_id
     })
     refresh_token = await create_refresh_token(str(user.user_id), db)
     await db.commit()
@@ -100,7 +104,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
         "user_id": user.user_id
     }
 
-
 # 使用 refresh_token 換取新的 access_token
 @router.post("/refresh-token", response_model=TokenResponse)
 async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db)):
@@ -111,7 +114,7 @@ async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db))
     """
     # 驗證 refresh token 並取得 payload
     payload = await verify_refresh_token(token, db)
-    user_id = payload["username"]
+    user_id = payload["sub"]
 
     # 查出使用者角色
     result = await db.execute(select(Users).options(selectinload(Users.role)).where(Users.user_id == user_id))
