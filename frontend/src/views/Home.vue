@@ -9,10 +9,10 @@ const goLogin = () => {
 
 // 假資料（之後可以從後端 API 抓取）
 const products = ref([
-  { id: 1, name: '蘋果', price: 50, image: 'https://picsum.photos/200?random=1' },
-  { id: 2, name: '香蕉', price: 30, image: 'https://picsum.photos/200?random=2' },
-  { id: 3, name: '草莓', price: 100, image: 'https://picsum.photos/200?random=3' },
-  { id: 4, name: '咖啡豆', price: 300, image: 'https://picsum.photos/200?random=4' }
+  { id: 1, name: '耶加雪菲', price: 450, image: 'https://picsum.photos/200?random=11' },
+  { id: 2, name: '曼特寧', price: 400, image: 'https://picsum.photos/200?random=12' },
+  { id: 3, name: '衣索比亞', price: 500, image: 'https://picsum.photos/200?random=13' },
+  { id: 4, name: '哥倫比亞', price: 420, image: 'https://picsum.photos/200?random=14' }
 ])
 </script>
 
@@ -21,25 +21,27 @@ const products = ref([
   <div class="home">
     <!-- 頂部導覽列 -->
     <header class="navbar">
-      <h1 class="logo">🛒 亂買購物</h1>
+      <h1 class="logo">Coffee Trade</h1>
       <button class="login-btn" @click="goLogin">登入</button>
     </header>
 
     <!-- Hero 區塊 -->
     <section class="hero">
-      <h2>歡迎來到購物網站</h2>
-      <p>瀏覽商品，登入後享受專屬優惠！</p>
+      <div class="hero-content">
+        <h2>精品咖啡，極致品味</h2>
+        <p>探索世界各地的咖啡風味，專屬於你的交易平台。</p>
+      </div>
     </section>
 
     <!-- 商品展示區 -->
     <section class="products">
-      <h3>精選商品</h3>
+      <h3>精選咖啡豆</h3>
       <div class="product-grid">
         <div class="product-card" v-for="item in products" :key="item.id">
           <img :src="item.image" :alt="item.name" />
           <h4>{{ item.name }}</h4>
-          <p>{{ item.price }} 元</p>
-          <button>加入購物車</button>
+          <p class="price">{{ item.price }} 元</p>
+          <button class="buy-btn">加入購物車</button>
         </div>
       </div>
     </section>
@@ -49,8 +51,9 @@ const products = ref([
 
 <style scoped>
 .home {
-  font-family: 'Noto Sans TC', '思源黑體', Arial, sans-serif;
-  background: #fdfdfd;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans TC", sans-serif;
+  background: #fff;
+  color: #111;
 }
 
 /* 導覽列 */
@@ -58,110 +61,127 @@ const products = ref([
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(90deg, #42b883, #38a6d0);
-  padding: 12px 24px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 18px 40px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
 }
 .logo {
-  font-weight: bold;
-  font-size: 1.5rem;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.5px;
 }
 .login-btn {
-  background: linear-gradient(90deg, #ffd200, #f7971e);
+  background: #111;
   color: #fff;
   border: none;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-weight: bold;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background 0.3s;
 }
 .login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  background: #333;
 }
 
 /* Hero 區 */
 .hero {
+  background: url("https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 80px 20px; /* 增加上下間距 */
-  background: #f5f5f5; /* 改為單色淡灰，淡化漸層 */
+  position: relative;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45); /* 黑色透明遮罩 */
+}
+.hero-content {
+  position: relative;
+  z-index: 1;
+  color: #fff;
 }
 .hero h2 {
-  font-size: 2.2rem;
-  font-weight: 900;
-  margin-bottom: 10px;
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 .hero p {
-  font-size: 1.1rem;
-  color: #555;
-  margin-top: 0;
+  font-size: 1.2rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 /* 商品區 */
 .products {
-  padding: 30px 20px;
+  padding: 60px 20px;
   text-align: center;
 }
 .products h3 {
-  font-size: 1.6rem;
-  margin-bottom: 20px;
+  font-size: 1.8rem;
+  margin-bottom: 40px;
+  font-weight: 600;
 }
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* auto-fit 可以自動填滿 */
-  gap: 24px;
-  justify-content: center; /* 水平置中 */
-  max-width: 1000px; /* 限制最大寬度 */
-  margin: 0 auto; /* 置中整個 grid */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 .product-card {
-  border-radius: 12px;
-  padding: 15px;
   background: #fff;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
 }
 .product-card img {
-  width: 120px;
-  height: 120px;
+  width: 100%;
+  height: 200px;
   object-fit: cover;
   border-radius: 10px;
-  display: block;
-  margin: 0 auto 10px auto; /* 置中圖片 */
+  margin-bottom: 20px;
 }
 .product-card h4 {
-  margin: 8px 0 5px;
-  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
-.product-card p {
-  margin-bottom: 10px;
-  color: #666;
+.price {
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: #444;
 }
-.product-card button {
-  background: linear-gradient(90deg, #42b883, #38a6d0);
-  color: white;
+.buy-btn {
+  background: #111;
+  color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: bold;
+  padding: 10px 22px;
+  border-radius: 22px;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background 0.3s;
 }
-.product-card button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+.buy-btn:hover {
+  background: #333;
 }
 
 /* 響應式 */
-@media (max-width: 400px) {
-  .product-card img {
-    height: 100px;
+@media (max-width: 480px) {
+  .hero h2 {
+    font-size: 2rem;
+  }
+  .hero p {
+    font-size: 1rem;
   }
 }
 </style>
