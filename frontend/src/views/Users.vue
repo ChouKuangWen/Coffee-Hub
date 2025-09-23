@@ -135,7 +135,7 @@ const currentUserId = Number(localStorage.getItem("user_id") || 0)
 const roleMap = { 1: "Admin", 2: "Seller", 3: "Customer" }
 
 // API URL
-const API_URL = "http://127.0.0.1:8000/users/"
+const API_URL = "http://127.0.0.1:8000/users"
 
 // 讀取所有使用者
 const fetchUsers = async () => {
