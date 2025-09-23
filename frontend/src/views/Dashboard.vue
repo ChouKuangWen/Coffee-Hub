@@ -68,34 +68,36 @@ const goProducts = () => {
 
 <style scoped>
 .dashboard-page {
-  font-family: 'Noto Sans TC', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans TC", sans-serif;
   min-height: 100vh;
-  background: #f5f5f5;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #f0f4f8, #e0e7ef); /* 淺灰藍漸層背景 */
 }
 
 /* Hero 區 */
 .hero {
   text-align: center;
-  padding: 50px 20px;
-  background: linear-gradient(135deg, #42b883, #2a9d8f);
-  color: white;
+  padding: 60px 30px;
+  background: #fff;
   border-radius: 16px;
   width: 100%;
   max-width: 700px;
-  margin-bottom: 40px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  margin-bottom: 50px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
 }
 .hero .title {
-  font-size: 2.2rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  color: #111;
 }
 .hero .subtitle {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #555;
 }
 
 /* 卡片容器 */
@@ -103,7 +105,7 @@ const goProducts = () => {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 25px;
+  gap: 30px;
   width: 100%;
   max-width: 900px;
 }
@@ -115,19 +117,19 @@ const goProducts = () => {
   align-items: center;
   width: 180px;
   height: 120px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: #fff;
+  color: #111;
   text-decoration: none;
   border-radius: 12px;
   font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s, box-shadow 0.3s;
 }
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 /* 權限不足浮動視窗 */
@@ -135,12 +137,12 @@ const goProducts = () => {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: #e74c3c;
+  background: rgba(231, 76, 60, 0.95);
   color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   animation: fadein 0.3s;
 }
 
