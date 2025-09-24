@@ -4,7 +4,7 @@ import Home from './views/Home.vue'
 import Login from './views/Login.vue'
 import Dashboard from './views/Dashboard.vue'
 import Users from './views/Users.vue'
-//import Users from './views/Users.vue'
+import Register from './views/Register.vue'
 //import Orders from './views/Orders.vue'
 //import Products from './views/Products.vue'
 //import Forbidden from './views/Forbidden.vue'
@@ -14,6 +14,7 @@ const routes = [
   { path: '/home', component: Home },    // 新增 Home 頁
   { path: '/login', component: Login },   // 登入頁
   { path: '/dashboard', component: Dashboard }, // 登入後的主頁
+  { path: '/register', component: Register },   // 註冊頁
   { path: '/users', component: Users, meta: { requiresRole: 1 } }  // 使用者查詢
 ]
 
@@ -28,7 +29,7 @@ router.beforeEach((to, from, next) => {
   const roleId = Number(localStorage.getItem("role_id"))
 
   // 首頁 & 登入頁不檢查
-  if (to.path === '/home' || to.path === '/login') return next()
+  if (to.path === '/home' || to.path === '/login' || to.path === '/register') return next()
 
   // 如果沒登入就導到 login
   if (!token) return next('/login')
