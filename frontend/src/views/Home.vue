@@ -1,13 +1,62 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import axios from 'axios'
 
 const router = useRouter()
+
+// 判斷使用者是否已登入
+const isLoggedIn = computed(() => {
+  return localStorage.getItem('access_token') !== null
+})
+
+// 導向登入頁面
 const goLogin = () => {
   router.push('/login')
 }
 
-// 假資料（之後可以從後端 API 抓取）
+// 導向註冊頁面
+const goRegister = () => {
+  router.push('/register')
+}
+
+// 導向「我的帳戶」（Dashboard）頁面
+const goAccount = () => {
+  router.push('/dashboard')
+}
+
+// 修正後的登出方法
+const handleLogout = async () => {
+  const token = localStorage.getItem('access_token')
+  
+  if (token) {
+    try {
+      await axios.post(
+        'http://localhost:8000/auth/logout',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      console.log('後端登出成功')
+    } catch (error) {
+      console.error('登出請求失敗:', error)
+    }
+  }
+
+  // 清除 localStorage 中的使用者資訊
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('role_id')
+  localStorage.removeItem('user_id')
+  
+  // ⭐ 關鍵修正：導向首頁並強制重新載入，以更新導覽列狀態
+  router.push('/')
+  window.location.reload()
+}
+
+// 假資料
 const products = ref([
   { id: 1, name: '耶加雪菲', price: 450, image: 'https://picsum.photos/200?random=11' },
   { id: 2, name: '曼特寧', price: 400, image: 'https://picsum.photos/200?random=12' },
@@ -16,16 +65,22 @@ const products = ref([
 ])
 </script>
 
-
 <template>
   <div class="home">
-    <!-- 頂部導覽列 -->
     <header class="navbar">
       <h1 class="logo">Coffee Trade</h1>
-      <button class="login-btn" @click="goLogin">登入</button>
+      
+      <div v-if="isLoggedIn" class="button-group">
+        <button class="account-btn" @click="goAccount">我的帳戶</button>
+        <button class="logout-btn" @click="handleLogout">登出</button>
+      </div>
+      
+      <div v-else class="button-group">
+        <button class="register-btn" @click="goRegister">註冊</button>
+        <button class="login-btn" @click="goLogin">登入</button>
+      </div>
     </header>
 
-    <!-- Hero 區塊 -->
     <section class="hero">
       <div class="hero-content">
         <h2>精品咖啡，極致品味</h2>
@@ -33,7 +88,6 @@ const products = ref([
       </div>
     </section>
 
-    <!-- 商品展示區 -->
     <section class="products">
       <h3>精選咖啡豆</h3>
       <div class="product-grid">
@@ -47,7 +101,6 @@ const products = ref([
     </section>
   </div>
 </template>
-
 
 <style scoped>
 .home {
@@ -70,6 +123,13 @@ const products = ref([
   font-size: 1.3rem;
   letter-spacing: 0.5px;
 }
+
+/* 導覽列按鈕群組 */
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+/* 登入按鈕 */
 .login-btn {
   background: #111;
   color: #fff;
@@ -82,6 +142,48 @@ const products = ref([
 }
 .login-btn:hover {
   background: #333;
+}
+/* 註冊按鈕 */
+.register-btn {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.register-btn:hover {
+  background: #e0e0e0;
+}
+/* 我的帳戶按鈕 */
+.account-btn {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.account-btn:hover {
+  background: #e0e0e0;
+}
+/* 登出按鈕 */
+.logout-btn {
+  background: #d44;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.logout-btn:hover {
+  background: #c00;
 }
 
 /* Hero 區 */
