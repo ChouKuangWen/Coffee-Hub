@@ -38,8 +38,8 @@ const handleLogin = async () => {
     // 印出檢查
     console.log('登入成功，角色 ID:', localStorage.getItem('role_id'))
     console.log('user_id:', localStorage.getItem('user_id'))
-    // 導向 Dashboard
-    router.push('/dashboard')
+    // 登入後導向至首頁
+    router.push('/')
   } catch (err) {
     console.error(err)
     error.value = '登入失敗，請檢查帳號密碼'
