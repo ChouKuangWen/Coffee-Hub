@@ -1,3 +1,4 @@
+#backend\app\core\sanitizer.py
 import bleach
 
 # 由於我們只允許純文本輸入欄位，我們將使用 bleach 移除所有 HTML 標籤。
