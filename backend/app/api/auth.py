@@ -1,8 +1,8 @@
 # app/api/auth.py
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.schemas.users import UserCreate, TokenResponse
+from app.schemas.users import UserCreate, UserRead, TokenResponse
 from app.models.users import Users
 from app.core.security import verify_password, hash_password
 from app.core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
@@ -12,12 +12,23 @@ from datetime import timedelta
 from jose import jwt, JWTError
 from app.core.config import settings
 from sqlalchemy.orm import selectinload
+from app.dependencies import get_current_user_from_cookie
+
+
 
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
 
 # 只允許 Manager = 2, Customer = 3
 allowed_roles = [2, 3]
+
+#  取得目前登入使用者資訊
+@router.get("/me", response_model=UserRead)
+async def read_users_me(
+    current_user: Users = Depends(get_current_user_from_cookie),
+    db: AsyncSession = Depends(get_db)
+):
+    return current_user
 
 # 註冊使用者
 @router.post("/register", response_model=dict)
@@ -62,7 +73,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 # 使用者登入，回傳 access_token 和 refresh_token
 @router.post("/login", response_model=TokenResponse)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     print("### Running the login route... ###") # <--- 在這裡加上這行
 
     """
@@ -95,6 +106,26 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     })
     refresh_token = await create_refresh_token(str(user.user_id), db)
     await db.commit()
+
+    # ✅ 修改：增加 HttpOnly cookie
+    response.set_cookie(
+    key="access_token",               # Cookie 名稱，前端 JS 不可讀
+    value=access_token,               # Cookie 的值，也就是你的 JWT
+    httponly=True,                    # 讓 JS 無法透過 document.cookie 讀取，減少 XSS 攻擊風險
+    secure=True,                      # 只允許 HTTPS 傳輸，保護 token 在網路上不被竊取
+    samesite="lax",                   # 防止 CSRF 攻擊，僅允許同站請求攜帶 cookie
+    max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Cookie 過期秒數
+    )
+
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    )
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -106,7 +137,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
 
 # 使用 refresh_token 換取新的 access_token
 @router.post("/refresh-token", response_model=TokenResponse)
-async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db)):
+async def refresh_token_endpoint(response: Response, token: str, db: AsyncSession = Depends(get_db)):
     """
     使用 refresh token 換取新的 access token。
     - 驗證 refresh token 的有效性。
@@ -126,6 +157,17 @@ async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db))
         "role_id": user.role_id   # 把role_id放進 token payloa
     })
 
+    # ✅ 將新的 access_token 放入 HttpOnly cookie
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
+
+
     return {
         "access_token": access_token,
         "refresh_token": token,  # refresh_token 保持不變
@@ -138,31 +180,27 @@ async def refresh_token_endpoint(token: str, db: AsyncSession = Depends(get_db))
 
 # 登出：將 access_token 和 refresh_token 加入黑名單
 @router.post("/logout", response_model=dict)
-async def logout(
-    access_token_cred: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
+async def logout(response: Response,
+    access_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db)
 ):
-    """
-    登出使用者。
-    - 從 Authorization Header 中獲取 access token。
-    - 將 access token 加入黑名單。
-    - 此處僅將 access token 加入黑名單，
-      若要將 refresh token 也加入黑名單，需要額外傳入。
-    """
-    access_token = access_token_cred.credentials
+    if not access_token:
+        raise HTTPException(status_code=401, detail="尚未登入")
 
     try:
-        # 解碼 access token
         access_payload = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
     except JWTError:
-        raise HTTPException(status_code=401, detail="Token 無效", headers={"WWW-Authenticate": "Bearer"})
+        raise HTTPException(status_code=401, detail="Token 無效")
 
     access_jti = access_payload.get("jti")
-
     if not access_jti:
         raise HTTPException(status_code=400, detail="Token 無效")
 
-     # 這裡要呼叫撤銷函式，把 token jti 加入黑名單
+    # 將 token 加入黑名單
     await revoke_tokens(db, access_jti, None)
+
+    # 刪除 cookie
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
 
     return {"message": "登出成功"}
