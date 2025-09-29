@@ -21,7 +21,8 @@ const handleLogin = async () => {
       'http://localhost:8000/auth/login',
       requestBody, // 傳送表單數據
       {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        withCredentials: true  // 修改：讓瀏覽器帶 HttpOnly cookie
       }
     )
 
@@ -31,7 +32,7 @@ const handleLogin = async () => {
     const userId = response.data.user_id
 
     // 存入 localStorage
-    localStorage.setItem('access_token', token)
+    //localStorage.setItem('access_token', token)
     localStorage.setItem('role_id', roleId)
     localStorage.setItem('user_id', userId)
     
@@ -40,6 +41,7 @@ const handleLogin = async () => {
     console.log('user_id:', localStorage.getItem('user_id'))
     // 登入後導向至首頁
     router.push('/')
+
   } catch (err) {
     console.error(err)
     error.value = '登入失敗，請檢查帳號密碼'
