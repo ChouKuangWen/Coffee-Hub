@@ -13,7 +13,7 @@ app = FastAPI(
 # 可依需求修改 CORS 設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 可改為前端網址，例如 http://localhost:3000
+    allow_origins=["http://localhost:5173"],  # 可改為前端網址，例如 http://localhost:3000
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

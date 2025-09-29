@@ -1,5 +1,5 @@
 # app/dependencies.py
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Cookie
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession  # 非同步
 from sqlalchemy.future import select           # 引入 select
@@ -58,6 +58,53 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         )
     
     user.role_id = role_id  # ✅ 把 token 裡的 role_id 覆寫給 user
+    return user
+
+async def get_current_user_from_cookie(
+    access_token: str | None = Cookie(default=None),
+    db: AsyncSession = Depends(get_db)
+) -> Users:
+    """
+    從 HttpOnly Cookie 讀取 access_token 並取得當前使用者
+    """
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="尚未登入",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # 驗證 token
+    payload = await verify_access_token(access_token, db)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token 無效或過期",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    user_id = payload.get("sub")
+    role_id = payload.get("role_id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token 格式錯誤或無效",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # 查詢使用者資料
+    result = await db.execute(select(Users).where(Users.user_id == int(user_id)))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="使用者不存在",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # 將 token 內的 role_id 覆寫給 user
+    user.role_id = role_id
+    print("顯示" + access_token, payload)
     return user
 
 # 授權相關依賴
