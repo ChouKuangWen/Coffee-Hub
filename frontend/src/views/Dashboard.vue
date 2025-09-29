@@ -1,39 +1,26 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+axios.defaults.withCredentials = true
 
 const router = useRouter()
-const roleId = ref(0) // 1=Admin, 2=Seller, 3=Customer
-const showPermissionAlert = ref(false)
+const user = ref(null)
+const loading = ref(true)
 
-onMounted(() => {
-  // 從 localStorage 取得 role_id
-  roleId.value = Number(localStorage.getItem('role_id')) || 0
-  console.log("Dashboard roleId:", roleId.value)
-})
-
-// 會員管理按鈕點擊事件
-const goUsers = () => {
-  console.log("點擊會員管理，roleId:", roleId.value)
-  const role = Number(roleId.value) // 強制轉型
-  console.log("點擊會員管理，role:", role, "型別:", typeof role)
-  if (roleId.value === 1) {
-    router.push('/users')
-  } else {
-    showPermissionAlert.value = true
-    setTimeout(() => { showPermissionAlert.value = false }, 3000)
+onMounted(async () => {
+  try {
+    const res = await axios.get("http://localhost:8000/auth/me")
+    user.value = res.data
+    console.log("Dashboard 已登入使用者:", res.data)
+  } catch (err) {
+    console.log("尚未登入或 token 無效", err)
+    router.push('/login') // 無法驗證就跳登入頁
+  } finally {
+    loading.value = false
   }
-}
-
-// 訂單管理按鈕點擊事件
-const goOrders = () => {
-  router.push('/orders')
-}
-
-// 商品管理按鈕點擊事件
-const goProducts = () => {
-  router.push('/products')
-}
+})
 </script>
 
 <template>
