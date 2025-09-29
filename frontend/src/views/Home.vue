@@ -1,14 +1,33 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 
 const router = useRouter()
 
+const user = ref(null)   //  修改：改成存放目前使用者，而不是用 localStorage
+const loading = ref(true)
+
+//  修改：讓 axios 每次請求都會帶上 Cookie
+axios.defaults.withCredentials = true
+
+//  新增：從後端拿使用者資訊 (/auth/me)
+const fetchCurrentUser = async () => {
+  try {
+    const res = await axios.get("http://localhost:8000/auth/me")
+    user.value = res.data
+    console.log("已登入使用者:", res.data)
+  } catch (error) {
+    user.value = null
+    console.log("尚未登入")
+  } finally {
+    loading.value = false
+  }
+}
+
 // 判斷使用者是否已登入
-const isLoggedIn = computed(() => {
-  return localStorage.getItem('access_token') !== null
-})
+const isLoggedIn = computed(() => user.value !== null)
+
 
 // 導向登入頁面
 const goLogin = () => {
@@ -25,36 +44,21 @@ const goAccount = () => {
   router.push('/dashboard')
 }
 
-// 修正後的登出方法
+// 登出時不用清 localStorage，直接呼叫後端清除 Cookie
 const handleLogout = async () => {
-  const token = localStorage.getItem('access_token')
-  
-  if (token) {
-    try {
-      await axios.post(
-        'http://localhost:8000/auth/logout',
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-      console.log('後端登出成功')
-    } catch (error) {
-      console.error('登出請求失敗:', error)
-    }
+  try {
+    await axios.post("http://localhost:8000/auth/logout")
+    console.log("後端登出成功")
+  } catch (error) {
+    console.error("登出失敗:", error)
   }
-
-  // 清除 localStorage 中的使用者資訊
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('role_id')
-  localStorage.removeItem('user_id')
-  
-  // ⭐ 關鍵修正：導向首頁並強制重新載入，以更新導覽列狀態
+  user.value = null
   router.push('/')
   window.location.reload()
 }
+
+// 新增：頁面載入時自動檢查是否已登入
+onMounted(fetchCurrentUser)
 
 // 假資料
 const products = ref([
@@ -69,7 +73,7 @@ const products = ref([
   <div class="home">
     <header class="navbar">
       <h1 class="logo">Coffee Trade</h1>
-      
+      <div v-if="!loading"></div>
       <div v-if="isLoggedIn" class="button-group">
         <button class="account-btn" @click="goAccount">我的帳戶</button>
         <button class="logout-btn" @click="handleLogout">登出</button>
