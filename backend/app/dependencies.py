@@ -120,7 +120,7 @@ def has_permission(required_role):
     else:
         allowed_roles = required_role
 
-    def role_checker(current_user: Users = Depends(get_current_user)):
+    def role_checker(current_user: Users = Depends(get_current_user_from_cookie)): # 👈 修正：改用 Cookie 驗證
         print("Checking permission: current_user.role_id =", current_user.role_id, "allowed_roles =", allowed_roles)
         if current_user.role_id not in allowed_roles:
             raise HTTPException(
