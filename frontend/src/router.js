@@ -6,8 +6,7 @@ import Dashboard from './views/Dashboard.vue'
 import Users from './views/Users.vue'
 import Register from './views/Register.vue'
 import Orders from './views/Orders.vue'
-//import Products from './views/Products.vue'
-//import Forbidden from './views/Forbidden.vue'
+import Products from './views/Products.vue'
 import api from './api'
 
 const routes = [
@@ -17,7 +16,8 @@ const routes = [
   { path: '/dashboard', component: Dashboard }, // 登入後的主頁
   { path: '/register', component: Register },   // 註冊頁
   { path: '/users', component: Users },  // 使用者查詢
-  { path: '/orders', component: Orders }  // 使用者查詢
+  { path: '/orders', component: Orders },  // 訂單查詢
+  { path: '/products', component: Products }  // 訂單查詢
 
 ]
 
