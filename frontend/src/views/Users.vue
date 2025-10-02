@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
 import api from "@/api";
 
 // 狀態管理
@@ -17,20 +18,31 @@ const form = ref({
 });
 const searchKeyword = ref("");
 
-// 從 localStorage 拿當前登入者的角色 & ID (Number 型態)
-const roleId = Number(localStorage.getItem("role_id") || 0);
-const currentUserId = Number(localStorage.getItem("user_id") || 0);
+// 用來存 /auth/me 回傳的使用者資訊
+const currentUser = ref(null); 
+const loading = ref(true);       
+const router = useRouter();
 
 // 角色對照
 const roleMap = { 1: "Admin", 2: "Seller", 3: "Customer" };
 
-// API URL
-const API_URL = "http://127.0.0.1:8000/users";
+// 取得當前登入使用者資訊
+const fetchCurrentUser = async () => { 
+  try {
+    const res = await api.get("/auth/me"); 
+    currentUser.value = res.data;
+  } catch (err) {
+    console.error("fetchCurrentUser error:", err);
+    router.push("/login"); // 若未登入或 token 無效，跳回登入頁
+  } finally {
+    loading.value = false;
+  }
+};
 
 // 讀取所有使用者
 const fetchUsers = async () => {
   try {
-    const res = await api.get(API_URL);
+    const res = await api.get("/users/");
     users.value = res.data;
   } catch (err) {
     console.error("fetchUsers error:", err);
@@ -40,11 +52,9 @@ const fetchUsers = async () => {
 
 // 搜尋過濾
 const filteredUsers = computed(() => {
-  if (!searchKeyword.value) {
-    return users.value;
-  }
+  if (!searchKeyword.value) return users.value;
   return users.value.filter(
-    (user) =>
+    user =>
       user.username.includes(searchKeyword.value) ||
       user.email.includes(searchKeyword.value)
   );
@@ -67,7 +77,10 @@ const openCreateModal = () => {
 // 打開編輯 Modal
 const openEditModal = (user) => {
   editingUser.value = user;
-  form.value = { ...user };
+  form.value = { 
+    ...user,
+    password: "", // 編輯時將密碼清空，避免意外更新 
+  };
   showModal.value = true;
 };
 
@@ -80,10 +93,10 @@ const closeModal = () => {
 const saveUser = async () => {
   try {
     if (editingUser.value) {
-      await api.put(`${API_URL}/${editingUser.value.user_id}`, form.value);
+      await api.put(`/users/${editingUser.value.user_id}`, form.value);
       alert("使用者更新成功！");
     } else {
-      await api.post(API_URL, form.value);
+      await api.post("/users/", form.value);
       alert("使用者新增成功！");
     }
     await fetchUsers();
@@ -98,7 +111,7 @@ const saveUser = async () => {
 const deleteUser = async (id) => {
   if (!confirm("確定要刪除此使用者嗎？")) return;
   try {
-    await api.delete(`${API_URL}/${id}`);
+    await api.delete(`/users/${id}`);
     alert("使用者刪除成功！");
     await fetchUsers();
   } catch (err) {
@@ -107,8 +120,9 @@ const deleteUser = async (id) => {
   }
 };
 
-onMounted(() => {
-  fetchUsers();
+onMounted(async () => {
+  await fetchCurrentUser(); 
+  await fetchUsers();
 });
 </script>
 
@@ -122,8 +136,8 @@ onMounted(() => {
         class="search-input"
         placeholder="🔍 搜尋帳號或 Email"
       />
-      <button v-if="roleId === 1" @click="openCreateModal">
-        ➕ 新增使用者
+      <button v-if="currentUser?.role_id === 1" @click="openCreateModal">
+        ➕ 新增會員
       </button>
     </div>
 
@@ -148,14 +162,14 @@ onMounted(() => {
             <td>{{ roleMap[user.role_id] || user.role_id }}</td>
             <td>
               <button
-                v-if="roleId === 1 || currentUserId === user.user_id"
+                v-if="currentUser?.role_id === 1 || currentUser?.user_id === user.user_id"
                 class="edit-btn"
                 @click="openEditModal(user)"
               >
                 編輯
               </button>
               <button
-                v-if="roleId === 1"
+                v-if="currentUser?.role_id === 1"
                 class="delete-btn"
                 @click="deleteUser(user.user_id)"
               >
@@ -188,7 +202,7 @@ onMounted(() => {
           <label>地址：</label>
           <input v-model="form.address" />
 
-          <template v-if="roleId === 1">
+          <template v-if="currentUser?.role_id === 1">
             <label>角色：</label>
             <select v-model.number="form.role_id">
               <option :value="1">Admin</option>
@@ -213,6 +227,7 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 /* 這裡維持你的第二版 style */
