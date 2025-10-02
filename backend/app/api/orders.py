@@ -5,7 +5,7 @@ from app.models.base import get_db
 from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus
 from app.crud.orders import create_order, get_order, get_orders_by_user, update_order_status, delete_order
 from typing import List
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user_from_cookie
 from app.models.users import Users
 
 router = APIRouter()
@@ -15,7 +15,7 @@ router = APIRouter()
 async def create_new_order(
     order: OrderCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: Users = Depends(get_current_user)
+    current_user: Users = Depends(get_current_user_from_cookie)
     ):
     # 會員只能新增自己的訂單
     order.user_id = current_user.user_id
@@ -26,7 +26,7 @@ async def create_new_order(
 async def read_order(
     order_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: Users = Depends(get_current_user)
+    current_user: Users = Depends(get_current_user_from_cookie)
     ):
     db_order = await get_order(db, order_id)
     
@@ -44,7 +44,7 @@ async def read_order(
 async def read_orders_by_user(
     user_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: Users = Depends(get_current_user)
+    current_user: Users = Depends(get_current_user_from_cookie)
     ):
     if current_user.role_id != 1 and user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
@@ -56,7 +56,7 @@ async def update_status(
     order_id: int,
     status_update: OrderUpdateStatus,
     db: AsyncSession = Depends(get_db),
-    current_user: Users = Depends(get_current_user)
+    current_user: Users = Depends(get_current_user_from_cookie)
     ):
 
     existing_order = await get_order(db, order_id)
@@ -76,7 +76,7 @@ async def update_status(
 async def remove_order(
     order_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: Users = Depends(get_current_user)):
+    current_user: Users = Depends(get_current_user_from_cookie)):
 
     existing_order = await get_order(db, order_id)
     if not existing_order:
