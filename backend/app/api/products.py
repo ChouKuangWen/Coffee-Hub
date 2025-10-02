@@ -5,7 +5,7 @@ from typing import List
 from app.schemas.products import ProductCreate, ProductRead, ProductUpdate
 from app.crud.products import get_all_products, get_product, create_new_product, update_product_information, delete_one_product
 from app.models.base import get_db   # 取得非同步資料庫 Session
-from app.dependencies import get_current_user, has_permission
+from app.dependencies import get_current_user_from_cookie, get_current_user, has_permission
 
 router = APIRouter()
 
@@ -28,9 +28,9 @@ async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
 async def create_product(
     product: ProductCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user)):
+    current_user=Depends(get_current_user_from_cookie)):
      # 賣家新增商品時自動設定 owner_id
-    if current_user.role_id == 2:
+    if product.owner_id is None:
         product.owner_id = current_user.user_id
 
     return await create_new_product(db, product)
@@ -41,7 +41,7 @@ async def update_product(
     product_id: int,
     product: ProductUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user)  # 取得目前登入者
+    current_user=Depends(get_current_user_from_cookie)  # 取得目前登入者
     ):
     # 先取得商品
     existing_product = await get_product(db, product_id)
@@ -60,7 +60,7 @@ async def update_product(
 async def delete_product(
     product_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user_from_cookie)
     ):
     existing_product = await get_product(db, product_id)
     if not existing_product:
