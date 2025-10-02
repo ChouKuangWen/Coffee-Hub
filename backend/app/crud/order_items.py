@@ -44,3 +44,19 @@ async def delete_order_item(db: AsyncSession, existing_item):
     await db.delete(existing_item)
     await db.commit()
     return existing_item
+
+# 根據 order_id 獲取所有訂單明細
+async def get_order_items_by_order_id(db: AsyncSession, order_id: int):
+    """
+    根據訂單 ID 查詢所有相關的訂單項目。
+    """
+    result = await db.execute(
+        select(OrderItems)
+        .where(OrderItems.order_id == order_id)
+        # 由於前端只需要 OrderItemRead 的基本資訊，可以省略 selectinload，
+        # 但為了確保數據完整性，這裡保持載入 product 資訊 (如果 OrderItemReadWithDetail 需要)。
+        .options(
+            selectinload(OrderItems.product)
+        )
+    )
+    return result.scalars().all()
