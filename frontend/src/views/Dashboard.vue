@@ -8,6 +8,7 @@ axios.defaults.withCredentials = true
 const router = useRouter()
 const user = ref(null)
 const loading = ref(true)
+const showPermissionAlert = ref(false)   // 新增：控制權限不足提示
 
 onMounted(async () => {
   try {
@@ -21,6 +22,11 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// 前端只負責跳頁，不做權限判斷
+const goOrders = () => router.push('/orders')
+const goUsers = () => router.push('/users')
+//const goProducts = () => router.push('/products')
 </script>
 
 <template>
