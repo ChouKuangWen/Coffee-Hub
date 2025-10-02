@@ -26,7 +26,7 @@ onMounted(async () => {
 // 前端只負責跳頁，不做權限判斷
 const goOrders = () => router.push('/orders')
 const goUsers = () => router.push('/users')
-//const goProducts = () => router.push('/products')
+const goProducts = () => router.push('/products')
 </script>
 
 <template>
