@@ -4,10 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Vue</title>
+    <!-- 為了讓標題更具彈性，使用模板變數 -->
+    <title>{{ app_title }}</title>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    
+    <!-- ⚠️ 關鍵修改: 1. 設置 type="module" 的主腳本 -->
+    <!-- Nonce 屬性 {{ csp_nonce }} 將由後端在運行時動態替換 -->
+    <script type="module" src="/src/main.js" nonce="{{ csp_nonce }}"></script>
+    
+    <!-- ⚠️ 關鍵修改: 2. (選用) 任何內嵌腳本都需要 Nonce -->
+    <!-- 如果您有任何內嵌腳本用於配置或環境變量，它們也必須包含 Nonce。 -->
+    <script nonce="{{ csp_nonce }}">
+      // 範例：如果 Vue 應用程式需要 API 基礎 URL，可以在這裡注入
+      window.__API_BASE_URL__ = window.location.origin;
+    </script>
   </body>
 </html>
