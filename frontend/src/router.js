@@ -38,7 +38,7 @@ router.beforeEach(async (to, from, next) => {
 
   try {
     // ✅ Cookie 版：加上 withCredentials
-    const res = await api.get('http://localhost:8000/auth/me', {
+    const res = await api.get('http://localhost:8080/auth/me', {
       withCredentials: true
     })
     console.log("已登入使用者:", res.data)
