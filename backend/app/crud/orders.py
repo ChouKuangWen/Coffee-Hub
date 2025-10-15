@@ -25,6 +25,16 @@ async def get_orders_by_user(db: AsyncSession, user_id: int):
     result = await db.execute(select(Orders).where(Orders.user_id == user_id))
     return result.scalars().all()
 
+# 查賣家所有賣出的訂單
+async def get_orders_by_seller(db: AsyncSession, seller_id: int):
+    result = await db.execute(select(Orders).where(Orders.product_owner_id == seller_id))
+    return result.scalars().all()
+
+# 查全部訂單（管理員用）
+async def get_all_orders(db: AsyncSession):
+    result = await db.execute(select(Orders))
+    return result.scalars().all()
+
 # 更新訂單狀態
 async def update_order_status(db: AsyncSession, existing_order, status_update: OrderUpdateStatus,):
     existing_order.status = status_update.status
