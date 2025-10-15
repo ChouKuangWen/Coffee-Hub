@@ -3,7 +3,7 @@ import axios from 'axios'
 
 // 建立 axios instance
 const api = axios.create({
-  baseURL: "http://localhost:8000", // 你的 FastAPI 後端
+  baseURL: "http://localhost:8080", // 你的 FastAPI 後端
   headers: {
     "Content-Type": "application/json",
   },
