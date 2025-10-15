@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import api from "@/api";
 
 const router = useRouter()
 
@@ -14,7 +15,7 @@ axios.defaults.withCredentials = true
 //  新增：從後端拿使用者資訊 (/auth/me)
 const fetchCurrentUser = async () => {
   try {
-    const res = await axios.get("http://localhost:8000/auth/me")
+    const res = await axios.get("http://localhost:8080/auth/me")
     user.value = res.data
     console.log("已登入使用者:", res.data)
   } catch (error) {
@@ -47,7 +48,7 @@ const goAccount = () => {
 // 登出時不用清 localStorage，直接呼叫後端清除 Cookie
 const handleLogout = async () => {
   try {
-    await axios.post("http://localhost:8000/auth/logout")
+    await api.post("/auth/logout")
     console.log("後端登出成功")
   } catch (error) {
     console.error("登出失敗:", error)
