@@ -9,3 +9,7 @@ python-dotenv==1.1.1
 python_jose==3.5.0
 SQLAlchemy==2.0.28
 starlette==0.48.0
+uvicorn==0.34.2
+email_validator==2.2.0
+asyncmy==0.2.10
+python-multipart==0.0.20
