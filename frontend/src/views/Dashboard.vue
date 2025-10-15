@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import api from "@/api";
 
 axios.defaults.withCredentials = true
 
@@ -12,7 +13,7 @@ const showPermissionAlert = ref(false)   // 新增：控制權限不足提示
 
 onMounted(async () => {
   try {
-    const res = await axios.get("http://localhost:8000/auth/me")
+    const res = await api.get("/auth/me")
     user.value = res.data
     console.log("Dashboard 已登入使用者:", res.data)
   } catch (err) {
