@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import api from "@/api";
 
 const router = useRouter()
 
@@ -34,7 +34,7 @@ const handleRegister = async () => {
     }
 
     // 發送 POST 請求到後端 API
-    const response = await axios.post('http://localhost:8000/auth/register', userData)
+    const response = await api.post('/auth/register', userData)
     
     // 註冊成功
     successMessage.value = response.data.message // 顯示後端回傳的訊息
