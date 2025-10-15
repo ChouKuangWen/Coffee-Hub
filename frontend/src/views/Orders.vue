@@ -55,11 +55,17 @@ const fetchCurrentUser = async () => {
 
 // 2. 讀取訂單列表
 const fetchOrders = async () => {
-  if (!currentUserId.value) return;
-
   try {
-    // 根據後端 API 規則：查詢當前會員的所有訂單
-    const res = await api.get(`/orders/user/${currentUserId.value}`);
+    let res;
+
+    if (currentUserRole.value === 1 || currentUserRole.value === 2) {
+      // Admin / Seller
+      res = await api.get("/orders/list");
+    } else {
+      // Customer
+      res = await api.get(`/orders/user/${currentUserId.value}`);
+    }
+
     orders.value = res.data;
   } catch (err) {
     console.error("fetchOrders error:", err);
@@ -236,7 +242,8 @@ onMounted(async () => {
                     <thead>
                       <tr>
                         <th>項目 ID</th>
-                        <th>商品 ID</th>
+                        <th>商品名稱</th>
+                        <th>賣家</th>
                         <th>數量</th>
                         <th>單價</th>
                         <th>小計</th>
@@ -245,7 +252,8 @@ onMounted(async () => {
                     <tbody>
                       <tr v-for="item in expandedDetails[order.order_id]" :key="item.order_item_id">
                         <td>{{ item.order_item_id }}</td>
-                        <td>{{ item.product_id }}</td>
+                        <td>{{ item.product?.name || '未知商品' }}</td>
+                        <td>{{ item.product?.owner?.username || '未知賣家' }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>${{ item.price }}</td>
                         <td>${{ item.subtotal }}</td>
@@ -253,7 +261,7 @@ onMounted(async () => {
                     </tbody>
                   </table>
                   <div class="detail-summary">
-                    **訂單總金額：** ${{ order.total }}
+                    <strong>訂單總金額：</strong> ${{ order.total }}
                   </div>
                 </div>
               </td>
