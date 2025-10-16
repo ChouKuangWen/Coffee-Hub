@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from decimal import Decimal
+#from app.schemas.users import UserRead  # 引入使用者 Schema
 
 # 共用欄位（給 Create、Read、Update 繼承）
 class ProductBase(BaseModel):
@@ -17,6 +18,8 @@ class ProductCreate(ProductBase):
 class ProductRead(ProductBase):
     product_id: int
     owner_id: int
+    #owner: UserRead  #  新增：賣家信箱欄位
+    owner_email: Optional[str] = None   #  可選：回傳整個使用者物件（含 email）
 
     class Config:
         from_attributes = True
