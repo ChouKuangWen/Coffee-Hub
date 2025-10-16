@@ -17,6 +17,7 @@ class UserCreate(UserBase):
 # 從資料庫讀取並回傳使用者資料時使用的 Schema
 class UserRead(UserBase):
     user_id: int            # 使用者編號（資料庫主鍵）
+    email: str
     created_at: datetime    # 使用者註冊時間（自動生成）
 
     class Config:
