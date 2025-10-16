@@ -1,8 +1,9 @@
 # backend/app/crud/order_items.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from app.models.order_items import OrderItems
+from app.models.products import Products
 
 async def get_order_item(db: AsyncSession, order_item_id: int):
     result = await db.execute(
@@ -56,7 +57,7 @@ async def get_order_items_by_order_id(db: AsyncSession, order_id: int):
         # 由於前端只需要 OrderItemRead 的基本資訊，可以省略 selectinload，
         # 但為了確保數據完整性，這裡保持載入 product 資訊 (如果 OrderItemReadWithDetail 需要)。
         .options(
-            selectinload(OrderItems.product)
+            joinedload(OrderItems.product).joinedload(Products.owner)
         )
     )
     return result.scalars().all()
