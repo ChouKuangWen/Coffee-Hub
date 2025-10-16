@@ -253,7 +253,7 @@ onMounted(async () => {
                       <tr v-for="item in expandedDetails[order.order_id]" :key="item.order_item_id">
                         <td>{{ item.order_item_id }}</td>
                         <td>{{ item.product?.name || '未知商品' }}</td>
-                        <td>{{ item.product?.owner?.username || '未知賣家' }}</td>
+                        <td>{{ item.product?.owner_email || '未知賣家' }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>${{ item.price }}</td>
                         <td>${{ item.subtotal }}</td>
