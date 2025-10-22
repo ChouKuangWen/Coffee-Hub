@@ -1,0 +1,25 @@
+# Node.js 相關
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json.old
+
+# 建置輸出（避免重複）
+dist
+build
+
+# 系統暫存
+.DS_Store
+Thumbs.db
+
+# Git 相關
+.git
+.gitignore
+
+# 編輯器設定
+.vscode
+.idea
+
+# Docker 自身檔案
+Dockerfile
+.dockerignore
