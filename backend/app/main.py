@@ -14,7 +14,7 @@ app = FastAPI(
 #1. CORS Middleware: 處理跨域請求 (必須保持在 CSP 之前)，可依需求修改 CORS 設定
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # 可改為前端網址，例如 http://localhost:3000
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:3000"],  # 可改為前端網址，例如 http://localhost:3000
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
