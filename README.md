@@ -170,3 +170,4 @@ graph TD
     G -->|權限足夠| H[CRUD 模組操作]
     H --> I[連線 MySQL 執行操作]
     I --> J[回傳 JSON 結果給前端]
+---
