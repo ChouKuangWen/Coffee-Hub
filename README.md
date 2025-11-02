@@ -8,10 +8,10 @@
 
 | 領域 | 技術/框架 | 亮點說明 |
 | :--- | :--- | :--- |
-| **後端 (Backend)** | **FastAPI** | 高性能 $\text{Python}$ 框架，提供極速的 $\text{API}$ 服務。 |
+| **後端 (Backend)** | **FastAPI + Pydantic** | 高性能 Python 框架，結合 Pydantic 實現高效的資料模型與驗證。。 |
 | **資料庫 (Database)** | **MySQL** | 穩定的關聯式資料庫。 |
-| **ORM** | **SQLAlchemy (Async ORM)** | 採用非同步 $\text{ORM}$ 模式，提升資料庫 $\text{I/O}$ 效率。 |
-| **前端 (Frontend)** | **Vue 3 + Vite** | 採用 $\text{Vue 3 Composition API}$ 搭配 $\text{Vite}$ 快速開發和打包。 |
+| **ORM** | **SQLAlchemy (Async ORM)** | 採用非同步 ORM 模式，提升資料庫 I/O 效率。 |
+| **前端 (Frontend)** | **Vue 3 + Vite** | 採用 Vue 3 Composition API 搭配 Vite 快速開發和打包。 |
 
 
 ##  系統安全機制與防護 (Security Measures)
@@ -22,13 +22,38 @@
 
 | 安全機制 | 類型 | 防禦目標與說明 |
 | :--- | :--- | :--- |
-|  **$\text{SQLAlchemy}$ $\text{ORM}$** | 資料庫操作安全 | **防禦 $\text{SQL}$ 注入攻擊。** 透過參數化查詢機制，避免將使用者輸入當作 $\text{SQL}$ 指令執行。 |
-|  **輸入淨化 ($\text{Sanitization}$)** | 輸入過濾 | **防禦 $\text{XSS}$ 攻擊。** 使用 $\text{Python}$ 的 $\text{bleach}$ 函式庫，嚴格移除所有 $\text{HTML}$ 標籤，只允許純文本。 |
-|  **$\text{JWT}$ 驗證機制** | 身份驗證 | **驗證使用者身份。** 採用無狀態 $\text{Tokens}$ 進行認證。 |
+|  **$\text{SQLAlchemy}$ $\text{ORM}$** | 資料庫操作安全 | **防禦 $\text{SQL}$ 注入攻擊。** 透過參數化查詢機制，避免將使用者輸入當作 SQL 指令執行。 |
+|  **輸入淨化 ($\text{Sanitization}$)** | 輸入過濾 | **防禦 $\text{XSS}$ 攻擊。** 使用 Python 的 bleach 函式庫，嚴格移除所有 HTML 標籤，只允許純文本。 |
+|  **$\text{JWT}$ 驗證機制** | 身份驗證 | **驗證使用者身份。** 採用無狀態 Tokens 進行認證。 |
 |  **角色權限控管 ($\text{RBAC}$)** | 授權控制 | **防禦越權操作。** 確保用戶無法存取其權限範圍以外的資源。 |
-|  **$\text{bcrypt}$ 密碼雜湊** | 資料儲存安全 | **防禦資料庫密碼洩露。** 儲存密碼時使用高強度 $\text{bcrypt}$ 雜湊。 |
-|  **$\text{HTTP-only Cookie}$** | $\text{Token}$ 儲存安全 | **防禦 $\text{XSS}$ 攻擊竊取 $\text{Token}$。** 限制 $\text{JavaScript}$ 無法讀取 $\text{Cookie}$ 內容。 |
-|  **$\text{CSP}$ 中介軟體** | $\text{API}$ 安全防護 | **防禦 $\text{XSS}$ 和資料注入。** 透過 $\text{HTTP}$ 響應頭，嚴格限制前端頁面可載入的資源來源。 |
+|  **$\text{bcrypt}$ 密碼雜湊** | 資料儲存安全 | **防禦資料庫密碼洩露。** 儲存密碼時使用高強度 bcrypt 雜湊。 |
+|  **$\text{HTTP-only Cookie}$** | Token 儲存安全 | **防禦 $\text{XSS}$ 攻擊竊取 $\text{Token}$。** 限制 JavaScript 無法讀取 Cookie 內容。 |
+|  **$\text{CSP}$ 中介軟體** | API 安全防護 | **防禦 $\text{XSS}$ 和資料注入。** 透過 HTTP 響應頭，嚴格限制前端頁面可載入的資源來源。 |
+
+
+###  JWT 身份驗證與撤銷機制詳解
+
+本系統實施了一套高安全性的 **雙 Token 系統（Access 與 Refresh）**，旨在實現無狀態認證並提供即時撤銷能力。
+
+| 機制名稱 | 實作細節 | 安全優勢 |
+|-----------|-----------|-----------|
+| **雙 Token 系統** | 採用短效期 **Access Token** 搭配長效期 **Refresh Token**。<br>**Refresh Token** 被追蹤於資料庫中，可被單獨撤銷。 |  降低風險：縮短 Access Token 的有效時間，極大降低 Token 被盜用後的攻擊窗口。 |
+| **HTTP-only Cookie** | 登入後，Access Token 和 Refresh Token 皆透過 HTTP 響應頭設為 `HttpOnly=True` 傳輸。 |  防禦 XSS：JavaScript 無法讀取 Token，防止惡意腳本竊取 Token。 |
+| **即時黑名單 (JTI Blacklisting)** | 每個 Access Token 都帶有唯一 ID（JTI）。<br>登出時，JTI 會被立即寫入 `JWTBlacklist` 資料庫。 |  登出立即生效：每次 API 請求驗證時，會檢查 JTI 是否在黑名單中，確保 Token 即時失效。 |
+| **資料庫追蹤 Refresh Token** | Refresh Token 及其狀態 (`is_revoked`) 儲存於資料庫。 |  可控性：確保 Refresh Token 可在資料庫層面被強制過期或撤銷，防止惡意續期。 |
+
+
+**總結**
+
+此 JWT 認證架構結合了：
+
+- **短期授權 + 長期憑證** 雙層防護機制
+- **HTTP-only Cookie** 提升前端安全性
+- **即時黑名單機制** 實現登出即失效
+- **資料庫級 Refresh Token 控制** 確保可精準撤銷
+
+最終達成 **無狀態、高安全性、可控撤銷** 的 JWT 認證系統。
+
 
 ---
 
@@ -83,7 +108,7 @@ Member-order-management-system/
 │   │   │   ├── used_jwt.py
 │   │   │   └── users.py
 │   │   │
-│   │   ├── schemas/                  # 請求/回傳格式定義
+│   │   ├── schemas/            # Pydantic定義驗證API請求與回傳的資料結構
 │   │   │   ├── order_items.py
 │   │   │   ├── orders.py
 │   │   │   ├── products.py
@@ -144,7 +169,7 @@ Member-order-management-system/
 ### 3️ 資料存取流程
 1.  $\text{API}$ 層呼叫對應的 **$\text{CRUD}$ 模組**。
 2.  $\text{CRUD}$ 模組使用 **$\text{SQLAlchemy (Async)}$** 執行參數化查詢，安全地操作 $\text{MySQL}$ 資料庫。
-3.  操作結果經由 **$\text{Pydantic Schema}$** 驗證和轉換，回傳標準化 $\text{JSON}$ 給前端。
+3.  數據驗證與轉換： $\text{CRUD}$ 結果經由 $\text{Pydantic Schema}$ 進行嚴格的資料驗證，並轉換為標準化 $\text{JSON}$ 回傳前端。
 
 ---
 
