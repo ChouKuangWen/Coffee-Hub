@@ -1,22 +1,54 @@
 #  會員後台管理系統（Member Order Management System）
 
 ##  專案簡介
-本系統為一個以 **FastAPI + Vue3** 為核心的全端專案，實作了：
-- 會員登入註冊  
-- 訂單管理  
-- 角色權限控管（RBAC）  
-- JWT 驗證機制  
-- API 安全防護與資料庫操作  
+本專案是一個採用 **FastAPI + Vue 3 + MySQL** 為核心的**前後端分離**後台管理系統，旨在提供安全、高效、且易於部署的管理介面。系統實現了從基礎會員功能到複雜角色權限控制的完整後端服務。
 
-後端採用 **FastAPI** 框架搭配 **SQLAlchemy (Async ORM)** 與 **MySQL**；  
-前端則以 **Vue3 + Vite** 建構。  
 
-此系統結構清晰、模組化，可支援容器化部署並延伸至雲端環境（如 **GCP Cloud SQL**）。
+##  核心技術棧 (Technology Stack)
+
+| 領域 | 技術/框架 | 亮點說明 |
+| :--- | :--- | :--- |
+| **後端 (Backend)** | **FastAPI** | 高性能 $\text{Python}$ 框架，提供極速的 $\text{API}$ 服務。 |
+| **資料庫 (Database)** | **MySQL** | 穩定的關聯式資料庫。 |
+| **ORM** | **SQLAlchemy (Async ORM)** | 採用非同步 $\text{ORM}$ 模式，提升資料庫 $\text{I/O}$ 效率。 |
+| **前端 (Frontend)** | **Vue 3 + Vite** | 採用 $\text{Vue 3 Composition API}$ 搭配 $\text{Vite}$ 快速開發和打包。 |
+
+
+##  系統安全機制與防護 (Security Measures)
+
+本系統以安全性為優先考量，在身份驗證、資料傳輸與輸入處理等多層面實施了嚴格的安全防護，防禦常見 $\text{Web}$ 攻擊。
+
+###  安全機制總覽
+
+| 安全機制 | 類型 | 防禦目標與說明 |
+| :--- | :--- | :--- |
+|  **$\text{SQLAlchemy}$ $\text{ORM}$** | 資料庫操作安全 | **防禦 $\text{SQL}$ 注入攻擊。** 透過參數化查詢機制，避免將使用者輸入當作 $\text{SQL}$ 指令執行。 |
+|  **輸入淨化 ($\text{Sanitization}$)** | 輸入過濾 | **防禦 $\text{XSS}$ 攻擊。** 使用 $\text{Python}$ 的 $\text{bleach}$ 函式庫，嚴格移除所有 $\text{HTML}$ 標籤，只允許純文本。 |
+|  **$\text{JWT}$ 驗證機制** | 身份驗證 | **驗證使用者身份。** 採用無狀態 $\text{Tokens}$ 進行認證。 |
+|  **角色權限控管 ($\text{RBAC}$)** | 授權控制 | **防禦越權操作。** 確保用戶無法存取其權限範圍以外的資源。 |
+|  **$\text{bcrypt}$ 密碼雜湊** | 資料儲存安全 | **防禦資料庫密碼洩露。** 儲存密碼時使用高強度 $\text{bcrypt}$ 雜湊。 |
+|  **$\text{HTTP-only Cookie}$** | $\text{Token}$ 儲存安全 | **防禦 $\text{XSS}$ 攻擊竊取 $\text{Token}$。** 限制 $\text{JavaScript}$ 無法讀取 $\text{Cookie}$ 內容。 |
+|  **$\text{CSP}$ 中介軟體** | $\text{API}$ 安全防護 | **防禦 $\text{XSS}$ 和資料注入。** 透過 $\text{HTTP}$ 響應頭，嚴格限制前端頁面可載入的資源來源。 |
+
+---
+
+##  核心功能
+
+* 會員註冊、登入、登出
+* 會員管理、商品管理、訂單處理 $\text{CRUD}$ 功能
+* 精細化的角色權限控管 ($\text{RBAC}$)
+
+##  部署與架構 (Deployment & Architecture)
+
+本專案結構清晰、模組化，支援現代雲端部署：
+
+*  **容器化部署：** 完整支援 $\text{Docker}$ 容器化，確保開發與生產環境一致。
+*  **雲端延伸性：** 可輕鬆部署至 $\text{Google Cloud Platform (GCP)}$，例如使用 $\text{Cloud Run}$ 託管 $\text{API}$，並將資料庫遷移至 $\text{GCP Cloud SQL}$。
 
 ---
 
 ##  專案結構與檔案說明
-```bash
+```
 Member-order-management-system/
 ├── backend/                          # 後端主程式
 │   ├── app/
@@ -70,7 +102,7 @@ Member-order-management-system/
 │
 ├── database/                         # 資料庫初始化 SQL
 │   ├── init.sql                      # 建表指令
-│   └── seed.sql                      # 預設資料（如角色、admin）
+│   └── seed.sql                      # 預設資料（如角色admin）
 │
 ├── frontend/                         # 前端專案
 │   ├── src/
@@ -92,74 +124,45 @@ Member-order-management-system/
 │
 ├── README.md
 └── .gitignore
+```
+---
 
-#  系統運作流程
+##  系統運作流程 (How It Works)
 
-##  1️ 登入與驗證流程
-1. 使用者於前端登入頁輸入帳號與密碼。  
-2. 前端呼叫後端 `/auth/login` API。  
-3. 後端使用 `bcrypt` 驗證雜湊密碼。  
-4. 若驗證成功：
-   - 生成 JWT Token（含使用者 ID、角色等 payload）。  
-   - 將 Token 存入 **HTTP-only Cookie**（安全、不可由 JavaScript 存取）。  
-5. 後續 API 請求中，後端中介層自動從 Cookie 驗證身份。
+### 1️ 登入與驗證流程
+1.  使用者輸入帳密，前端呼叫 `/auth/login` $\text{API}$。
+2.  後端使用 $\text{bcrypt}$ 驗證雜湊密碼。
+3.  驗證成功後，生成 $\text{JWT Token}$（含使用者 $\text{ID}$、角色等 $\text{payload}$）。
+4.  $\text{Token}$ 寫入 **$\text{HTTP-only Cookie}$** 返回給前端，防止 $\text{XSS}$ 竊取。
+5.  後續請求中，後端中介層自動從 $\text{Cookie}$ 讀取 $\text{Token}$ 驗證身份。
+
+### 2️ 權限驗證流程 ($\text{RBAC}$)
+1.  所有重要 $\text{API}$ 端點皆透過 $\text{FastAPI}$ 的**依賴注入 $(\text{dependencies.py})$** 設定最低角色需求。
+2.  權限檢查函式解析 $\text{Token}$ 中的角色資訊。
+3.  若權限不足，立即返回 `HTTP 403 Forbidden`；若權限足夠，則執行業務邏輯。
+
+### 3️ 資料存取流程
+1.  $\text{API}$ 層呼叫對應的 **$\text{CRUD}$ 模組**。
+2.  $\text{CRUD}$ 模組使用 **$\text{SQLAlchemy (Async)}$** 執行參數化查詢，安全地操作 $\text{MySQL}$ 資料庫。
+3.  操作結果經由 **$\text{Pydantic Schema}$** 驗證和轉換，回傳標準化 $\text{JSON}$ 給前端。
 
 ---
 
-##  2️ 權限驗證流程（RBAC）
-1. 每個 API 端點皆設定最低角色需求（例如 Admin 才能操作）。  
-2. `dependencies.py` 定義權限檢查函式：  
-   - 從 Token 中解析角色資訊。  
-   - 檢查該角色是否有權限操作。  
-3. 若權限不足 → 回傳 `HTTP 403 Forbidden`；若成功 → 執行 CRUD。
+## 角色導向存取控制 ($\text{RBAC}$) 定義
+
+$\text{RBAC}$ 採用「角色綁定權限」方式，方便後期擴充。
+
+| 角色 | 可執行操作 | 權限範圍 |
+| :--- | :--- | :--- |
+| **Admin** | 新增/刪除/修改/查詢所有使用者與訂單 | 全系統最高權限 |
+| **Manager** | 查詢與管理所有訂單，檢視使用者資料 | 管理層權限 |
+| **Customer** | 查詢、編輯個人訂單與個人資料 | 限本人資料 |
 
 ---
 
-##  3️ 資料存取流程
-1. API 層呼叫對應的 CRUD 模組。  
-2. CRUD 使用 SQLAlchemy ORM 執行非同步資料操作。  
-3. 結果經由 Pydantic Schema 轉為 JSON 回傳前端。
+## 概念流程圖
 
----
-
-##  角色導向存取控制（RBAC）
-
-RBAC 採「角色綁定權限」方式，方便後期擴充。
-
-| 角色     | 可執行操作                        | 權限範圍             |
-|----------|-----------------------------------|--------------------|
-| Admin    | 新增/刪除/修改/查詢所有使用者與訂單 | 全系統最高權限       |
-| Manager  | 查詢與管理所有訂單，檢視使用者資料   | 管理層權限           |
-| Customer | 查詢、編輯個人訂單與個人資料         | 限本人資料           |
-
----
-
-##  安全機制
-
-| 安全機制             | 說明                                           |
-|--------------------|----------------------------------------------|
-| HTTP-only Cookie    | Token 以此方式儲存，防止 XSS 攻擊竊取。       |
-| JWT Token           | 驗證身份與角色權限，內含過期時間與角色資訊。 |
-| bcrypt 密碼雜湊     | 所有密碼皆經雜湊後儲存，防止資料庫外洩風險。 |
-| CSP (Content Security Policy) | 限制前端可載入的資源來源，防止惡意腳本。 |
-| CORS 白名單         | 僅允許特定前端網域呼叫 API。                 |
-
----
-
-##  技術棧
-
-| 分類   | 使用技術                                  |
-|--------|-----------------------------------------|
-| 後端   | FastAPI、SQLAlchemy (Async ORM)、MySQL、JWT、bcrypt |
-| 前端   | Vue3、Vite、Pinia、Axios、TailwindCSS    |
-| 部署   | Docker、Google Cloud run、Google Cloud SQL  |
-| 安全   | CSP、HTTP-only Cookie、CORS、RBAC        |
-
----
-
-##  系統流程圖（概念示意）
-
-```mermaid
+```
 graph TD
     A[使用者] -->|Login.vue| B(POST /auth/login)
     B --> C{FastAPI 驗證}
@@ -170,4 +173,4 @@ graph TD
     G -->|權限足夠| H[CRUD 模組操作]
     H --> I[連線 MySQL 執行操作]
     I --> J[回傳 JSON 結果給前端]
----
+    ```
