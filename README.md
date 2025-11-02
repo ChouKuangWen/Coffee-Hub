@@ -1,77 +1,5 @@
 #  會員後台管理系統（Member Order Management System）
 
-##  專案簡介
-本專案是一個採用 **FastAPI + Vue 3 + MySQL** 為核心的**前後端分離**後台管理系統，旨在提供安全、高效、且易於部署的管理介面。系統實現了從基礎會員功能到複雜角色權限控制的完整後端服務。
-
-
-##  核心技術棧 (Technology Stack)
-
-| 領域 | 技術/框架 | 亮點說明 |
-| :--- | :--- | :--- |
-| **後端 (Backend)** | **FastAPI + Pydantic** | 高性能 Python 框架，結合 Pydantic 實現高效的資料模型與驗證。。 |
-| **資料庫 (Database)** | **MySQL** | 穩定的關聯式資料庫。 |
-| **ORM** | **SQLAlchemy (Async ORM)** | 採用非同步 ORM 模式，提升資料庫 I/O 效率。 |
-| **前端 (Frontend)** | **Vue 3 + Vite** | 採用 Vue 3 Composition API 搭配 Vite 快速開發和打包。 |
-
-
-##  系統安全機制與防護 (Security Measures)
-
-本系統以安全性為優先考量，在身份驗證、資料傳輸與輸入處理等多層面實施了嚴格的安全防護，防禦常見 $\text{Web}$ 攻擊。
-
-###  安全機制總覽
-
-| 安全機制 | 類型 | 防禦目標與說明 |
-| :--- | :--- | :--- |
-|  **$\text{SQLAlchemy}$ $\text{ORM}$** | 資料庫操作安全 | **防禦 $\text{SQL}$ 注入攻擊。** 透過參數化查詢機制，避免將使用者輸入當作 SQL 指令執行。 |
-|  **輸入淨化 ($\text{Sanitization}$)** | 輸入過濾 | **防禦 $\text{XSS}$ 攻擊。** 使用 Python 的 bleach 函式庫，嚴格移除所有 HTML 標籤，只允許純文本。 |
-|  **$\text{JWT}$ 驗證機制** | 身份驗證 | **驗證使用者身份。** 採用無狀態 Tokens 進行認證。 |
-|  **角色權限控管 ($\text{RBAC}$)** | 授權控制 | **防禦越權操作。** 確保用戶無法存取其權限範圍以外的資源。 |
-|  **$\text{bcrypt}$ 密碼雜湊** | 資料儲存安全 | **防禦資料庫密碼洩露。** 儲存密碼時使用高強度 bcrypt 雜湊。 |
-|  **$\text{HTTP-only Cookie}$** | Token 儲存安全 | **防禦 $\text{XSS}$ 攻擊竊取 $\text{Token}$。** 限制 JavaScript 無法讀取 Cookie 內容。 |
-|  **$\text{CSP}$ 中介軟體** | API 安全防護 | **防禦 $\text{XSS}$ 和資料注入。** 透過 HTTP 響應頭，嚴格限制前端頁面可載入的資源來源。 |
-
-
-###  JWT 身份驗證與撤銷機制詳解
-
-本系統實施了一套高安全性的 **雙 Token 系統（Access 與 Refresh）**，旨在實現無狀態認證並提供即時撤銷能力。
-
-| 機制名稱 | 實作細節 | 安全優勢 |
-|-----------|-----------|-----------|
-| **雙 Token 系統** | 採用短效期 **Access Token** 搭配長效期 **Refresh Token**。<br>**Refresh Token** 被追蹤於資料庫中，可被單獨撤銷。 |  降低風險：縮短 Access Token 的有效時間，極大降低 Token 被盜用後的攻擊窗口。 |
-| **HTTP-only Cookie** | 登入後，Access Token 和 Refresh Token 皆透過 HTTP 響應頭設為 `HttpOnly=True` 傳輸。 |  防禦 XSS：JavaScript 無法讀取 Token，防止惡意腳本竊取 Token。 |
-| **即時黑名單 (JTI Blacklisting)** | 每個 Access Token 都帶有唯一 ID（JTI）。<br>登出時，JTI 會被立即寫入 `JWTBlacklist` 資料庫。 |  登出立即生效：每次 API 請求驗證時，會檢查 JTI 是否在黑名單中，確保 Token 即時失效。 |
-| **資料庫追蹤 Refresh Token** | Refresh Token 及其狀態 (`is_revoked`) 儲存於資料庫。 |  可控性：確保 Refresh Token 可在資料庫層面被強制過期或撤銷，防止惡意續期。 |
-
-
-**總結**
-
-此 JWT 認證架構結合了：
-
-- **短期授權 + 長期憑證** 雙層防護機制
-- **HTTP-only Cookie** 提升前端安全性
-- **即時黑名單機制** 實現登出即失效
-- **資料庫級 Refresh Token 控制** 確保可精準撤銷
-
-最終達成 **無狀態、高安全性、可控撤銷** 的 JWT 認證系統。
-
-
----
-
-##  核心功能
-
-* 會員註冊、登入、登出
-* 會員管理、商品管理、訂單處理 $\text{CRUD}$ 功能
-* 精細化的角色權限控管 ($\text{RBAC}$)
-
-##  部署與架構 (Deployment & Architecture)
-
-本專案結構清晰、模組化，支援現代雲端部署：
-
-*  **容器化部署：** 完整支援 $\text{Docker}$ 容器化，確保開發與生產環境一致。
-*  **雲端延伸性：** 可輕鬆部署至 $\text{Google Cloud Platform (GCP)}$，例如使用 $\text{Cloud Run}$ 託管 $\text{API}$，並將資料庫遷移至 $\text{GCP Cloud SQL}$。
-
----
-
 ##  專案結構與檔案說明
 ```
 Member-order-management-system/
@@ -150,6 +78,78 @@ Member-order-management-system/
 ├── README.md
 └── .gitignore
 ```
+---
+
+##  專案簡介
+本專案是一個採用 **FastAPI + Vue 3 + MySQL** 為核心的**前後端分離**後台管理系統，旨在提供安全、高效、且易於部署的管理介面。系統實現了從基礎會員功能到複雜角色權限控制的完整後端服務。
+
+
+##  核心技術棧 (Technology Stack)
+
+| 領域 | 技術/框架 | 亮點說明 |
+| :--- | :--- | :--- |
+| **後端 (Backend)** | **FastAPI + Pydantic** | 高性能 Python 框架，結合 Pydantic 實現高效的資料模型與驗證。。 |
+| **資料庫 (Database)** | **MySQL** | 穩定的關聯式資料庫。 |
+| **ORM** | **SQLAlchemy (Async ORM)** | 採用非同步 ORM 模式，提升資料庫 I/O 效率。 |
+| **前端 (Frontend)** | **Vue 3 + Vite** | 採用 Vue 3 Composition API 搭配 Vite 快速開發和打包。 |
+
+
+##  系統安全機制與防護 (Security Measures)
+
+本系統以安全性為優先考量，在身份驗證、資料傳輸與輸入處理等多層面實施了嚴格的安全防護，防禦常見 $\text{Web}$ 攻擊。
+
+###  安全機制總覽
+
+| 安全機制 | 類型 | 防禦目標與說明 |
+| :--- | :--- | :--- |
+|  **$\text{SQLAlchemy}$ $\text{ORM}$** | 資料庫操作安全 | **防禦 $\text{SQL}$ 注入攻擊。** 透過參數化查詢機制，避免將使用者輸入當作 SQL 指令執行。 |
+|  **輸入淨化 ($\text{Sanitization}$)** | 輸入過濾 | **防禦 $\text{XSS}$ 攻擊。** 使用 Python 的 bleach 函式庫，嚴格移除所有 HTML 標籤，只允許純文本。 |
+|  **$\text{JWT}$ 驗證機制** | 身份驗證 | **驗證使用者身份。** 採用無狀態 Tokens 進行認證。 |
+|  **角色權限控管 ($\text{RBAC}$)** | 授權控制 | **防禦越權操作。** 確保用戶無法存取其權限範圍以外的資源。 |
+|  **$\text{bcrypt}$ 密碼雜湊** | 資料儲存安全 | **防禦資料庫密碼洩露。** 儲存密碼時使用高強度 bcrypt 雜湊。 |
+|  **$\text{HTTP-only Cookie}$** | Token 儲存安全 | **防禦 $\text{XSS}$ 攻擊竊取 $\text{Token}$。** 限制 JavaScript 無法讀取 Cookie 內容。 |
+|  **$\text{CSP}$ 中介軟體** | API 安全防護 | **防禦 $\text{XSS}$ 和資料注入。** 透過 HTTP 響應頭，嚴格限制前端頁面可載入的資源來源。 |
+
+
+###  JWT 身份驗證與撤銷機制詳解
+
+本系統實施了一套高安全性的 **雙 Token 系統（Access 與 Refresh）**，旨在實現無狀態認證並提供即時撤銷能力。
+
+| 機制名稱 | 實作細節 | 安全優勢 |
+|-----------|-----------|-----------|
+| **雙 Token 系統** | 採用短效期 **Access Token** 搭配長效期 **Refresh Token**。<br>**Refresh Token** 被追蹤於資料庫中，可被單獨撤銷。 |  降低風險：縮短 Access Token 的有效時間，極大降低 Token 被盜用後的攻擊窗口。 |
+| **HTTP-only Cookie** | 登入後，Access Token 和 Refresh Token 皆透過 HTTP 響應頭設為 `HttpOnly=True` 傳輸。 |  防禦 XSS：JavaScript 無法讀取 Token，防止惡意腳本竊取 Token。 |
+| **即時黑名單 (JTI Blacklisting)** | 每個 Access Token 都帶有唯一 ID（JTI）。<br>登出時，JTI 會被立即寫入 `JWTBlacklist` 資料庫。 |  登出立即生效：每次 API 請求驗證時，會檢查 JTI 是否在黑名單中，確保 Token 即時失效。 |
+| **資料庫追蹤 Refresh Token** | Refresh Token 及其狀態 (`is_revoked`) 儲存於資料庫。 |  可控性：確保 Refresh Token 可在資料庫層面被強制過期或撤銷，防止惡意續期。 |
+
+
+**總結**
+
+此 JWT 認證架構結合了：
+
+- **短期授權 + 長期憑證** 雙層防護機制
+- **HTTP-only Cookie** 提升前端安全性
+- **即時黑名單機制** 實現登出即失效
+- **資料庫級 Refresh Token 控制** 確保可精準撤銷
+
+最終達成 **無狀態、高安全性、可控撤銷** 的 JWT 認證系統。
+
+
+---
+
+##  核心功能
+
+* 會員註冊、登入、登出
+* 會員管理、商品管理、訂單處理 $\text{CRUD}$ 功能
+* 精細化的角色權限控管 ($\text{RBAC}$)
+
+##  部署與架構 (Deployment & Architecture)
+
+本專案結構清晰、模組化，支援現代雲端部署：
+
+*  **容器化部署：** 完整支援 $\text{Docker}$ 容器化，確保開發與生產環境一致。
+*  **雲端延伸性：** 可輕鬆部署至 $\text{Google Cloud Platform (GCP)}$，例如使用 $\text{Cloud Run}$ 託管 $\text{API}$，並將資料庫遷移至 $\text{GCP Cloud SQL}$。
+
 ---
 
 ##  系統運作流程 (How It Works)
