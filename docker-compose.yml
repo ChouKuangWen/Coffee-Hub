@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  # --------------------
+  # 前端 Vue + Nginx
+  # --------------------
+  frontend:
+    build: ./frontend        # 前端 Dockerfile 路徑
+    ports:
+      - "8080:8080"          # 本地 8080 對應容器內 Nginx 8080
+    depends_on:
+      - backend
+    networks:
+      - member-net
+
+  # --------------------
+  # 後端 FastAPI
+  # --------------------
+  backend:
+    build: ./backend         # 後端 Dockerfile 路徑
+    ports:
+      - "8000:8080"          # 本地 8000 對應容器內 8080 (FastAPI uvicorn)
+    env_file:
+      - .env                  # 從 .env 讀取環境變數
+    depends_on:
+      - mysql
+    networks:
+      - member-net
+
+  # --------------------
+  # MySQL 資料庫 (官方 image)
+  # --------------------
+  mysql:
+    image: mysql:8
+    restart: always
+    env_file:
+      - .env       # 從 .env 讀取 MySQL root 密碼、資料庫名稱
+  volumes:
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - member-net
+
+# --------------------
+# Volume
+# --------------------
+volumes:
+  mysql-data:
+
+# --------------------
+# Network
+# --------------------
+networks:
+  member-net:
+    driver: bridge
