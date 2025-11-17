@@ -1,13 +1,11 @@
-version: "3.9"
-
 services:
   # --------------------
-  # 前端 Vue + Nginx
+  # 前端 Vue 開發模式
   # --------------------
   frontend:
     build: ./frontend        # 前端 Dockerfile 路徑
     ports:
-      - "8080:8080"          # 本地 8080 對應容器內 Nginx 8080
+      - "3000:80" 
     depends_on:
       - backend
     networks:
@@ -19,7 +17,7 @@ services:
   backend:
     build: ./backend         # 後端 Dockerfile 路徑
     ports:
-      - "8000:8080"          # 本地 8000 對應容器內 8080 (FastAPI uvicorn)
+      - "8080:8080"          # 本地 8080 對應容器內 8080 (FastAPI uvicorn)
     env_file:
       - .env                  # 從 .env 讀取環境變數
     depends_on:
@@ -35,11 +33,14 @@ services:
     restart: always
     env_file:
       - .env       # 從 .env 讀取 MySQL root 密碼、資料庫名稱
-  volumes:
     volumes:
+      # 將初始化 SQL 檔案掛載進去
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # 掛載測試資料檔案
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/seed.sql
       - mysql-data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     networks:
       - member-net
 
