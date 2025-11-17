@@ -17,13 +17,12 @@ INSERT INTO roles_permissions (role_id, permission_id) VALUES
 (2, 1), (2, 3), (2, 5),
 (3, 3), (3, 5);
 
-
-INSERT INTO users (username, password_hash, email, phone, address, role_id) VALUES
 -- Admin (role_id = 1): user1, user2
+-- Manager (role_id = 2): user3 - user10
+-- Customer (role_id = 3): user11 - user50
+INSERT INTO users (username, password_hash, email, phone, address, role_id) VALUES
 ('user1', '$2b$12$p9rSK2tnQFpo5c7sVtzOO.bkl.VL6Q/TkRa17MFkVBdy19FnRa3BC', 'user1@example.com', '0900000001', '台灣市xx路1號', 1),    --真實密碼:hashed_pwd1
 ('user2', '$2b$12$co2RU/g0kI60mj6ElZXv2.SskpqeHfs89cVJESwoseXfknSeg/yD2', 'user2@example.com', '0900000002', '台灣市xx路2號', 1),    --真實密碼:hashed_pwd2
-
--- Manager (role_id = 2): user3 - user10
 ('user3', '$2b$12$UubpWXdqoAOy74RU0nS.GuDUqA9pkYf8a3qEfQgzCc12Y5vPa8Er6', 'user3@example.com', '0900000003', '台灣市xx路3號', 2),    --真實密碼:hashed_pwd3
 ('user4', '$2b$12$f0gkf.iQ/rvhfLpXHWweiO099pAW60ouBLunlQ68bddJYlO7107dW', 'user4@example.com', '0900000004', '台灣市xx路4號', 2),    --真實密碼:hashed_pwd4
 ('user5', '$2b$12$U5eGelWE/V1CjeR1uAG1su3VrlSd3iev0wXCPpDXpSJFm5TG6NhWa', 'user5@example.com', '0900000005', '台灣市xx路5號', 2),    --真實密碼:hashed_pwd5
@@ -32,8 +31,6 @@ INSERT INTO users (username, password_hash, email, phone, address, role_id) VALU
 ('user8', '$2b$12$Cl31TleyhKZAR6PD4.a81etQSSiqUjUo1gI.wsvkVH0M212l2q/vO', 'user8@example.com', '0900000008', '台灣市xx路8號', 2),    --真實密碼:hashed_pwd8
 ('user9', '$2b$12$5qyw.5y/hkfoOMDOk.SaCe.Nab3K6dDjyJVHoEEo8ntDfiFRDQMNu', 'user9@example.com', '0900000009', '台灣市xx路9號', 2),    --真實密碼:hashed_pwd9
 ('user10', '$2b$12$YFtbXq7RaKdAMz3JLnn6Xu8ddRxT0ZDEY2I04TtDMtfSPQab0GBK6', 'user10@example.com', '0900000010', '台灣市xx路10號', 2),--真實密碼:hashed_pwd10
-
--- Customer (role_id = 3): user11 - user50
 ('user11', '$2b$12$cqbjexH5d..qGbM9Ob8nB.NZIKALZrTnfxEYAehPunPxclNNII4iK', 'user11@example.com', '0900000011', '台灣市xx路11號', 3),--真實密碼:hashed_pwd11
 ('user12', '$2b$12$2HNNplxR6uMrLQMQOWoNrOSnLaUY5OTSkQL26J2u5rZiNAjunqNM6', 'user12@example.com', '0900000012', '台灣市xx路12號', 3),--真實密碼:hashed_pwd12
 ('user13', '$2b$12$D2f4fssUDs5kk/GFXA4A/unDbbzCdO.gaWRYHtu9Ty.LAhjEgFKC6', 'user13@example.com', '0900000013', '台灣市xx路13號', 3),--真實密碼:hashed_pwd13
