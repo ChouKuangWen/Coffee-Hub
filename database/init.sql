@@ -1,5 +1,5 @@
 -- 建立資料庫
-CREATE DATABASE `member_order_management_backend_system`
+CREATE DATABASE IF NOT EXISTS `member_order_management_backend_system`
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_general_ci;
 
