@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.products import Products
 from app.schemas.products import ProductCreate
+from app.core.sanitizer import sanitize_user_input
 
 # 取得所有商品
 async def get_all_products(db: AsyncSession):
@@ -16,6 +17,11 @@ async def get_product(db: AsyncSession, product_id: int):
 
 # 新增商品
 async def create_new_product(db: AsyncSession, product: ProductCreate):
+    # 將 Pydantic 模型轉為字典
+    product_data = product.dict()
+    # 新增淨化邏輯
+    if "description" in product_data and product_data["description"] is not None:
+        product_data["description"] = sanitize_user_input(product_data["description"])
     new_product = Products(**product.dict())
     db.add(new_product)
     await db.commit()
@@ -26,6 +32,19 @@ async def create_new_product(db: AsyncSession, product: ProductCreate):
 async def update_product_information(db: AsyncSession, product, existing_product):
     for field, value in product.dict(exclude_unset=True).items():
         setattr(existing_product, field, value)
+    
+    update_data = product.dict(exclude_unset=True)
+
+    # 新增淨化邏輯
+    # 檢查是否有傳入 description 且值不為 None
+    if "description" in update_data and update_data["description"] is not None:
+        # 對新的 description 內容進行淨化
+        update_data["description"] = sanitize_user_input(update_data["description"])
+
+    # 迭代更新資料
+    for field, value in update_data.items():
+        setattr(existing_product, field, value)
+    
     await db.commit()
     await db.refresh(existing_product)
     return existing_product
