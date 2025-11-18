@@ -9,8 +9,8 @@ from app.schemas.orders import OrderCreate, OrderUpdateStatus
 from datetime import datetime
 
 # 新增訂單
-async def create_order(db: AsyncSession, odrer: OrderCreate):
-    new_order = Orders(**odrer.dict())
+async def create_order(db: AsyncSession, order: OrderCreate):
+    new_order = Orders(**order.dict())
     db.add(new_order)
     await db.commit()
     await db.refresh(new_order)
