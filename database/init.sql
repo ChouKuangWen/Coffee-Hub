@@ -1,3 +1,7 @@
+SET NAMES 'utf8mb4';
+SET character_set_client = utf8mb4;
+
+DROP DATABASE IF EXISTS `member_order_management_backend_system`;
 -- 建立資料庫
 CREATE DATABASE IF NOT EXISTS `member_order_management_backend_system`
 CHARACTER SET utf8mb4
