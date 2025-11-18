@@ -1,3 +1,5 @@
+SET NAMES 'utf8mb4';
+SET character_set_client = utf8mb4;
 
 INSERT INTO roles (name) VALUES
 ('Admin'),
@@ -21,56 +23,110 @@ INSERT INTO roles_permissions (role_id, permission_id) VALUES
 -- Manager (role_id = 2): user3 - user10
 -- Customer (role_id = 3): user11 - user50
 INSERT INTO users (username, password_hash, email, phone, address, role_id) VALUES
-('user1', '$2b$12$p9rSK2tnQFpo5c7sVtzOO.bkl.VL6Q/TkRa17MFkVBdy19FnRa3BC', 'user1@example.com', '0900000001', '台灣市xx路1號', 1),    --真實密碼:hashed_pwd1
-('user2', '$2b$12$co2RU/g0kI60mj6ElZXv2.SskpqeHfs89cVJESwoseXfknSeg/yD2', 'user2@example.com', '0900000002', '台灣市xx路2號', 1),    --真實密碼:hashed_pwd2
-('user3', '$2b$12$UubpWXdqoAOy74RU0nS.GuDUqA9pkYf8a3qEfQgzCc12Y5vPa8Er6', 'user3@example.com', '0900000003', '台灣市xx路3號', 2),    --真實密碼:hashed_pwd3
-('user4', '$2b$12$f0gkf.iQ/rvhfLpXHWweiO099pAW60ouBLunlQ68bddJYlO7107dW', 'user4@example.com', '0900000004', '台灣市xx路4號', 2),    --真實密碼:hashed_pwd4
-('user5', '$2b$12$U5eGelWE/V1CjeR1uAG1su3VrlSd3iev0wXCPpDXpSJFm5TG6NhWa', 'user5@example.com', '0900000005', '台灣市xx路5號', 2),    --真實密碼:hashed_pwd5
-('user6', '$2b$12$r8NUbifaJezOsZqNwRE/NucdNKxFk4ZXnIuF9GxeWpYLkn5viIuV6', 'user6@example.com', '0900000006', '台灣市xx路6號', 2),    --真實密碼:hashed_pwd6
-('user7', '$2b$12$Ku58DcnDg9rUofGY/Y1M3u2gf9CTU2MjBxKnjxHOG1mym0J6ftuRa', 'user7@example.com', '0900000007', '台灣市xx路7號', 2),    --真實密碼:hashed_pwd7
-('user8', '$2b$12$Cl31TleyhKZAR6PD4.a81etQSSiqUjUo1gI.wsvkVH0M212l2q/vO', 'user8@example.com', '0900000008', '台灣市xx路8號', 2),    --真實密碼:hashed_pwd8
-('user9', '$2b$12$5qyw.5y/hkfoOMDOk.SaCe.Nab3K6dDjyJVHoEEo8ntDfiFRDQMNu', 'user9@example.com', '0900000009', '台灣市xx路9號', 2),    --真實密碼:hashed_pwd9
-('user10', '$2b$12$YFtbXq7RaKdAMz3JLnn6Xu8ddRxT0ZDEY2I04TtDMtfSPQab0GBK6', 'user10@example.com', '0900000010', '台灣市xx路10號', 2),--真實密碼:hashed_pwd10
-('user11', '$2b$12$cqbjexH5d..qGbM9Ob8nB.NZIKALZrTnfxEYAehPunPxclNNII4iK', 'user11@example.com', '0900000011', '台灣市xx路11號', 3),--真實密碼:hashed_pwd11
-('user12', '$2b$12$2HNNplxR6uMrLQMQOWoNrOSnLaUY5OTSkQL26J2u5rZiNAjunqNM6', 'user12@example.com', '0900000012', '台灣市xx路12號', 3),--真實密碼:hashed_pwd12
-('user13', '$2b$12$D2f4fssUDs5kk/GFXA4A/unDbbzCdO.gaWRYHtu9Ty.LAhjEgFKC6', 'user13@example.com', '0900000013', '台灣市xx路13號', 3),--真實密碼:hashed_pwd13
-('user14', '$2b$12$PmnWi2S0N1p0pvBBmKhsYutaXMgQMQeU9/HlW34FTVzMVl4rQ2Qvu', 'user14@example.com', '0900000014', '台灣市xx路14號', 3),--真實密碼:hashed_pwd14
-('user15', '$2b$12$HYqXXE53am.b36vxOJ7AveTiyyvs/.tcKm7zFDEMmIP9W3JQZtabi', 'user15@example.com', '0900000015', '台灣市xx路15號', 3),--真實密碼:hashed_pwd15
-('user16', '$2b$12$K9Aow0WLnvaz4.MIYNypVu5AUhhdY6uiFLTn9Z.AKTewhyrCWBgwW', 'user16@example.com', '0900000016', '台灣市xx路16號', 3),--真實密碼:hashed_pwd16
-('user17', '$2b$12$brYw1JJ0WKRWmpXeqTwVnOtdywRAvy0gxRjIrzB5UThP.PUs98F9C', 'user17@example.com', '0900000017', '台灣市xx路17號', 3),--真實密碼:hashed_pwd17
-('user18', '$2b$12$LQ/JLRQoIk.56s/qamHnw.JIriVGZACMswu7WbilB.fz2SodPpXPO', 'user18@example.com', '0900000018', '台灣市xx路18號', 3),--真實密碼:hashed_pwd18
-('user19', '$2b$12$Aa0Xbk/X3rEgmvSjeSzJDefg41IClsb6ZpsyHZmoB7.BXZ9xG9m5y', 'user19@example.com', '0900000019', '台灣市xx路19號', 3),--真實密碼:hashed_pwd19
-('user20', '$2b$12$O2lE7WnacyLX6siEJY/qv.wxST99R/Pn0GNTyt.m9DTfWwa3leOe.', 'user20@example.com', '0900000020', '台灣市xx路20號', 3),--真實密碼:hashed_pwd20
-('user21', '$2b$12$RLJ3qiSLdx.JlmPiw6F9h.j2rYfGi7Y2wyIuP8iP7/ItVGRshrCFK', 'user21@example.com', '0900000021', '台灣市xx路21號', 3),--真實密碼:hashed_pwd21
-('user22', '$2b$12$.SICy5RFduUL69BHGDQlE.0hJxIPPHr3UQeRtM9QuiPUXfgvOA5K2', 'user22@example.com', '0900000022', '台灣市xx路22號', 3),--真實密碼:hashed_pwd22
-('user23', '$2b$12$UsfNV8hx6JDXR5w15boz5.0Vskht38oy7s5sQjPiQY6SsVigCxWY2', 'user23@example.com', '0900000023', '台灣市xx路23號', 3),--真實密碼:hashed_pwd23
-('user24', '$2b$12$cZMpdAxuDpy8GqUJVdFSreA7ez.fMiwfr5VbntObggIOgEDzTqnXe', 'user24@example.com', '0900000024', '台灣市xx路24號', 3),--真實密碼:hashed_pwd24
-('user25', '$2b$12$nnsYXK8HvtZppFQ5AKqt1urhtO6pLD17sMLR8KJtVfCfpO4TnrFIC', 'user25@example.com', '0900000025', '台灣市xx路25號', 3),--真實密碼:hashed_pwd25
-('user26', '$2b$12$mo6OeKfaRR3gTSX6d6wny.IJPxM7iNlxevjsZBO.5YNAMapGGolbm', 'user26@example.com', '0900000026', '台灣市xx路26號', 3),--真實密碼:hashed_pwd26
-('user27', '$2b$12$qXzj9.mji3V5M8nAT4dp9ueSMfPVpGawf99jRg8d0XSt7flfsIeM2', 'user27@example.com', '0900000027', '台灣市xx路27號', 3),--真實密碼:hashed_pwd27
-('user28', '$2b$12$bTmF.VjeDUyqr33P.BCPFujlUvk8MJwljEQ9Xvby2RWKhDUxvFbyu', 'user28@example.com', '0900000028', '台灣市xx路28號', 3),--真實密碼:hashed_pwd28
-('user29', '$2b$12$EvBb0hQD.xlvPT.0gCL5C.rx0lgXHzWRnc3vCkd67W8ZWzSfPKdie', 'user29@example.com', '0900000029', '台灣市xx路29號', 3),--真實密碼:hashed_pwd29
-('user30', '$2b$12$9ZCi4kHRuTPeCTTuU1funu.aEeyny4ZKQxQAC0Lg22DaebzshJ4j6', 'user30@example.com', '0900000030', '台灣市xx路30號', 3),--真實密碼:hashed_pwd30
-('user31', '$2b$12$cJCi9WKDanZRhzZ6/jU.IeUhI1I3d0uwK9bCRCx7OQVSXZWQEHmVK', 'user31@example.com', '0900000031', '台灣市xx路31號', 3),--真實密碼:hashed_pwd31
-('user32', '$2b$12$gSHc4rH8tazFKgYtJRtSOe7oKeol3iTMEbtTMgSHnlqNvREtmw8CS', 'user32@example.com', '0900000032', '台灣市xx路32號', 3),--真實密碼:hashed_pwd32
-('user33', '$2b$12$9KoDu.Lrdk8yTtmcB.CUr.I.OGcxbtKllIc1vpOdr9GUbD/nSEHxq', 'user33@example.com', '0900000033', '台灣市xx路33號', 3),--真實密碼:hashed_pwd33
-('user34', '$2b$12$0wTdng1Xza74Rgz2ccOmi./2EHqazpW2IiFy717Uq48CUz.VWQ4ti', 'user34@example.com', '0900000034', '台灣市xx路34號', 3),--真實密碼:hashed_pwd34
-('user35', '$2b$12$3f4T5WI94rWK6WGTlHdJ/e0IBpZKy25/D4bWwGA4vu6WUxt9Y58KS', 'user35@example.com', '0900000035', '台灣市xx路35號', 3),--真實密碼:hashed_pwd35
-('user36', '$2b$12$4gnKzwiEqaX2.hJS3qDsaObzvlRDEKzDuzP.Qe.LMDcjRnEgCCshi', 'user36@example.com', '0900000036', '台灣市xx路36號', 3),--真實密碼:hashed_pwd36
-('user37', '$2b$12$ZE75tWcLGEBf4EedsjmyJOxq7G3ugsmsPs2P1Y9SP/EuKZEEG4W5O', 'user37@example.com', '0900000037', '台灣市xx路37號', 3),--真實密碼:hashed_pwd37
-('user38', '$2b$12$64l/RpzumUP.PcBJTPfxlumwV5yNY8ZmvmhsRhvY/u0gRBzucpahS', 'user38@example.com', '0900000038', '台灣市xx路38號', 3),--真實密碼:hashed_pwd38
-('user39', '$2b$12$q0awrVOjyb2FERuKICJUsuzH.ur0Uj6Imhxc.yP6.GWtvNmqE1MTG', 'user39@example.com', '0900000039', '台灣市xx路39號', 3),--真實密碼:hashed_pwd39
-('user40', '$2b$12$F6Dn2fsbGKAsdqcu9jqKn..RpP0B8YtcFvMr3dufuTAkyD1ZocWAq', 'user40@example.com', '0900000040', '台灣市xx路40號', 3),--真實密碼:hashed_pwd40
-('user41', '$2b$12$10ERp/jmOXdW94LyVK.9j.FJ4JECVBl9KEk.wY9aAHlE9xp9kLCua', 'user41@example.com', '0900000041', '台灣市xx路41號', 3),--真實密碼:hashed_pwd41
-('user42', '$2b$12$jLjFXrr8nrcCDH5WzgNVSOOsuefgOrZhZRXpTE3ds9NjU.Few3JDC', 'user42@example.com', '0900000042', '台灣市xx路42號', 3),--真實密碼:hashed_pwd42
-('user43', '$2b$12$uIrcUOPOjTn6fvttZv9I4.Qk7e0FbB5I6u2G.7VliQVHMQjgzUVlG', 'user43@example.com', '0900000043', '台灣市xx路43號', 3),--真實密碼:hashed_pwd43
-('user44', '$2b$12$F9f7Yjq9b/rkXHNdLOmGDuvJboNfDYVVpSQh5LtVTfSXVDUI0mtL2', 'user44@example.com', '0900000044', '台灣市xx路44號', 3),--真實密碼:hashed_pwd44
-('user45', '$2b$12$ZK0fL4GT86lEo4t06ARpqeZAWr7dH5p0LaGLK10JmoupxKKYFQToi', 'user45@example.com', '0900000045', '台灣市xx路45號', 3),--真實密碼:hashed_pwd45
-('user46', '$2b$12$uCJ/kyggu1m0E0dDXT3g0epasC43V27oTJNEFqzKGChBDclllNm.S', 'user46@example.com', '0900000046', '台灣市xx路46號', 3),--真實密碼:hashed_pwd46
-('user47', '$2b$12$VQDnIT8DXnJsUk/urmq4H.sAczkZ9M2CWZLXkUE3e5GFCPsAzLjKK', 'user47@example.com', '0900000047', '台灣市xx路47號', 3),--真實密碼:hashed_pwd47
-('user48', '$2b$12$BkgE3hniOhDS8T1DGopOjeLwSwxEqUvjQdDy1yyQlBj68flLoWKji', 'user48@example.com', '0900000048', '台灣市xx路48號', 3),--真實密碼:hashed_pwd48
-('user49', '$2b$12$gUEWjHJb8/YblmXKOrBFFuL5FaPtYc7qQu3uqvqxYJQ9xHcIYpqFi', 'user49@example.com', '0900000049', '台灣市xx路49號', 3),--真實密碼:hashed_pwd49
-('user50', '$2b$12$ZTqwBC2NIWmfOjwzvL.kcOTAPqU1jNUljZSoSDcN.v2acTyIFVY6S', 'user50@example.com', '0900000050', '台灣市xx路50號', 3);--真實密碼:hashed_pwd50
+('user1', '$2b$12$p9rSK2tnQFpo5c7sVtzOO.bkl.VL6Q/TkRa17MFkVBdy19FnRa3BC', 'user1@example.com', '0900000001', '台灣市xx路1號', 1),
+('user2', '$2b$12$co2RU/g0kI60mj6ElZXv2.SskpqeHfs89cVJESwoseXfknSeg/yD2', 'user2@example.com', '0900000002', '台灣市xx路2號', 1),
+('user3', '$2b$12$UubpWXdqoAOy74RU0nS.GuDUqA9pkYf8a3qEfQgzCc12Y5vPa8Er6', 'user3@example.com', '0900000003', '台灣市xx路3號', 2),
+('user4', '$2b$12$f0gkf.iQ/rvhfLpXHWweiO099pAW60ouBLunlQ68bddJYlO7107dW', 'user4@example.com', '0900000004', '台灣市xx路4號', 2),
+('user5', '$2b$12$U5eGelWE/V1CjeR1uAG1su3VrlSd3iev0wXCPpDXpSJFm5TG6NhWa', 'user5@example.com', '0900000005', '台灣市xx路5號', 2),
+('user6', '$2b$12$r8NUbifaJezOsZqNwRE/NucdNKxFk4ZXnIuF9GxeWpYLkn5viIuV6', 'user6@example.com', '0900000006', '台灣市xx路6號', 2),
+('user7', '$2b$12$Ku58DcnDg9rUofGY/Y1M3u2gf9CTU2MjBxKnjxHOG1mym0J6ftuRa', 'user7@example.com', '0900000007', '台灣市xx路7號', 2),
+('user8', '$2b$12$Cl31TleyhKZAR6PD4.a81etQSSiqUjUo1gI.wsvkVH0M212l2q/vO', 'user8@example.com', '0900000008', '台灣市xx路8號', 2),
+('user9', '$2b$12$5qyw.5y/hkfoOMDOk.SaCe.Nab3K6dDjyJVHoEEo8ntDfiFRDQMNu', 'user9@example.com', '0900000009', '台灣市xx路9號', 2),
+('user10', '$2b$12$YFtbXq7RaKdAMz3JLnn6Xu8ddRxT0ZDEY2I04TtDMtfSPQab0GBK6', 'user10@example.com', '0900000010', '台灣市xx路10號', 2),
+('user11', '$2b$12$cqbjexH5d..qGbM9Ob8nB.NZIKALZrTnfxEYAehPunPxclNNII4iK', 'user11@example.com', '0900000011', '台灣市xx路11號', 3),
+('user12', '$2b$12$2HNNplxR6uMrLQMQOWoNrOSnLaUY5OTSkQL26J2u5rZiNAjunqNM6', 'user12@example.com', '0900000012', '台灣市xx路12號', 3),
+('user13', '$2b$12$D2f4fssUDs5kk/GFXA4A/unDbbzCdO.gaWRYHtu9Ty.LAhjEgFKC6', 'user13@example.com', '0900000013', '台灣市xx路13號', 3),
+('user14', '$2b$12$PmnWi2S0N1p0pvBBmKhsYutaXMgQMQeU9/HlW34FTVzMVl4rQ2Qvu', 'user14@example.com', '0900000014', '台灣市xx路14號', 3),
+('user15', '$2b$12$HYqXXE53am.b36vxOJ7AveTiyyvs/.tcKm7zFDEMmIP9W3JQZtabi', 'user15@example.com', '0900000015', '台灣市xx路15號', 3),
+('user16', '$2b$12$K9Aow0WLnvaz4.MIYNypVu5AUhhdY6uiFLTn9Z.AKTewhyrCWBgwW', 'user16@example.com', '0900000016', '台灣市xx路16號', 3),
+('user17', '$2b$12$brYw1JJ0WKRWmpXeqTwVnOtdywRAvy0gxRjIrzB5UThP.PUs98F9C', 'user17@example.com', '0900000017', '台灣市xx路17號', 3),
+('user18', '$2b$12$LQ/JLRQoIk.56s/qamHnw.JIriVGZACMswu7WbilB.fz2SodPpXPO', 'user18@example.com', '0900000018', '台灣市xx路18號', 3),
+('user19', '$2b$12$Aa0Xbk/X3rEgmvSjeSzJDefg41IClsb6ZpsyHZmoB7.BXZ9xG9m5y', 'user19@example.com', '0900000019', '台灣市xx路19號', 3),
+('user20', '$2b$12$O2lE7WnacyLX6siEJY/qv.wxST99R/Pn0GNTyt.m9DTfWwa3leOe.', 'user20@example.com', '0900000020', '台灣市xx路20號', 3),
+('user21', '$2b$12$RLJ3qiSLdx.JlmPiw6F9h.j2rYfGi7Y2wyIuP8iP7/ItVGRshrCFK', 'user21@example.com', '0900000021', '台灣市xx路21號', 3),
+('user22', '$2b$12$.SICy5RFduUL69BHGDQlE.0hJxIPPHr3UQeRtM9QuiPUXfgvOA5K2', 'user22@example.com', '0900000022', '台灣市xx路22號', 3),
+('user23', '$2b$12$UsfNV8hx6JDXR5w15boz5.0Vskht38oy7s5sQjPiQY6SsVigCxWY2', 'user23@example.com', '0900000023', '台灣市xx路23號', 3),
+('user24', '$2b$12$cZMpdAxuDpy8GqUJVdFSreA7ez.fMiwfr5VbntObggIOgEDzTqnXe', 'user24@example.com', '0900000024', '台灣市xx路24號', 3),
+('user25', '$2b$12$nnsYXK8HvtZppFQ5AKqt1urhtO6pLD17sMLR8KJtVfCfpO4TnrFIC', 'user25@example.com', '0900000025', '台灣市xx路25號', 3),
+('user26', '$2b$12$mo6OeKfaRR3gTSX6d6wny.IJPxM7iNlxevjsZBO.5YNAMapGGolbm', 'user26@example.com', '0900000026', '台灣市xx路26號', 3),
+('user27', '$2b$12$qXzj9.mji3V5M8nAT4dp9ueSMfPVpGawf99jRg8d0XSt7flfsIeM2', 'user27@example.com', '0900000027', '台灣市xx路27號', 3),
+('user28', '$2b$12$bTmF.VjeDUyqr33P.BCPFujlUvk8MJwljEQ9Xvby2RWKhDUxvFbyu', 'user28@example.com', '0900000028', '台灣市xx路28號', 3),
+('user29', '$2b$12$EvBb0hQD.xlvPT.0gCL5C.rx0lgXHzWRnc3vCkd67W8ZWzSfPKdie', 'user29@example.com', '0900000029', '台灣市xx路29號', 3),
+('user30', '$2b$12$9ZCi4kHRuTPeCTTuU1funu.aEeyny4ZKQxQAC0Lg22DaebzshJ4j6', 'user30@example.com', '0900000030', '台灣市xx路30號', 3),
+('user31', '$2b$12$cJCi9WKDanZRhzZ6/jU.IeUhI1I3d0uwK9bCRCx7OQVSXZWQEHmVK', 'user31@example.com', '0900000031', '台灣市xx路31號', 3),
+('user32', '$2b$12$gSHc4rH8tazFKgYtJRtSOe7oKeol3iTMEbtTMgSHnlqNvREtmw8CS', 'user32@example.com', '0900000032', '台灣市xx路32號', 3),
+('user33', '$2b$12$9KoDu.Lrdk8yTtmcB.CUr.I.OGcxbtKllIc1vpOdr9GUbD/nSEHxq', 'user33@example.com', '0900000033', '台灣市xx路33號', 3),
+('user34', '$2b$12$0wTdng1Xza74Rgz2ccOmi./2EHqazpW2IiFy717Uq48CUz.VWQ4ti', 'user34@example.com', '0900000034', '台灣市xx路34號', 3),
+('user35', '$2b$12$3f4T5WI94rWK6WGTlHdJ/e0IBpZKy25/D4bWwGA4vu6WUxt9Y58KS', 'user35@example.com', '0900000035', '台灣市xx路35號', 3),
+('user36', '$2b$12$4gnKzwiEqaX2.hJS3qDsaObzvlRDEKzDuzP.Qe.LMDcjRnEgCCshi', 'user36@example.com', '0900000036', '台灣市xx路36號', 3),
+('user37', '$2b$12$ZE75tWcLGEBf4EedsjmyJOxq7G3ugsmsPs2P1Y9SP/EuKZEEG4W5O', 'user37@example.com', '0900000037', '台灣市xx路37號', 3),
+('user38', '$2b$12$64l/RpzumUP.PcBJTPfxlumwV5yNY8ZmvmhsRhvY/u0gRBzucpahS', 'user38@example.com', '0900000038', '台灣市xx路38號', 3),
+('user39', '$2b$12$q0awrVOjyb2FERuKICJUsuzH.ur0Uj6Imhxc.yP6.GWtvNmqE1MTG', 'user39@example.com', '0900000039', '台灣市xx路39號', 3),
+('user40', '$2b$12$F6Dn2fsbGKAsdqcu9jqKn..RpP0B8YtcFvMr3dufuTAkyD1ZocWAq', 'user40@example.com', '0900000040', '台灣市xx路40號', 3),
+('user41', '$2b$12$10ERp/jmOXdW94LyVK.9j.FJ4JECVBl9KEk.wY9aAHlE9xp9kLCua', 'user41@example.com', '0900000041', '台灣市xx路41號', 3),
+('user42', '$2b$12$jLjFXrr8nrcCDH5WzgNVSOOsuefgOrZhZRXpTE3ds9NjU.Few3JDC', 'user42@example.com', '0900000042', '台灣市xx路42號', 3),
+('user43', '$2b$12$uIrcUOPOjTn6fvttZv9I4.Qk7e0FbB5I6u2G.7VliQVHMQjgzUVlG', 'user43@example.com', '0900000043', '台灣市xx路43號', 3),
+('user44', '$2b$12$F9f7Yjq9b/rkXHNdLOmGDuvJboNfDYVVpSQh5LtVTfSXVDUI0mtL2', 'user44@example.com', '0900000044', '台灣市xx路44號', 3),
+('user45', '$2b$12$ZK0fL4GT86lEo4t06ARpqeZAWr7dH5p0LaGLK10JmoupxKKYFQToi', 'user45@example.com', '0900000045', '台灣市xx路45號', 3),
+('user46', '$2b$12$uCJ/kyggu1m0E0dDXT3g0epasC43V27oTJNEFqzKGChBDclllNm.S', 'user46@example.com', '0900000046', '台灣市xx路46號', 3),
+('user47', '$2b$12$VQDnIT8DXnJsUk/urmq4H.sAczkZ9M2CWZLXkUE3e5GFCPsAzLjKK', 'user47@example.com', '0900000047', '台灣市xx路47號', 3),
+('user48', '$2b$12$BkgE3hniOhDS8T1DGopOjeLwSwxEqUvjQdDy1yyQlBj68flLoWKji', 'user48@example.com', '0900000048', '台灣市xx路48號', 3),
+('user49', '$2b$12$gUEWjHJb8/YblmXKOrBFFuL5FaPtYc7qQu3uqvqxYJQ9xHcIYpqFi', 'user49@example.com', '0900000049', '台灣市xx路49號', 3),
+('user50', '$2b$12$ZTqwBC2NIWmfOjwzvL.kcOTAPqU1jNUljZSoSDcN.v2acTyIFVY6S', 'user50@example.com', '0900000050', '台灣市xx路50號', 3);
+
+-- 此區為可以測試使用之帳號密碼：
+-- user1 真實密碼:hashed_pwd1
+-- user2 真實密碼:hashed_pwd2
+-- user3 真實密碼:hashed_pwd3
+-- user4 真實密碼:hashed_pwd4
+-- user5 真實密碼:hashed_pwd5
+-- user6 真實密碼:hashed_pwd6
+-- user7 真實密碼:hashed_pwd7
+-- user8 真實密碼:hashed_pwd8
+-- user9 真實密碼:hashed_pwd9
+-- user10 真實密碼:hashed_pwd10
+-- user11 真實密碼:hashed_pwd11
+-- user12 真實密碼:hashed_pwd12
+-- user13 真實密碼:hashed_pwd13
+-- user14 真實密碼:hashed_pwd14
+-- user15 真實密碼:hashed_pwd15
+-- user16 真實密碼:hashed_pwd16
+-- user17 真實密碼:hashed_pwd17
+-- user18 真實密碼:hashed_pwd18
+-- user19 真實密碼:hashed_pwd19
+-- user20 真實密碼:hashed_pwd20
+-- user21 真實密碼:hashed_pwd21
+-- user22 真實密碼:hashed_pwd22
+-- user23 真實密碼:hashed_pwd23
+-- user24 真實密碼:hashed_pwd24
+-- user25 真實密碼:hashed_pwd25
+-- user26 真實密碼:hashed_pwd26
+-- user27 真實密碼:hashed_pwd27
+-- user28 真實密碼:hashed_pwd28
+-- user29 真實密碼:hashed_pwd29
+-- user30 真實密碼:hashed_pwd30
+-- user31 真實密碼:hashed_pwd31
+-- user32 真實密碼:hashed_pwd32
+-- user33 真實密碼:hashed_pwd33
+-- user34 真實密碼:hashed_pwd34
+-- user35 真實密碼:hashed_pwd35
+-- user36 真實密碼:hashed_pwd36
+-- user37 真實密碼:hashed_pwd37
+-- user38 真實密碼:hashed_pwd38
+-- user39 真實密碼:hashed_pwd39
+-- user40 真實密碼:hashed_pwd40
+-- user41 真實密碼:hashed_pwd41
+-- user42 真實密碼:hashed_pwd42
+-- user43 真實密碼:hashed_pwd43
+-- user44 真實密碼:hashed_pwd44
+-- user45 真實密碼:hashed_pwd45
+-- user46 真實密碼:hashed_pwd46
+-- user47 真實密碼:hashed_pwd47
+-- user48 真實密碼:hashed_pwd48
+-- user49 真實密碼:hashed_pwd49
+-- user50 真實密碼:hashed_pwd50
+
+
 
 INSERT INTO products (name, price, stock, description, owner_id) VALUES
 ('商品2', 28.27, 207, '商品2描述', 3),
@@ -348,7 +404,6 @@ INSERT INTO order_items (order_id, product_id, quantity, price, user_id) VALUES
 (37, 47, 5, 368.48, 41),
 (38, 35, 3, 125.66, 37),
 (38, 3, 3, 75.9, 37),
-(39, 8, 1, 224.83, 53),
 (40, 6, 3, 484.58, 6),
 (40, 24, 1, 390.27, 6),
 (40, 10, 4, 414.25, 6),
