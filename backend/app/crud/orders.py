@@ -1,9 +1,10 @@
 # app/crud/orders.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import delete
+from sqlalchemy import delete, select, distinct
 from app.models.orders import Orders
 from app.models.order_items import OrderItems
+from app.models.products import Products
 from app.schemas.orders import OrderCreate, OrderUpdateStatus
 from datetime import datetime
 
@@ -27,8 +28,15 @@ async def get_orders_by_user(db: AsyncSession, user_id: int):
 
 # 查賣家所有賣出的訂單
 async def get_orders_by_seller(db: AsyncSession, seller_id: int):
-    result = await db.execute(select(Orders).where(Orders.product_owner_id == seller_id))
-    return result.scalars().all()
+    stmt = (
+        select(Orders).distinct()
+        .join(OrderItems, Orders.order_id == OrderItems.order_id)
+        .join(Products, OrderItems.product_id == Products.product_id)
+        .where(Products.owner_id == seller_id)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().unique().all()
+    # 使用 unique() 確保在 Python 層級也只返回不重複的 Orders 物件
 
 # 查全部訂單（管理員用）
 async def get_all_orders(db: AsyncSession):
