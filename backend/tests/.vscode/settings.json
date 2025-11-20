@@ -2,10 +2,16 @@
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.testing.pytestArgs": [
-        "tests"
+        "unit"
     ],
     "python.analysis.extraPaths": [
-        "./app" // 或者直接 "."，這取決於您的匯入起點
+        "." // 或者直接 "."，這取決於您的匯入起點
     ],
-    "python.analysis.diagnosticMode": "workspace" // 確保在整個工作區運行診斷
+    "python.analysis.diagnosticMode": "workspace", // 確保在整個工作區運行診斷
+
+    // 關鍵變更 2: 設定單獨執行測試時的環境變數
+    // 這一行強制將專案根目錄 (backend) 加入 Python Path
+    // 這對於單獨運行一個測試檔案或函式至關重要，因為它解決了 'ModuleNotFoundError: No module named 'app''
+    "python.envFile": "${workspaceFolder}/.env", // 可以用於載入環境變數
+    "python.defaultInterpreterPath": "venv/Scripts/python.exe" // 確保指向正確的虛擬環境
 }
