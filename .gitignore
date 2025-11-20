@@ -5,3 +5,17 @@ venv/
 __pycache__/
 *.pyc
 .env
+backend/app/__pycache__/main.cpython-312.pyc
+backend/app/api/__pycache__/orders.cpython-312.pyc
+backend/app/api/__pycache__/products.cpython-312.pyc
+backend/app/crud/__pycache__/order_items.cpython-312.pyc
+backend/app/crud/__pycache__/orders.cpython-312.pyc
+backend/app/schemas/__pycache__/users.cpython-312.pyc
+backend/app/crud/__pycache__/products.cpython-312.pyc
+backend/app/crud/__pycache__/users.cpython-312.pyc
+backend/app/models/__pycache__/base.cpython-312.pyc
+backend/app/schemas/__pycache__/products.cpython-312.pyc
+backend/app/models/__pycache__/order_items.cpython-312.pyc
+backend/app/models/__pycache__/products.cpython-312.pyc
+backend/app/schemas/__pycache__/users.cpython-312.pyc
+backend/app/schemas/__pycache__/users.cpython-312.pyc
