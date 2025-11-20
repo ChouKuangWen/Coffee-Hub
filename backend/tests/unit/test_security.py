@@ -22,3 +22,8 @@ def test_verify_password_incorrect():
     hashed = hash_password(password)
     assert verify_password(wrong_password, hashed) is False  # 使用錯的密碼驗證應該回傳 False
 
+# hashed 密碼不應出現於原文
+def test_hash_password_not_equal_raw():
+    raw = "abc123"
+    hashed = hash_password(raw)
+    assert raw not in hashed  # 原密碼不應出現在 hash 字串中
