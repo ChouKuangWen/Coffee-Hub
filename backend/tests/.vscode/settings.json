@@ -1,0 +1,11 @@
+{
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.analysis.extraPaths": [
+        "./app" // 或者直接 "."，這取決於您的匯入起點
+    ],
+    "python.analysis.diagnosticMode": "workspace" // 確保在整個工作區運行診斷
+}
