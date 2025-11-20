@@ -1,4 +1,4 @@
-# tests/core/test_sanitizer.py
+# tests/unit/test_sanitizer.py
 import pytest
 from app.core.sanitizer import sanitize_user_input, sanitize_number_input
 
