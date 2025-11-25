@@ -63,10 +63,10 @@ onMounted(fetchCurrentUser)
 
 // 假資料
 const products = ref([
-  { id: 1, name: '耶加雪菲', price: 450, image: 'https://picsum.photos/200?random=11' },
-  { id: 2, name: '曼特寧', price: 400, image: 'https://picsum.photos/200?random=12' },
-  { id: 3, name: '衣索比亞', price: 500, image: 'https://picsum.photos/200?random=13' },
-  { id: 4, name: '哥倫比亞', price: 420, image: 'https://picsum.photos/200?random=14' }
+  { id: 1, name: '衣索比亞 耶加雪菲 G1', price: 450, image: '/images/衣索比亞.png' },
+  { id: 2, name: '哥倫比亞 薇拉 閃電庄園', price: 400, image: '/images/哥倫比亞.png' },
+  { id: 3, name: '巴西 黃波旁 Carmo 產區', price: 500, image: '/images/巴西.png' },
+  { id: 4, name: '肯亞 AA 之星', price: 420, image: '/images/肯亞.png' }
 ])
 </script>
 
@@ -193,7 +193,7 @@ const products = ref([
 
 /* Hero 區 */
 .hero {
-  background: url("https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
+  background: url("/images/background.jpg") center/cover no-repeat;
   height: 400px;
   display: flex;
   align-items: center;
