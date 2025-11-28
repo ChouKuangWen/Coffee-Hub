@@ -10,6 +10,31 @@ app = FastAPI(
     description="簡易 JWT 驗證系統",
     version="1.0.0",
 )
+
+# 1. 服務根路徑 (Root Path) - 確保 Cloud Run 基礎檢查通過
+@app.get("/")
+def read_root():
+    """
+    根路徑，用於基本測試和 Cloud Run 預設的健康檢查。
+    """
+    port = os.environ.get('PORT', '未設定')
+    
+    return {
+        "message": "後端服務已啟動並運行中。",
+        "status": "OK",
+        "running_on_port": port
+    }
+
+
+# 2. 專門的健康檢查路徑
+@app.get("/health")
+def health_check():
+    """
+    專門的健康檢查點，總是回傳成功狀態。
+    """
+    return {"status": "ok"}
+
+
 """ 註冊中介軟體 """
 #1. CORS Middleware: 處理跨域請求 (必須保持在 CSP 之前)，可依需求修改 CORS 設定
 app.add_middleware(
