@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, users, products, orders, order_items  # 載入 auth API 路由模組
 from app.core.csp_middleware import CSPMiddleware
+import os
 
 """應用程式實例"""
 app = FastAPI(
