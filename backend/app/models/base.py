@@ -11,10 +11,30 @@ db_host = os.getenv("DB_HOST")
 db_port = os.getenv("DB_PORT")
 db_name = os.getenv("DB_NAME")
 
-#SQLAlchemy 資料庫連線字串 mysql+asyncmy://帳號:密碼@主機:埠號/資料庫?參數
-db_url = f"mysql+asyncmy://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+# Cloud Run 中，我們透過這個變數連線到 Cloud SQL Proxy
+cloud_sql_conn_name = os.getenv("DB_CONNECTION_NAME")
 
-#建立資料庫連線引擎，建立session 宣告ORM
+
+# 雲端/本地 環境判斷
+if cloud_sql_conn_name:
+    # 模式 1:Cloud Run開發
+    # Cloud Run (使用 Unix Socket)，Cloud SQL Proxy 會在 /cloudsql/ 建 Socket 檔案
+    print(f"INFO: Using Cloud SQL Proxy via Unix Socket: {cloud_sql_conn_name}")
+    # 注意: asyncmy/PyMySQL 驅動程式的 Unix Socket 格式
+    # 格式: mysql+asyncmy://<user>:<password>@/<dbname>?unix_socket=/cloudsql/<CONNECTION_NAME>
+    db_url = (
+        f"mysql+asyncmy://{db_user}:{db_password}@/{db_name}?"
+        f"unix_socket=/cloudsql/{cloud_sql_conn_name}&charset=utf8mb4"
+    )
+
+else:
+    # 模式 2: 本地開發
+    # 從 .env 檔案中讀取
+    print("本地開發")
+    #SQLAlchemy 資料庫連線字串 mysql+asyncmy://帳號:密碼@主機:埠號/資料庫?參數
+    db_url = f"mysql+asyncmy://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
+
+# 建立資料庫連線引擎，建立session 宣告ORM
 """
 expire_on_commit 是 True。session.commit() 提交後，所有ORM 物件都會進入「過期」狀態。
 當你再次存取這些物件的屬性時，它們會重新從資料庫載入最新的值。
