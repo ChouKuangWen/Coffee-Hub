@@ -23,8 +23,10 @@ if cloud_sql_conn_name:
     # 注意: asyncmy/PyMySQL 驅動程式的 Unix Socket 格式
     # 格式: mysql+asyncmy://<user>:<password>@/<dbname>?unix_socket=/cloudsql/<CONNECTION_NAME>
     db_url = (
-        f"mysql+asyncmy://{db_user}:{db_password}@/{db_name}?"
-        f"unix_socket=/cloudsql/{cloud_sql_conn_name}&charset=utf8mb4"
+        f"mysql+asyncmy://{db_user}:{db_password}@/?"
+        f"unix_socket=/cloudsql/{cloud_sql_conn_name}&"
+        f"database={db_name}&"  # <--- 將資料庫名稱作為單獨參數
+        f"charset=utf8mb4"
     )
 
 else:
