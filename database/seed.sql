@@ -1,6 +1,8 @@
 SET NAMES 'utf8mb4';
 SET character_set_client = utf8mb4;
 
+USE member_order_management_backend_system;
+
 INSERT INTO roles (name) VALUES
 ('Admin'),
 ('Manager'),
