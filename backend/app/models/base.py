@@ -18,23 +18,18 @@ cloud_sql_conn_name = os.getenv("DB_CONNECTION_NAME")
 
 # 雲端/本地 環境判斷
 if cloud_sql_conn_name:
-    # 模式 1:Cloud Run開發
-    # Cloud Run (使用 Unix Socket)，Cloud SQL Proxy 會在 /cloudsql/ 建 Socket 檔案
+    # 模式 1: Cloud Run 開發
     print(f"INFO: Using Cloud SQL Proxy via Unix Socket: {cloud_sql_conn_name}")
-    # 注意: asyncmy/PyMySQL 驅動程式的 Unix Socket 格式
-    # 格式: mysql+asyncmy://<user>:<password>@/<dbname>?unix_socket=/cloudsql/<CONNECTION_NAME>
+    # 正確的 asyncmy Unix Socket 連線格式
+    # mysql+asyncmy://<user>:<password>@/<dbname>?unix_socket=/cloudsql/<CONNECTION_NAME>&charset=utf8mb4
     db_url = (
-        f"mysql+asyncmy://{db_user}:{db_password}@/?"
-        f"unix_socket=/cloudsql/{cloud_sql_conn_name}&"
-        f"database={db_name}&"  # <--- 將資料庫名稱作為單獨參數
-        f"charset=utf8mb4"
-    )
-
+        f"mysql+asyncmy://{db_user}:{db_password}@/{db_name}"
+        f"?unix_socket=/cloudsql/{cloud_sql_conn_name}"
+        f"&charset=utf8mb4"
+        )
 else:
     # 模式 2: 本地開發
-    # 從 .env 檔案中讀取
-    print("本地開發")
-    #SQLAlchemy 資料庫連線字串 mysql+asyncmy://帳號:密碼@主機:埠號/資料庫?參數
+    print("INFO: Local development")
     db_url = f"mysql+asyncmy://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
 
 # 建立資料庫連線引擎，建立session 宣告ORM
