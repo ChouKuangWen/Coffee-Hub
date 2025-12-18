@@ -15,7 +15,7 @@ axios.defaults.withCredentials = true
 //  新增：從後端拿使用者資訊 (/auth/me)
 const fetchCurrentUser = async () => {
   try {
-    const res = await axios.get("http://localhost:8080/auth/me")
+    const res = await api.get("/auth/me")
     user.value = res.data
     console.log("已登入使用者:", res.data)
   } catch (error) {
