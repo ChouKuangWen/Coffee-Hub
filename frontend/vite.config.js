@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path' // 💡 引入 path 模組
 
 export default defineConfig({
+  base: './',
   plugins: [vue()],
   resolve: {
     alias: {
