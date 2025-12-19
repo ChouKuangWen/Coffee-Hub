@@ -11,8 +11,17 @@ router = APIRouter()
 
 # 取得所有商品 (所有角色皆有該權限)
 @router.get("/", response_model=List[ProductRead])
-async def read_all_products(db: AsyncSession = Depends(get_db)):
-    return await get_all_products(db)
+async def read_all_products(
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user_from_cookie)
+):
+    # 邏輯判斷：
+    # 如果是管理員 (1)，filter_id 為 None (代表不篩選，看全部)
+    # 如果是賣家 (2) 或其他，filter_id 為自己的 ID (只看自己的商品)
+    filter_id = None if current_user.role_id == 1 else current_user.user_id
+    
+    # 呼叫 CRUD 並傳入過濾 ID
+    return await get_all_products(db, owner_id=filter_id)
 
 # 取得單一商品（所有角色皆有該權限）
 """所有具有預設值的參數（例如 db: AsyncSession = Depends(get_db)）都必須放在沒有預設值的參數之後。"""
