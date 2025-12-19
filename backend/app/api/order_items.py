@@ -115,34 +115,30 @@ async def read_order_items_by_order(
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    # 1. 取得訂單明細
-    items = await get_order_items_by_order_id(db, order_id)
-    
-    if not items:
-        # 即使沒有項目，我們也返回空列表而不是 404
+    # 1. 取得所有明細
+    all_items = await get_order_items_by_order_id(db, order_id)
+    if not all_items:
         return []
 
-    # 2. 準備權限檢查變數
-    # 管理員 (role_id == 1)
+    # 2. 判斷權限與過濾資料
     is_admin = current_user.role_id == 1
+    # 判斷是否為買家 (下單的人可以看到全部明細)
+    is_buyer = all_items[0].order.user_id == current_user.user_id if all_items[0].order else False
 
-    # 買家檢查：訂單的下單者是否為當前使用者 (orders.user_id)
-    # 注意：需確保 items[0].order 已被載入
-    is_buyer = items[0].order.user_id == current_user.user_id if items[0].order else False
-
-    # 賣家檢查：當前使用者是否為此訂單中「任何一個商品」的擁有者 (products.owner_id)
-    # 這是最嚴謹的作法，只要有一件商品是你的，你就有權看明細
-    is_seller = any(
-        item.product.owner_id == current_user.user_id 
-        for item in items if item.product
-    )
-
-    # 3. 權限判定邏輯
-    # 如果不是管理員、也不是買家、也不是賣家，才拋出 403
-    if not (is_admin or is_buyer or is_seller):
-        raise HTTPException(
-            status_code=403, 
-            detail=f"無權查看此訂單的明細。您的使用者 ID 為 {current_user.user_id}"
-        )
+    # 3. 執行過濾邏輯
+    if is_admin or is_buyer:
+        # 管理員與買家，看這張訂單的「全部」內容
+        return all_items
+    else:
+        # 賣家身份：只過濾出「屬於自己」的商品明細
+        # 判斷標準：item.product.owner_id 等於 current_user.user_id
+        filtered_items = [
+            item for item in all_items 
+            if item.product and item.product.owner_id == current_user.user_id
+        ]
         
-    return items
+        # 如果過濾後是空的，代表這賣家根本沒商品在這張單，噴 403
+        if not filtered_items:
+            raise HTTPException(status_code=403, detail="無權查看此訂單明細")
+            
+        return filtered_items
