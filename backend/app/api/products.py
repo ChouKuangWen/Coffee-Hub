@@ -10,7 +10,7 @@ from app.dependencies import get_current_user_from_cookie, get_current_user, has
 router = APIRouter()
 
 # 取得所有商品 (所有角色皆有該權限)
-@router.get("/", response_model=List[ProductRead])
+@router.get("", response_model=List[ProductRead])
 async def read_all_products(
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user_from_cookie)
