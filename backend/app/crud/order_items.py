@@ -57,7 +57,8 @@ async def get_order_items_by_order_id(db: AsyncSession, order_id: int):
         # 由於前端只需要 OrderItemRead 的基本資訊，可以省略 selectinload，
         # 但為了確保數據完整性，這裡保持載入 product 資訊 (如果 OrderItemReadWithDetail 需要)。
         .options(
-            joinedload(OrderItems.product).joinedload(Products.owner)
+            selectinload(OrderItems.order),
+            selectinload(OrderItems.product)
         )
     )
     return result.scalars().all()
