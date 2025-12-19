@@ -9,10 +9,7 @@ import os
 app = FastAPI(
     title="JWT Auth API",
     description="簡易 JWT 驗證系統",
-    version="1.0.0",
-    # 加上 redirect_slashes=False，
-    # 這樣存取 /products 時，FastAPI 不會強制跳轉到 /products/
-    redirect_slashes=False,
+    version="1.0.0"
 )
 
 # 1. 服務根路徑 (Root Path) - 確保 Cloud Run 基礎檢查通過
