@@ -32,7 +32,7 @@ router.beforeEach(async (to, from, next) => {
   console.log("router 守衛啟動，目標路由:", to.path)
 
   // 公開頁面直接放行
-  if (['/home', '/login', '/register'].includes(to.path)) {
+  if (['/', '/home', '/login', '/register'].includes(to.path)) {
     return next()
   }
 
