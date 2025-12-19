@@ -122,19 +122,27 @@ async def read_order_items_by_order(
         # 即使沒有項目，我們也返回空列表而不是 404
         return []
 
-    # 2. 權限檢查：檢查訂單或任一項目是否屬於當前使用者或管理員
-    # 由於明細通常屬於同一筆訂單，我們檢查第一筆的權限即可
-    first_item = items[0] 
-    
-    # 權限檢查：管理員、下單買家、賣家可以查看
-    # 注意：我們依賴 OrderItem 關聯到 Order (item.order) 和 Product (item.product.owner_id)
-    if current_user.role_id != 1 \
-        and first_item.order.user_id != current_user.user_id \
-        and first_item.product.owner_id != current_user.user_id:
-        
-        # 雖然第一筆檢查通過，但嚴格來說應該檢查所有產品的擁有者是否為 Seller
-        # 為簡化，我們假設一筆訂單通常是查看權限一致的。
-        # 如果買家/賣家無權查看，則拋出 403
-        raise HTTPException(status_code=403, detail="無權查看此訂單的明細")
+    # 2. 準備權限檢查變數
+    # 管理員 (role_id == 1)
+    is_admin = current_user.role_id == 1
+
+    # 買家檢查：訂單的下單者是否為當前使用者 (orders.user_id)
+    # 注意：需確保 items[0].order 已被載入
+    is_buyer = items[0].order.user_id == current_user.user_id if items[0].order else False
+
+    # 賣家檢查：當前使用者是否為此訂單中「任何一個商品」的擁有者 (products.owner_id)
+    # 這是最嚴謹的作法，只要有一件商品是你的，你就有權看明細
+    is_seller = any(
+        item.product.owner_id == current_user.user_id 
+        for item in items if item.product
+    )
+
+    # 3. 權限判定邏輯
+    # 如果不是管理員、也不是買家、也不是賣家，才拋出 403
+    if not (is_admin or is_buyer or is_seller):
+        raise HTTPException(
+            status_code=403, 
+            detail=f"無權查看此訂單的明細。您的使用者 ID 為 {current_user.user_id}"
+        )
         
     return items
