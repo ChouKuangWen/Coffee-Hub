@@ -45,7 +45,9 @@ app.add_middleware(
                    "http://127.0.0.1:3000",
                    "https://member-order-management-backend-system-818780839244.asia-east1.run.app",
                    "http://frontend_member.storage.googleapis.com",
-                   "https://frontend_member.storage.googleapis.com",],  # 可改為前端網址，例如 http://localhost:3000
+                   "https://frontend_member.storage.googleapis.com",
+                   "http://storage.googleapis.com",
+                   "https://storage.googleapis.com",],  # 可改為前端網址，例如 http://localhost:3000
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
