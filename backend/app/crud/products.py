@@ -27,7 +27,7 @@ async def create_new_product(db: AsyncSession, product: ProductCreate):
     # 新增淨化邏輯
     if "description" in product_data and product_data["description"] is not None:
         product_data["description"] = sanitize_user_input(product_data["description"])
-    new_product = Products(**product.dict())
+    new_product = Products(**product_data)
     db.add(new_product)
     await db.commit()
     await db.refresh(new_product)
