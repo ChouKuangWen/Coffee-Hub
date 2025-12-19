@@ -6,8 +6,13 @@ from app.schemas.products import ProductCreate
 from app.core.sanitizer import sanitize_user_input
 
 # 取得所有商品
-async def get_all_products(db: AsyncSession):
-    result = await db.execute(select(Products))
+async def get_all_products(db: AsyncSession, owner_id: int = None):
+    query = select(Products) # 建立基礎查詢
+    # 如果有提供 owner_id，則在資料庫層級過濾
+    if owner_id is not None:
+        query = query.where(Products.owner_id == owner_id)
+
+    result = await db.execute(query)
     return result.scalars().all()
 
 # 取得單一商品
