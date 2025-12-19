@@ -113,7 +113,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     value=access_token,               # Cookie 的值，也就是你的 JWT
     httponly=True,                    # 讓 JS 無法透過 document.cookie 讀取，減少 XSS 攻擊風險
     secure=True,                      # 只允許 HTTPS 傳輸，保護 token 在網路上不被竊取
-    samesite="lax",                   # 防止 CSRF 攻擊，僅允許同站請求攜帶 cookie
+    samesite="none",                   # 防止 CSRF 攻擊，僅允許同站請求攜帶 cookie
     max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Cookie 過期秒數
     )
 
@@ -121,8 +121,8 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
     )
 
@@ -162,8 +162,8 @@ async def refresh_token_endpoint(response: Response, token: str, db: AsyncSessio
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
 
