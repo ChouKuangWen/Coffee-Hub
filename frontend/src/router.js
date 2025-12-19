@@ -10,7 +10,7 @@ import Products from './views/Products.vue'
 import api from './api'
 
 const routes = [
-  { path: '/', redirect: '/home' },      // 預設導向Home首頁
+  { path: '/', redirect: () => '/home'  },      // 預設導向Home首頁
   { path: '/home', component: Home },    // 新增 Home 頁
   { path: '/login', component: Login },   // 登入頁
   { path: '/dashboard', component: Dashboard }, // 登入後的主頁
@@ -46,7 +46,7 @@ router.beforeEach(async (to, from, next) => {
     next()
   } catch (err) {
     console.log("未登入或 cookie 無效，導回登入頁", err)
-    next('/login')
+    next({ path: '/login' })
   }
 })
 
