@@ -151,20 +151,28 @@ Member-order-management-system/
 │   ├── src/
 │   │   ├── components/               # 可重用元件
 │   │   ├── views/                    # 頁面
+│   │   │   ├── Home.vue
 │   │   │   ├── Dashboard.vue
 │   │   │   ├── Login.vue
 │   │   │   ├── Orders.vue
 │   │   │   ├── Products.vue
 │   │   │   ├── Register.vue
 │   │   │   └── Users.vue
+│   │   ├── App.vue
 │   │   ├── api.js                    # 後端 API 串接設定
 │   │   ├── router.js                 # Vue Router 設定
 │   │   ├── main.js                   # Vue 入口
 │   │   └── style.css                 # 全域樣式
+│   │
+│   ├── .dockerignor
+│   ├── .gitignore
+│   ├── index.html
+│   ├── nginx.conf
+│   ├── package-lock.json
 │   ├── Dockerfile                    # 前端 Docker 設定
 │   ├── package.json
 │   └── vite.config.js
-│
+├── docker-compose.yml
 ├── README.md
 └── .gitignore
 ```
