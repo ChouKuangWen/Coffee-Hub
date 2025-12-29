@@ -403,6 +403,76 @@ graph TD
 ```
 ---
 
+---
+
+##  雲端部署架構 (Cloud Deployment Architecture)
+
+本專案採用 **GCP (Google Cloud Platform)** 進行雲端部署，透過容器化與雲端部署確保系統的可用性與安全性。
+
+###  部署流程圖
+
+```mermaid
+flowchart TD
+    %% 節點定義與樣式
+    subgraph Initialization [1. 初始化與資料庫建立]
+        A[啟用 Compute Engine API] --> B[建立 Cloud SQL MySQL 8.0]
+        B --> B1[配置私人 IP 與 PSA 連線]
+        B --> C[建立 Cloud Storage Bucket]
+        C --> C1[上傳 init.sql 與 seed.sql]
+        C1 --> C2[匯入資料至 Cloud SQL]
+    end
+
+    subgraph Connectivity [2. 網路與權限連通]
+        B1 --> D[建立 Serverless VPC Access Connector]
+        D --> D1[確認 Connector 與 VPC 子網關聯]
+        D1 --> E[IAM 權限授權]
+        E --> E1[授予 Cloud SQL Client 角色]
+        E --> E2[授予 Service Account User 角色]
+    end
+
+    subgraph Backend_Deployment [3. 後端 Cloud Run 部署]
+        E1 & E2 --> F[部署 Cloud Run 服務]
+        F --> F1[設定 VPC Connector 流量轉送]
+        F --> F2[注入環境變數與 Container Port]
+        F --> F3[調整 IAM 允許 allUsers 叫用]
+    end
+
+    subgraph Frontend_Deployment [4. 前端 GCS 靜態部署]
+        G[Vue 專案編譯 base='./'] --> G1[上傳 dist 檔案至 Bucket]
+        G1 --> G2[設定 gsutil 公開讀取權限]
+        G2 --> G3[啟用靜態網站代管功能]
+    end
+
+    %% 最終連線
+    G3 --> H{系統上線}
+    F3 --> H
+```
+
+###  部署組件說明
+
+#### 🔹 前端部署 (Frontend - Vue 3)
+* **平台：** Google Cloud Storage (GCS)
+* **策略：** **靜態網站代管 (Static Website Hosting)**
+* **說明：** * 透過 `npm run build` 產生dist檔案並上傳至 GCS Bucket。
+    * 設定 Bucket 為公開讀取，並配置 `index.html` 為入口點（SPA 支援）。
+
+#### 🔹 後端部署 (Backend - FastAPI)
+* **平台：** Google Cloud Run
+* **策略：** **容器化部署 (Docker)**
+* **說明：** * **Dockerfile 驅動：** 直接讀取 GitHub 儲存庫中的 `Dockerfile` 進行映像檔構建，確保部署環境與開發環境高度一致。
+    * **VPC Connector：** 建立 **Serverless VPC Access**，讓 Cloud Run 能透過內部私人 IP 安全存取資料庫，避免暴露於公開網路。
+    * **Auto-scaling：** 根據流量自動調整實體數量，實現高效能與成本優化。
+
+#### 🔹 資料庫部署 (Database - MySQL)
+* **平台：** Google Cloud SQL
+* **策略：** **代管式關聯資料庫 (Managed MySQL)**
+* **說明：** * 使用 MySQL 8.0 實體。
+    * **網路安全性：** 僅開啟 **Private IP**，確保資料庫不會暴露於公網。
+    * **初始化：** 透過 Cloud Storage 儲存槽自動匯入 `init.sql` 與 `seed.sql`，完成資料表結構與管理員帳號 (Admin) 的初始設定。
+
+---
+
+
 ##  專案結構與檔案說明
 ```
 Member-order-management-system/
