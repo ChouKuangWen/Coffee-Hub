@@ -137,27 +137,37 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
 
 # 使用 refresh_token 換取新的 access_token
 @router.post("/refresh-token", response_model=TokenResponse)
-async def refresh_token_endpoint(response: Response, token: str, db: AsyncSession = Depends(get_db)):
+async def refresh_token_endpoint(
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
+    db: AsyncSession = Depends(get_db)):  # 從 Cookie 取得,
     """
     使用 refresh token 換取新的 access token。
     - 驗證 refresh token 的有效性。
     - 產生新的 access token。
     """
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="請重新登入")
+    
     # 驗證 refresh token 並取得 payload
-    payload = await verify_refresh_token(token, db)
+    payload = await verify_refresh_token(refresh_token, db)
     user_id = payload["sub"]
 
     # 查出使用者角色
-    result = await db.execute(select(Users).options(selectinload(Users.role)).where(Users.user_id == user_id))
+    result = await db.execute(select(Users).options(selectinload(Users.role)).where(Users.user_id == int(user_id)))
     user = result.scalars().first()
 
+    if not user:
+        raise HTTPException(status_code=404, detail="使用者不存在")
+
     # 產生新的 access token
-    access_token, access_jti = create_access_token({
-        "sub": user_id,
+    access_token,  = create_access_token({
+        "user_id": user.user_id,
+        "username": user.email,
         "role_id": user.role_id   # 把role_id放進 token payloa
     })
 
-    # ✅ 將新的 access_token 放入 HttpOnly cookie
+    #  將新的 access_token 放入 HttpOnly cookie
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -170,7 +180,7 @@ async def refresh_token_endpoint(response: Response, token: str, db: AsyncSessio
 
     return {
         "access_token": access_token,
-        "refresh_token": token,  # refresh_token 保持不變
+        "refresh_token": refresh_token,  # refresh_token 保持不變
         "token_type": "bearer",
         "role": user.role.name,   # 加上角色
         "role_id": user.role_id,
