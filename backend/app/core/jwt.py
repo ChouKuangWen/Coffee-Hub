@@ -89,11 +89,11 @@ async def verify_refresh_token(token: str, db: AsyncSession) -> dict:
     try:
         # 解碼 JWT，提取 payload
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")  # 主體（使用者 ID）
+        user_id: str = payload.get("sub")  # 主體（使用者 ID）
         jti: str = payload.get("jti")       # JWT ID
 
         # 基本欄位檢查
-        if username is None or jti is None:
+        if user_id is None or jti is None:
             raise credentials_exception()
 
         # 查詢資料庫中是否存在該筆 token 且尚未撤銷
@@ -115,7 +115,7 @@ async def verify_refresh_token(token: str, db: AsyncSession) -> dict:
         if not db_token or expires_at_aware < datetime.now(timezone.utc):
             raise HTTPException(status_code=401, detail="Refresh token 過期或不存在")
         # 回傳解碼後資訊
-        return {"username": username, "jti": jti}
+        return {"sub": user_id, "jti": jti}
 
     except JWTError:
         # 若解碼失敗或 token 不合法，回傳未授權錯誤
