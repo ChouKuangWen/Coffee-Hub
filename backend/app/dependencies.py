@@ -1,5 +1,5 @@
 # app/dependencies.py
-from fastapi import Depends, HTTPException, status, Cookie
+from fastapi import Depends, HTTPException, status, Cookie, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession  # 非同步
 from sqlalchemy.future import select           # 引入 select
@@ -15,13 +15,13 @@ tokenUrl 參數是用來生成 swagger UI 的登入表單用 URL
 """
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> Users:
+async def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> Users:
     """
     非同步依賴注入函式，用於驗證 JWT 並獲取當前使用者。
     - 驗證 access token 的有效性。
     - 根據 token 中的使用者 ID 從資料庫中非同步查詢使用者。
     """
-    payload = await verify_access_token(token, db)
+    payload = await verify_access_token(token, db, request=request)
     # 如果 token 驗證失敗，payload 會是 None
     if payload is None:
         raise HTTPException(
@@ -57,10 +57,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    user.role_id = role_id  # ✅ 把 token 裡的 role_id 覆寫給 user
+    user.role_id = role_id  #  把 token 裡的 role_id 覆寫給 user
     return user
 
 async def get_current_user_from_cookie(
+    request: Request,
     access_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db)
 ) -> Users:
@@ -75,7 +76,7 @@ async def get_current_user_from_cookie(
         )
 
     # 驗證 token
-    payload = await verify_access_token(access_token, db)
+    payload = await verify_access_token(access_token, db, request=request)
     if not payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
