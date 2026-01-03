@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from app.core.config import settings  # 用來取得 SECRET_KEY、過期時間等設定
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select           # 引入 select
@@ -44,7 +44,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM),  jti_value  # jwt.encode() 加密並簽名資料 建立JWT
 
 # 驗證 Token，檢查 jti 是否已撤銷（黑名單或已使用）
-async def verify_access_token(token: str, db: AsyncSession) -> dict:
+async def verify_access_token(token: str, db: AsyncSession, request: Request = None) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")  # sub是JWT標準欄位， Subject（主體）
@@ -59,7 +59,14 @@ async def verify_access_token(token: str, db: AsyncSession) -> dict:
         # 檢查是否在黑名單（如登出）且是否為一次性 token 且已使用
         if await is_jti_blacklisted(db, jti):# or await is_jti_used(db, jti):
             raise credentials_exception()
+
+        # 注入 user_id 到 request.state
+        # 這樣後續的限流 rate_limit.py 就能透過 getattr(request.state, "user_id") 抓到它
+        if request:
+            request.state.user_id = user_id
+
         return {"sub": user_id, "username": username, "jti": jti, "role_id": role_id} # 回傳包含 username 和 jti 的字典
+
 
     except JWTError:
         raise credentials_exception()
