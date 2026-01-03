@@ -1,8 +1,11 @@
 # backend/app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from app.api import auth, users, products, orders, order_items  # 載入 auth API 路由模組
 from app.core.csp_middleware import CSPMiddleware
+from app.core.rate_limit import limiter
 import os
 
 """應用程式實例"""
@@ -12,6 +15,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
+""" 限流器配置 """
+# 將 limiter 掛載到 app 狀態中，讓全域都能存取
+app.state.limiter = limiter
+# 註冊錯誤處理：當使用者請求太快時，回傳 429 Too Many Requests
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+""" Swagger檢查路徑 """
 # 1. 服務根路徑 (Root Path) - 確保 Cloud Run 基礎檢查通過
 @app.get("/")
 def read_root():
@@ -27,11 +37,11 @@ def read_root():
     }
 
 
-# 2. 專門的健康檢查路徑
+# 2. Swagger專用檢查路徑
 @app.get("/health")
 def health_check():
     """
-    專門的健康檢查點，總是回傳成功狀態。
+    專門檢查點，回傳成功狀態。
     """
     return {"status": "ok"}
 
