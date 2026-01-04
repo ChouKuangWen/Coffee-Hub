@@ -1,11 +1,12 @@
 # app/api/auth.py
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.schemas.users import UserCreate, UserRead, TokenResponse
 from app.models.users import Users
 from app.core.security import verify_password, hash_password
 from app.core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
+from app.core.rate_limit import limiter
 from app.models.base import get_db
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from datetime import timedelta
@@ -25,6 +26,7 @@ allowed_roles = [2, 3]
 #  取得目前登入使用者資訊
 @router.get("/me", response_model=UserRead)
 async def read_users_me(
+    request: Request,
     current_user: Users = Depends(get_current_user_from_cookie),
     db: AsyncSession = Depends(get_db)
 ):
@@ -32,7 +34,8 @@ async def read_users_me(
 
 # 註冊使用者
 @router.post("/register", response_model=dict)
-async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+@limiter.limit("3/hour") # 限制一小時只能註冊 3 次，防止機器人大量註冊
+async def register(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """
     註冊新使用者。
     - 檢查電子郵件是否已被註冊。
@@ -73,7 +76,8 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 # 使用者登入，回傳 access_token 和 refresh_token
 @router.post("/login", response_model=TokenResponse)
-async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute") # 限制一分鐘只能登入 5 次，防止暴力破解
+async def login(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     print("### Running the login route... ###") # <--- 在這裡加上這行
 
     """
@@ -107,7 +111,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     refresh_token = await create_refresh_token(str(user.user_id), db)
     await db.commit()
 
-    # ✅ 修改：增加 HttpOnly cookie
+    #  修改：增加 HttpOnly cookie
     response.set_cookie(
     key="access_token",               # Cookie 名稱，前端 JS 不可讀
     value=access_token,               # Cookie 的值，也就是你的 JWT
@@ -137,7 +141,9 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
 
 # 使用 refresh_token 換取新的 access_token
 @router.post("/refresh-token", response_model=TokenResponse)
+@limiter.limit("10/minute") # 限制刷新頻率
 async def refresh_token_endpoint(
+    request: Request,
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db)):  # 從 Cookie 取得,
@@ -190,7 +196,9 @@ async def refresh_token_endpoint(
 
 # 登出：將 access_token 和 refresh_token 加入黑名單
 @router.post("/logout", response_model=dict)
-async def logout(response: Response,
+async def logout(
+    request: Request,
+    response: Response,
     access_token: str | None = Cookie(default=None),
     db: AsyncSession = Depends(get_db)
 ):
