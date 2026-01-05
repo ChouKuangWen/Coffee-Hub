@@ -1,5 +1,5 @@
 # app/api/orders.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.base import get_db
 from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus
@@ -7,12 +7,15 @@ from app.crud.orders import create_order, get_order, get_orders_by_user, update_
 from typing import List
 from app.dependencies import get_current_user_from_cookie
 from app.models.users import Users
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
 # 新增訂單
 @router.post("/", response_model=OrderRead)
+@limiter.limit("5/minute")
 async def create_new_order(
+    request: Request,
     order: OrderCreate,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
@@ -23,7 +26,9 @@ async def create_new_order(
 
 # 查全部訂單 (Admin / Seller)
 @router.get("/list", response_model=List[OrderRead])
+@limiter.limit("30/minute")
 async def read_all_orders(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
@@ -38,7 +43,9 @@ async def read_all_orders(
     
 # 查會員的所有訂單 (Customer 只能查自己)
 @router.get("/user/{user_id}", response_model=List[OrderRead])
+@limiter.limit("30/minute")
 async def read_orders_by_user(
+    request: Request,
     user_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
@@ -49,7 +56,9 @@ async def read_orders_by_user(
 
 # 查單筆訂單
 @router.get("/{order_id}", response_model=OrderRead)
+@limiter.limit("30/minute")
 async def read_order(
+    request: Request,
     order_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
@@ -66,7 +75,9 @@ async def read_order(
 
 # 更新訂單狀態（管理員及賣家）
 @router.patch("/{order_id}/status", response_model=OrderRead)
+@limiter.limit("20/minute")
 async def update_status(
+    request: Request,
     order_id: int,
     status_update: OrderUpdateStatus,
     db: AsyncSession = Depends(get_db),
@@ -87,7 +98,9 @@ async def update_status(
 
 # 刪除訂單
 @router.delete("/{order_id}", response_model=OrderRead)
+@limiter.limit("10/minute")
 async def remove_order(
+    request: Request,
     order_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)):
