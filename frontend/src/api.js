@@ -14,6 +14,12 @@ api.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
+    // 處理 429 限流錯誤 ---
+    if (error.response?.status === 429) {
+      const message = error.response.data?.detail || "請求太過頻繁，請稍等一下再試。";
+      alert(message); // 或者使用 UI 組件如 el-message, toast 等
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401) {
       // 檢查是否已經嘗試過刷新（避免無窮迴圈）
       if (!originalRequest._retry) {
@@ -43,7 +49,7 @@ api.interceptors.response.use(
       const currentHash = window.location.hash;
 
       // 2. 定義不需要自動轉址的「白名單」路徑
-      const whiteList = ['#/home', '#/login', '#/register', '#/'];
+      const whiteList = ['#/home', '#/login', '#/register', '#/', '#/products'];
 
       // 3. 檢查目前路徑是否在白名單中
       const isPublicPage = whiteList.some(path => currentHash.includes(path)) || currentHash === '';
