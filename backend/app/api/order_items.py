@@ -1,5 +1,5 @@
 # backend/app/api/order_items.py
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from datetime import datetime
@@ -17,13 +17,16 @@ from app.crud.order_items import (
     get_order_items_by_order_id
 )
 from app.dependencies import get_current_user_from_cookie
+from app.core.rate_limit import limiter
 
 router = APIRouter()
 
 
 # 取得所有訂單項目 (管理員可用)
 @router.get("/", response_model=List[OrderItemReadWithDetail])
+@limiter.limit("20/minute")
 async def read_all_order_items(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
@@ -34,7 +37,9 @@ async def read_all_order_items(
 
 # 取得單一訂單項目
 @router.get("/{order_item_id}", response_model=OrderItemReadWithDetail)
+@limiter.limit("60/minute")
 async def read_order_item(
+    request: Request,
     order_item_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
@@ -54,7 +59,9 @@ async def read_order_item(
 
 # 新增訂單項目
 @router.post("/", response_model=OrderItemRead)
+@limiter.limit("10/minute")
 async def create_order_item_api(
+    request: Request,
     order_item: OrderItemCreate,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
@@ -68,7 +75,9 @@ async def create_order_item_api(
 
 # 更新訂單項目
 @router.patch("/{order_item_id}", response_model=OrderItemRead)
+@limiter.limit("20/minute")
 async def update_order_item_api(
+    request: Request,
     order_item_id: int,
     order_item_data: OrderItemCreate,
     db: AsyncSession = Depends(get_db),
@@ -90,7 +99,9 @@ async def update_order_item_api(
 
 # 刪除訂單項目
 @router.delete("/{order_item_id}", response_model=OrderItemRead)
+@limiter.limit("10/minute")
 async def delete_order_item_api(
+    request: Request,
     order_item_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
@@ -110,7 +121,9 @@ async def delete_order_item_api(
 
 # 獲取單一訂單的所有訂單項目列表 (前端展開明細專用)
 @router.get("/by_order/{order_id}", response_model=List[OrderItemReadWithDetail])
+@limiter.limit("40/minute")
 async def read_order_items_by_order(
+    request: Request,
     order_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
