@@ -49,7 +49,7 @@ const fetchCurrentUser = async () => {
 const fetchProducts = async () => {
   try {
     // 假設 /products 會回傳所有商品列表
-    const res = await api.get("/products");
+    const res = await api.get("/products/dashboard");
     products.value = res.data;
   } catch (err) {
     console.error("fetchProducts error:", err);
