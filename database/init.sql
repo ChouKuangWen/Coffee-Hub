@@ -50,12 +50,32 @@ CREATE TABLE users(
 CREATE TABLE products(
     product_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '商品ID',
     name VARCHAR(100) NOT NULL COMMENT '商品名稱',
+    main_image VARCHAR(512) DEFAULT NULL COMMENT '主圖 URL',
+    sub_images JSON DEFAULT NULL COMMENT '副圖 URL 清單 (JSON 陣列)',
     price DECIMAL(10,2) NOT NULL COMMENT '價格',
     stock INT NOT NULL COMMENT '庫存',
-    description TEXT DEFAULT NULL COMMENT '描述',
+    product_category ENUM('green_bean', 'roasted_bean') NOT NULL DEFAULT 'roasted_bean' COMMENT '類別 (生豆/熟豆)',
+    continent VARCHAR(20) DEFAULT NULL COMMENT '洲別',
+    country VARCHAR(100) DEFAULT NULL COMMENT '國家',
+    region VARCHAR(100) DEFAULT NULL COMMENT '產區',
+    process_method VARCHAR(50) DEFAULT NULL COMMENT '處理法',
+    roast_level VARCHAR(50) DEFAULT NULL COMMENT '烘焙度 (生豆為建議度/熟豆為實際度)',
+    variety VARCHAR(100) DEFAULT NULL COMMENT '品種',
+    grade_size VARCHAR(50) DEFAULT NULL COMMENT '等級/大小',
+    harvest_year VARCHAR(20) DEFAULT NULL COMMENT '採收年份',
+    altitude VARCHAR(50) DEFAULT NULL COMMENT '海拔',
+    moisture_content DECIMAL(4,2) DEFAULT NULL COMMENT '含水量 (%)',
+    density INT DEFAULT NULL COMMENT '密度 (g/l)',
+    flavor_tags VARCHAR(255) DEFAULT NULL COMMENT '風味標籤',
+    description TEXT DEFAULT NULL COMMENT '詳細描述',
+    is_active BOOLEAN DEFAULT TRUE COMMENT '上架狀態',
     owner_id INT NOT NULL COMMENT '商品擁有者 (賣家)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
-    FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    INDEX idx_category (product_category),
+    INDEX idx_active (is_active),
+    INDEX idx_origin (continent, country)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商品資料表';
 
 
