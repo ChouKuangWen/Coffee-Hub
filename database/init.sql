@@ -53,7 +53,8 @@ CREATE TABLE products(
     main_image VARCHAR(512) DEFAULT NULL COMMENT '主圖 URL',
     sub_images JSON DEFAULT NULL COMMENT '副圖 URL 清單 (JSON 陣列)',
     price DECIMAL(10,2) NOT NULL COMMENT '價格',
-    stock INT NOT NULL COMMENT '庫存',
+    stock INT NOT NULL DEFAULT 0 COMMENT '庫存',
+    sales_count INT NOT NULL DEFAULT 0 COMMENT '總銷售量',
     product_category ENUM('green_bean', 'roasted_bean') NOT NULL DEFAULT 'roasted_bean' COMMENT '類別 (生豆/熟豆)',
     continent VARCHAR(20) DEFAULT NULL COMMENT '洲別',
     country VARCHAR(100) DEFAULT NULL COMMENT '國家',
@@ -76,6 +77,7 @@ CREATE TABLE products(
     INDEX idx_category (product_category),
     INDEX idx_active (is_active),
     INDEX idx_origin (continent, country)
+    INDEX idx_sales (sales_count)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商品資料表';
 
 
