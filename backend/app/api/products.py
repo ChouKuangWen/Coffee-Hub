@@ -1,30 +1,39 @@
 # backend/app/api/products.py
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
-from app.schemas.products import ProductCreate, ProductRead, ProductUpdate
+from typing import List, Optional
+from app.schemas.products import ProductCreate, ProductRead, ProductUpdate, ProductCategory
 from app.crud.products import get_all_products, get_product, create_new_product, update_product_information, delete_one_product
 from app.models.base import get_db   # 取得非同步資料庫 Session
-from app.dependencies import get_current_user_from_cookie, get_current_user, has_permission
+from app.dependencies import get_current_user_from_cookie, has_permission
 from app.core.rate_limit import limiter
 
 router = APIRouter()
 
-# 取得所有商品 (所有角色皆有該權限)
+# 前台公開 API (所有人皆有該權限)
 @router.get("", response_model=List[ProductRead])
 @limiter.limit("60/minute")
 async def read_all_products(
     request: Request,
-    db: AsyncSession = Depends(get_db)
-):
+    db: AsyncSession = Depends(get_db),
+    category: Optional[ProductCategory] = None,
+    country: Optional[str] = None,
+    sort_by_sales: bool = False
+    ):
     """
     前台公開 API：
     - 任何人（包括未登入訪客）皆可讀取。
-    - 回傳所有已上架商品。
     - 受 IP 限流保護，防止惡意爬蟲。
+    - 回傳所有已上架商品 (is_active=True)。
+    - 支援依類別、國家篩選，以及依銷量排序。
     """
     # owner_id=None 在 CRUD 邏輯中應代表不篩選特定擁有者，即「全部公開商品」
-    return await get_all_products(db, owner_id=None)
+    return await get_all_products(
+        db, owner_id=None,
+        ategory=category, country=country,
+        is_active=True,
+        sort_by_sales=sort_by_sales
+    )
 
 # 後台商品管理：賣家/管理者專用 (必須登入) ---
 @router.get("/dashboard", response_model=List[ProductRead])
@@ -33,43 +42,68 @@ async def read_dashboard_products(
     request: Request,
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user_from_cookie)
-):
+    ):
     """
     後台管理 API：
-    - 必須登入才可存取。
-    - 管理員 (role_id=1): 看到系統「所有」商品。
-    - 賣家 (role_id=2): 只看到「自己」的商品。
+    - 管理員 (role_id=1): 看到系統所有商品 (不分狀態)。
+    - 賣家 (role_id=2): 只看到自己所有商品 (含未上架)。
     """
     # 根據角色決定篩選邏輯
     filter_id = None if current_user.role_id == 1 else current_user.user_id
-    return await get_all_products(db, owner_id=filter_id)
+    # 設定 is_active=None 代表不篩選狀態，全部列出
+    return await get_all_products(db, owner_id=filter_id, is_active=None)
 
 # 取得單一商品（所有角色皆有該權限）
 """所有具有預設值的參數（例如 db: AsyncSession = Depends(get_db)）都必須放在沒有預設值的參數之後。"""
 @router.get("/{product_id}", response_model=ProductRead)
 @limiter.limit("100/minute")
-async def read_product(request: Request, product_id: int, db: AsyncSession = Depends(get_db)):
+async def read_product(
+    request: Request,
+    product_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user_from_cookie)
+    ):
+    """
+    商品詳細資訊：
+    - 若商品已下架 (is_active=False)，僅管理員或該賣家本人可瀏覽。
+    - 防止消費者透過 ID 惡意爬取未公開商品。
+    """
     product = await get_product(db, product_id)
     if not product:
-        raise HTTPException(status_code=400, deta="商品不存在")
+        raise HTTPException(status_code=404, detail="商品不存在")
+
+    # 權限檢查邏輯
+    if not product.is_active:
+        # 如果未登入，或登入者不是管理員且不是商品主人
+        if not current_user or (
+            current_user.role_id != 1 and product.owner_id != current_user.user_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="該商品目前不對外公開"
+            )
+
     return product
 
 # 新增商品（管理員、賣家有權限）
-@router.post("/", response_model=ProductRead, dependencies=[Depends(has_permission([1,2]))])
+@router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED, 
+             dependencies=[Depends(has_permission([1,2]))])
 @limiter.limit("10/minute")
 async def create_product(
     request: Request,
     product: ProductCreate,
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user_from_cookie)):
-     # 賣家新增商品時自動設定 owner_id
-    if product.owner_id is None:
-        product.owner_id = current_user.user_id
-
-    return await create_new_product(db, product)
+    current_user=Depends(get_current_user_from_cookie)
+    ):
+    """
+    新增商品：
+    - 透過 Token 強制綁定 owner_id，防止 JSON 偽造。
+    """
+    return await create_new_product(db, product_in=product, owner_id=current_user.user_id)
 
 # 更新商品（管理員、賣家有權限）
-@router.patch("/{product_id}", response_model=ProductRead, dependencies=[Depends(has_permission([1,2]))])
+@router.patch("/{product_id}", response_model=ProductRead,
+              dependencies=[Depends(has_permission([1,2]))])
 @limiter.limit("20/minute")
 async def update_product(
     request: Request,
@@ -78,20 +112,19 @@ async def update_product(
     db: AsyncSession = Depends(get_db),
     current_user=Depends(get_current_user_from_cookie)  # 取得目前登入者
     ):
-    # 先取得商品
     existing_product = await get_product(db, product_id)
     if not existing_product:
         raise HTTPException(status_code=404, detail="商品不存在")
 
-    # 檢查權限：賣家只能更新自己商品
-    if current_user.role_id == 2 and existing_product.owner_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="沒有權限操作此商品")
+    # 賣家權限檢查 (管理員 role_id=1 除外)
+    if current_user.role_id != 1 and existing_product.owner_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="您無權編輯此商品")
 
-    updated = await update_product_information(db, product, existing_product)
-    return  updated
+    return await update_product_information(db, product, existing_product)
 
 # 刪除商品（Admin / Seller）
-@router.delete("/{product_id}", response_model=ProductRead, dependencies=[Depends(has_permission([1,2]))])
+@router.delete("/{product_id}", response_model=ProductRead, status_code=status.HTTP_204_NO_CONTENT,
+               dependencies=[Depends(has_permission([1,2]))])
 @limiter.limit("5/minute")
 async def delete_product(
     request: Request,
@@ -104,8 +137,8 @@ async def delete_product(
         raise HTTPException(status_code=404, detail="商品不存在")
 
     # 檢查權限
-    if current_user.role_id == 2 and existing_product.owner_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="沒有權限操作此商品")
+    if current_user.role_id != 1 and existing_product.owner_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="您無權刪除此商品")
 
     deleted = await delete_one_product(db, existing_product)
     return deleted
