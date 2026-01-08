@@ -1,16 +1,47 @@
 # backend/app/crud/products.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.models.products import Products
-from app.schemas.products import ProductCreate
+from sqlalchemy import desc
+from app.models.products import Products, ProductCategory
+from app.schemas.products import ProductCreate, ProductUpdate
 from app.core.sanitizer import sanitize_user_input
 
 # 取得所有商品
-async def get_all_products(db: AsyncSession, owner_id: int = None):
+async def get_all_products(
+    db: AsyncSession,
+    owner_id: int = None,
+    category: ProductCategory = None,
+    country: str = None,
+    is_active: bool = True,  # 預設買家：只看上架；賣家後台可傳 None
+    sort_by_sales: bool = False
+):
+    """
+    通用商品查詢：
+    - 買家前台：只傳 is_active=True
+    - 賣家後台：傳入 owner_id 並設定 is_active=None
+    """
+
     query = select(Products) # 建立基礎查詢
-    # 如果有提供 owner_id，則在資料庫層級過濾
+    
+    # 1. 狀態篩選 (若傳入 None 則代表不篩選狀態，通常用於賣家後台)
+    if is_active is not None:
+        query = query.where(Products.is_active == is_active)
+    
+    # 2. 權限篩選 (若指定 owner_id，只拿該賣家的商品)
     if owner_id is not None:
         query = query.where(Products.owner_id == owner_id)
+        
+    # 3. 分類與產地篩選 (買家搜尋用)
+    if category is not None:
+        query = query.where(Products.product_category == category)
+    if country is not None:
+        query = query.where(Products.country == country)
+
+    # 4. 排序邏輯 (依銷量或建立時間)
+    if sort_by_sales:
+        query = query.order_by(desc(Products.sales_count))
+    else:
+        query = query.order_by(desc(Products.created_at))
 
     result = await db.execute(query)
     return result.scalars().all()
@@ -21,12 +52,18 @@ async def get_product(db: AsyncSession, product_id: int):
     return result.scalars().first()
 
 # 新增商品
-async def create_new_product(db: AsyncSession, product: ProductCreate):
+async def create_new_product(db: AsyncSession, product_in: ProductCreate, owner_id: int):
     # 將 Pydantic 模型轉為字典
-    product_data = product.dict()
-    # 新增淨化邏輯
-    if "description" in product_data and product_data["description"] is not None:
+    product_data = product_in.model_dump()
+    # 強制綁定從 Token 取得的 owner_id
+    product_data["owner_id"] = owner_id
+
+    # 安全淨化處理
+    if product_data.get("description"):
         product_data["description"] = sanitize_user_input(product_data["description"])
+    if product_data.get("flavor_tags"):
+        product_data["flavor_tags"] = sanitize_user_input(product_data["flavor_tags"])
+
     new_product = Products(**product_data)
     db.add(new_product)
     await db.commit()
@@ -34,28 +71,28 @@ async def create_new_product(db: AsyncSession, product: ProductCreate):
     return new_product
 
 # 更新商品
-async def update_product_information(db: AsyncSession, product, existing_product):
-    for field, value in product.dict(exclude_unset=True).items():
-        setattr(existing_product, field, value)
-    
-    update_data = product.dict(exclude_unset=True)
+async def update_product_information(
+    db: AsyncSession,
+    product_in: ProductUpdate,
+    existing_product: Products
+):
+    # 僅取出有傳入的欄位 (避免將未傳入的欄位覆蓋為空)
+    update_data = product_in.model_dump(exclude_unset=True)
 
-    # 新增淨化邏輯
-    # 檢查是否有傳入 description 且值不為 None
-    if "description" in update_data and update_data["description"] is not None:
-        # 對新的 description 內容進行淨化
+    # 淨化 description (若有更新的話)
+    if update_data.get("description"):
         update_data["description"] = sanitize_user_input(update_data["description"])
 
-    # 迭代更新資料
+    # 迭代更新屬性
     for field, value in update_data.items():
         setattr(existing_product, field, value)
-    
+
     await db.commit()
     await db.refresh(existing_product)
     return existing_product
 
 # 刪除商品
-async def delete_one_product(db: AsyncSession, existing_product):
+async def delete_one_product(db: AsyncSession, existing_product: Products):
     await db.delete(existing_product)
     await db.commit()
     return existing_product
