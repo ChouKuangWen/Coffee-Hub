@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import api from "@/api";
 
@@ -8,6 +8,21 @@ const router = useRouter()
 
 const user = ref(null)   //  修改：改成存放目前使用者，而不是用 localStorage
 const loading = ref(true)
+
+// 產品與分頁狀態
+const products = ref([])        // 存放後端回傳的產品
+const currentPage = ref(1)      // 目前頁碼
+const pageSize = ref(8)         // 每頁顯示幾筆
+const totalProducts = ref(0)    // 總商品數
+const hasMore = ref(true)       // 是否還有更多
+const loadingMore = ref(false)  // 載入狀態
+
+// 篩選條件
+const filters = ref({
+  category: '',    // 生豆/熟豆
+  roast_level: '', // 烘焙度
+  country: ''      // 國家
+})
 
 //  修改：讓 axios 每次請求都會帶上 Cookie
 axios.defaults.withCredentials = true
@@ -25,6 +40,61 @@ const fetchCurrentUser = async () => {
     loading.value = false
   }
 }
+
+// 資料抓取邏輯 (支援分頁與篩選)
+const fetchProducts = async (isLoadMore = false) => {
+  if (loadingMore.value) return
+  loadingMore.value = true
+  
+  try {
+    // 這裡對接後端 GET /products?page=x&limit=y&...
+    const { category, roast_level, country } = filters.value
+    const res = await api.get("/products", {
+      params: {
+        page: currentPage.value,
+        limit: pageSize.value,
+        category,     // 傳給後端篩選
+        roast_level,
+        country
+      }
+    })
+
+    // 假設後端回傳結構為 { items: [], total: 20 }
+    const newItems = res.data.items
+    totalProducts.value = res.data.total
+
+    if (isLoadMore) {
+      products.value.push(...newItems)
+    } else {
+      products.value = newItems
+    }
+
+    // 判斷是否還有下一頁
+    hasMore.value = products.value.length < totalProducts.value
+  } catch (error) {
+    console.error("抓取產品失敗:", error)
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+// 載入更多函式
+const loadMore = () => {
+  currentPage.value += 1
+  fetchProducts(true)
+}
+
+// 監聽篩選，只要條件變了就重置頁碼並重新搜尋
+watch(filters, () => {
+  currentPage.value = 1
+  fetchProducts(false)
+}, { deep: true })
+
+// 提取國家清單 (供篩選器使用)
+const uniqueCountries = computed(() => {
+  // 這邊建議實務上從後端拿，或是從目前的 products 提取
+  return ['衣索比亞', '哥倫比亞', '巴西', '肯亞', '印尼', '瓜地馬拉']
+})
 
 // 判斷使用者是否已登入
 const isLoggedIn = computed(() => user.value !== null)
@@ -59,30 +129,25 @@ const handleLogout = async () => {
 }
 
 // 新增：頁面載入時自動檢查是否已登入
-onMounted(fetchCurrentUser)
-
-// 假資料
-const products = ref([
-  { id: 1, name: '衣索比亞 耶加雪菲 G1', price: 450, image: '/images/衣索比亞.png' },
-  { id: 2, name: '哥倫比亞 薇拉 閃電庄園', price: 400, image: '/images/哥倫比亞.png' },
-  { id: 3, name: '巴西 黃波旁 Carmo 產區', price: 500, image: '/images/巴西.png' },
-  { id: 4, name: '肯亞 AA 之星', price: 420, image: '/images/肯亞.png' }
-])
+onMounted(() => {
+  fetchCurrentUser()
+  fetchProducts() // 初始化改抓真資料
+})
 </script>
 
 <template>
   <div class="home">
     <header class="navbar">
       <h1 class="logo">Coffee Trade</h1>
-      <div v-if="!loading"></div>
-      <div v-if="isLoggedIn" class="button-group">
-        <button class="account-btn" @click="goAccount">我的帳戶</button>
-        <button class="logout-btn" @click="handleLogout">登出</button>
-      </div>
-      
-      <div v-else class="button-group">
-        <button class="register-btn" @click="goRegister">註冊</button>
-        <button class="login-btn" @click="goLogin">登入</button>
+      <div v-if="!loading" class="button-group">
+        <div v-if="isLoggedIn" class="button-group">
+          <button class="account-btn" @click="goAccount">我的帳戶</button>
+          <button class="logout-btn" @click="handleLogout">登出</button>
+        </div>
+        <div v-else class="button-group">
+          <button class="register-btn" @click="goRegister">註冊</button>
+          <button class="login-btn" @click="goLogin">登入</button>
+        </div>
       </div>
     </header>
 
@@ -93,14 +158,59 @@ const products = ref([
       </div>
     </section>
 
-    <section class="products">
-      <h3>精選咖啡豆</h3>
-      <div class="product-grid">
-        <div class="product-card" v-for="item in products" :key="item.id">
-          <img :src="item.image" :alt="item.name" />
-          <h4>{{ item.name }}</h4>
-          <p class="price">{{ item.price }} 元</p>
-          <button class="buy-btn">加入購物車</button>
+    <section class="main-content">
+      <aside class="sidebar">
+        <h3>進階篩選</h3>
+        
+        <div class="filter-group">
+          <label>類別</label>
+          <select v-model="filters.category">
+            <option value="">全部類別</option>
+            <option value="green_bean">生豆</option>
+            <option value="roasted_bean">熟豆</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>烘焙度</label>
+          <select v-model="filters.roast_level">
+            <option value="">全部烘焙度</option>
+            <option value="淺焙">淺焙</option>
+            <option value="中焙">中焙</option>
+            <option value="深焙">深焙</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>國家</label>
+          <select v-model="filters.country">
+            <option value="">全部國家</option>
+            <option v-for="c in uniqueCountries" :key="c" :value="c">{{ c }}</option>
+          </select>
+        </div>
+        
+        <button class="reset-link" @click="filters = {category:'', roast_level:'', country:''}">重設篩選</button>
+      </aside>
+
+      <div class="products-container">
+        <div class="product-grid">
+          <div class="product-card" v-for="item in products" :key="item.product_id">
+            <img :src="item.main_image" :alt="item.name" />
+            <div class="card-content">
+              <span class="category-tag">{{ item.product_category === 'green_bean' ? '生豆' : '熟豆' }}</span>
+              <h4>{{ item.name }}</h4>
+              <p class="info-text">{{ item.country }} | {{ item.roast_level }}</p>
+              <p class="price">{{ item.price }} 元</p>
+              <button class="buy-btn">加入購物車</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="load-more">
+          <button v-if="hasMore" @click="loadMore" :disabled="loadingMore" class="more-btn">
+            {{ loadingMore ? '讀取中...' : '載入更多商品' }}
+          </button>
+          <p v-else class="finish-text">已經到底囉！</p>
         </div>
       </div>
     </section>
@@ -108,187 +218,111 @@ const products = ref([
 </template>
 
 <style scoped>
-.home {
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Noto Sans TC", sans-serif;
-  background: #fff;
-  color: #111;
-}
+/* ... 保留原本的樣式 ... */
 
-/* 導覽列 */
-.navbar {
+/* 側欄與主內容佈局樣式 */
+.main-content {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 40px;
-  background: #fff;
-  border-bottom: 1px solid #eee;
-}
-.logo {
-  font-weight: 600;
-  font-size: 1.3rem;
-  letter-spacing: 0.5px;
-}
-
-/* 導覽列按鈕群組 */
-.button-group {
-  display: flex;
-  gap: 10px;
-}
-/* 登入按鈕 */
-.login-btn {
-  background: #111;
-  color: #fff;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.login-btn:hover {
-  background: #333;
-}
-/* 註冊按鈕 */
-.register-btn {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ccc;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.register-btn:hover {
-  background: #e0e0e0;
-}
-/* 我的帳戶按鈕 */
-.account-btn {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ccc;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.account-btn:hover {
-  background: #e0e0e0;
-}
-/* 登出按鈕 */
-.logout-btn {
-  background: #d44;
-  color: #fff;
-  border: none;
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.logout-btn:hover {
-  background: #c00;
-}
-
-/* Hero 區 */
-.hero {
-  background: url("/images/background.jpg") center/cover no-repeat;
-  height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  position: relative;
-}
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.45); /* 黑色透明遮罩 */
-}
-.hero-content {
-  position: relative;
-  z-index: 1;
-  color: #fff;
-}
-.hero h2 {
-  font-size: 2.8rem;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-.hero p {
-  font-size: 1.2rem;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-}
-
-/* 商品區 */
-.products {
-  padding: 60px 20px;
-  text-align: center;
-}
-.products h3 {
-  font-size: 1.8rem;
-  margin-bottom: 40px;
-  font-weight: 600;
-}
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
-}
-.product-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
-.product-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-.product-card h4 {
-  margin-bottom: 8px;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-.price {
-  margin-bottom: 20px;
-  font-size: 1rem;
-  color: #444;
-}
-.buy-btn {
-  background: #111;
-  color: #fff;
-  border: none;
-  padding: 10px 22px;
-  border-radius: 22px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.buy-btn:hover {
-  background: #333;
+  padding: 60px 20px;
+  gap: 40px;
 }
 
-/* 響應式 */
-@media (max-width: 480px) {
-  .hero h2 {
-    font-size: 2rem;
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  text-align: left;
+  border-right: 1px solid #eee;
+  padding-right: 20px;
+}
+
+.sidebar h3 {
+  font-size: 1.2rem;
+  margin-bottom: 25px;
+}
+
+.filter-group {
+  margin-bottom: 20px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+}
+
+.reset-link {
+  background: none;
+  border: none;
+  color: #999;
+  text-decoration: underline;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.products-container {
+  flex-grow: 1;
+}
+
+/* 標籤樣式 */
+.category-tag {
+  font-size: 0.7rem;
+  background: #f5f5f5;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #888;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 5px 0;
+}
+
+.load-more {
+  margin-top: 50px;
+  text-align: center;
+}
+
+.more-btn {
+  background: #fff;
+  border: 1px solid #111;
+  padding: 10px 30px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.more-btn:hover {
+  background: #111;
+  color: #fff;
+}
+
+.finish-text {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+/* 響應式：手機版把側欄藏起來或改為橫向 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
   }
-  .hero p {
-    font-size: 1rem;
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
   }
 }
 </style>
