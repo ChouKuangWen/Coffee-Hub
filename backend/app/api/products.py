@@ -11,13 +11,16 @@ from app.core.rate_limit import limiter
 router = APIRouter()
 
 # 前台公開 API (所有人皆有該權限)
-@router.get("", response_model=List[ProductRead])
+@router.get("", response_model=dict)
 @limiter.limit("60/minute")
 async def read_all_products(
     request: Request,
     db: AsyncSession = Depends(get_db),
+    page: int = Query(1, ge=1),           # 頁碼
+    limit: int = Query(20, ge=1, le=100),  # 每頁筆數
     category: Optional[ProductCategory] = None,
     country: Optional[str] = None,
+    roast_level: Optional[str] = None,    # 烘焙度篩選
     sort_by_sales: bool = False
     ):
     """
@@ -27,13 +30,28 @@ async def read_all_products(
     - 回傳所有已上架商品 (is_active=True)。
     - 支援依類別、國家篩選，以及依銷量排序。
     """
+    skip = (page - 1) * limit
     # owner_id=None 在 CRUD 邏輯中應代表不篩選特定擁有者，即「全部公開商品」
-    return await get_all_products(
-        db, owner_id=None,
-        ategory=category, country=country,
+    products, total = await get_all_products(
+        db,
+        owner_id=None,
+        category=category,
+        country=country,
+        roast_level=roast_level,
         is_active=True,
-        sort_by_sales=sort_by_sales
+        sort_by_sales=sort_by_sales,
+        skip=skip,
+        limit=limit
     )
+
+    # 回傳符合前端 Home.vue 期待的格式
+    return {
+        "items": products,
+        "total": total,
+        "page": page,
+        "limit": limit
+    }
+
 
 # 後台商品管理：賣家/管理者專用 (必須登入) ---
 @router.get("/dashboard", response_model=List[ProductRead])
