@@ -141,7 +141,7 @@ async def update_product(
     return await update_product_information(db, product, existing_product)
 
 # 刪除商品（Admin / Seller）
-@router.delete("/{product_id}", response_model=ProductRead, status_code=status.HTTP_204_NO_CONTENT,
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT,
                dependencies=[Depends(has_permission([1,2]))])
 @limiter.limit("5/minute")
 async def delete_product(
