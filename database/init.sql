@@ -76,7 +76,7 @@ CREATE TABLE products(
     FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE,
     INDEX idx_category (product_category),
     INDEX idx_active (is_active),
-    INDEX idx_origin (continent, country)
+    INDEX idx_origin (continent, country),
     INDEX idx_sales (sales_count)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商品資料表';
 
