@@ -231,6 +231,13 @@ onMounted(() => {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+/* 針對按鈕組進行下移 */
+.button-group {
+  display: flex;
+  /* 調整這個像素值，數字越大越往下移 */
+  margin-top: 10px;
+}
+
 .button-group button {
   margin-left: 12px;
   padding: 8px 22px;
@@ -239,6 +246,9 @@ onMounted(() => {
   font-weight: 500;
   transition: 0.3s;
   border: 1px solid #fff;
+  /* 確保按鈕內的文字也垂直置中 */
+  display: flex;
+  align-items: center;
 }
 
 .register-btn, .account-btn {
@@ -263,7 +273,7 @@ onMounted(() => {
   position: relative;
   height: 65vh;
   min-height: 450px;
-  background: url("/images/background.jpg") 50% 60% /cover no-repeat !important;
+  background: url("/images/background.jpg") 50% 50% /cover no-repeat !important;
   display: flex;
   align-items: center;
   justify-content: center;
