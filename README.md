@@ -422,30 +422,28 @@ flowchart TD
         C1 --> C2[匯入資料至 Cloud SQL]
     end
 
-    subgraph Connectivity [2. 網路與權限連通]
-        B1 --> D[建立 Serverless VPC Access Connector]
-        D --> D1[確認 Connector 與 VPC 子網關聯]
-        D1 --> E[IAM 權限授權]
+    subgraph Connectivity [2. 權限與網路準備]
+        B1 --> E[IAM 權限授權]
         E --> E1[授予 Cloud SQL Client 角色]
-        E --> E2[授予 Service Account User 角色]
+        E1 --> E2[確認 VPC 子網路 IP 範圍充足]
     end
 
     subgraph Backend_Deployment [3. 後端 Cloud Run 部署]
-        E1 & E2 --> F[部署 Cloud Run 服務]
-        F --> F1[設定 VPC Connector 流量轉送]
-        F --> F2[注入環境變數與 Container Port]
-        F --> F3[調整 IAM 允許 allUsers 叫用]
+        E2 --> F[部署 Cloud Run 服務]
+        F --> F1[網路設定: 直接將流量傳送至虛擬私有雲]
+        F1 --> F2[流量轉送: 僅轉送連往私人 IP 的要求]
+        F2 --> F3[注入環境變數]
+        F3 --> F4[調整 IAM 允許 allUsers 叫用]
     end
 
     subgraph Frontend_Deployment [4. 前端 GCS 靜態部署]
-        G[Vue 專案編譯 base='./'] --> G1[上傳 dist 檔案至 Bucket]
-        G1 --> G2[設定 gsutil 公開讀取權限]
-        G2 --> G3[啟用靜態網站代管功能]
+        G[Vue 專案編譯] --> G1[上傳 dist 檔案至 Bucket]
+        G1 --> G2[啟用靜態網站代管與公開讀取]
     end
 
     %% 最終連線
-    G3 --> H{系統上線}
-    F3 --> H
+    F4 --> H{系統上線}
+    G2 --> H
 ```
 
 ###  部署組件說明
