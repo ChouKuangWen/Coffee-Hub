@@ -20,6 +20,12 @@ services:
       - "8080:8080"          # 本地 8080 對應容器內 8080 (FastAPI uvicorn)
     env_file:
       - .env                  # 從 .env 讀取環境變數
+    volumes:
+      - ./backend:/app  # 讓程式碼變動能即時反應（開發常用）
+      - ./gcp-key.json:/app/gcp-key.json  # 將根目錄的金鑰掛到容器內
+    environment:
+      # 在這裡強制指定 Google SDK 要去哪裡找金鑰
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-key.json
     depends_on:
       - mysql
     networks:
