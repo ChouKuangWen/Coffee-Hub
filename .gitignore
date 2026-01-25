@@ -1,10 +1,10 @@
-.env
-*.pyc
 # .gitignore
 venv/
 __pycache__/
 *.pyc
 .env
+gcp-key.json
+
 backend/app/__pycache__/main.cpython-312.pyc
 backend/app/api/__pycache__/orders.cpython-312.pyc
 backend/app/api/__pycache__/products.cpython-312.pyc
