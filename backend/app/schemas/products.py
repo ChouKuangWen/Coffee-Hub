@@ -57,8 +57,9 @@ class ProductRead(ProductBase):
     sales_count: int = 0
     owner_email: Optional[str] = None   #  可選：回傳整個使用者物件（含 email）
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
 
 # 商品更新時使用（允許部分欄位）
 class ProductUpdate(BaseModel):
@@ -91,6 +92,7 @@ class ProductUpdate(BaseModel):
             raise ValueError('副圖數量最多只能上傳 3 張')
         return v
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True
+    }
 
