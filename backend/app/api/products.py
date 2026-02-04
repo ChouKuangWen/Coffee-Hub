@@ -18,9 +18,9 @@ async def read_all_products(
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),           # 頁碼
     limit: int = Query(20, ge=1, le=100),  # 每頁筆數
-    category: Optional[ProductCategory] = None,
-    country: Optional[str] = None,
-    roast_level: Optional[str] = None,    # 烘焙度篩選
+    category: Optional[str] = Query(None, description="商品類別 (green_bean/roasted_bean)"),
+    country: Optional[str] = Query(None, description="國家篩選"),
+    roast_level: Optional[str] = Query(None, description="烘焙度篩選"),    # 烘焙度篩選
     sort_by_sales: bool = False
     ):
     """
@@ -30,16 +30,26 @@ async def read_all_products(
     - 回傳所有已上架商品 (is_active=True)。
     - 支援依類別、國家篩選，以及依銷量排序。
     """
+    # 內部輔助函式：清理前端傳來的參數，將空字串轉為 None
+    def sanitize_filter(value: Optional[str]):
+        if value is None or value.strip() == "":
+            return None
+        return value.strip()
+
+    clean_category = sanitize_filter(category)
+    clean_country = sanitize_filter(country)
+    clean_roast_level = sanitize_filter(roast_level)
+
     skip = (page - 1) * limit
     # owner_id=None 在 CRUD 邏輯中應代表不篩選特定擁有者，即「全部公開商品」
     products, total = await get_all_products(
         db,
-        owner_id=None,
-        category=category,
-        country=country,
-        roast_level=roast_level,
-        is_active=True,
-        sort_by_sales=sort_by_sales,
+        owner_id = None,
+        category = clean_category,
+        country = clean_country,
+        roast_level = clean_roast_level,
+        is_active = True,
+        sort_by_sales = sort_by_sales,
         skip=skip,
         limit=limit
     )
