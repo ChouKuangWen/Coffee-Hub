@@ -56,7 +56,7 @@ async def read_all_products(
 
     # 回傳符合前端 Home.vue 期待的格式
     return {
-        "items": products,
+        "items": [ProductRead.model_validate(p) for p in products],
         "total": total,
         "page": page,
         "limit": limit
