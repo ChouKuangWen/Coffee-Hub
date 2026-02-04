@@ -45,16 +45,19 @@ const fetchProducts = async (isLoadMore = false) => {
   loadingMore.value = true
   
   try {
-    const { category, roast_level, country } = filters.value
-    const res = await api.get("/products", {
-      params: {
-        page: currentPage.value,
-        limit: pageSize.value,
-        category,
-        roast_level,
-        country
-      }
-    })
+
+    // 建立基礎的分頁參數
+    const queryParams = {
+      page: currentPage.value,
+      limit: pageSize.value
+    }
+
+    // 只有當篩選條件有值時才加入 Query Params，防止 422 錯誤
+    if (filters.value.category) queryParams.category = filters.value.category
+    if (filters.value.roast_level) queryParams.roast_level = filters.value.roast_level
+    if (filters.value.country) queryParams.country = filters.value.country
+
+    const res = await api.get("/products", {params: queryParams})
 
     // 依照你後端的回傳結構 { items: [], total: x }
     const newItems = res.data.items || []
@@ -69,7 +72,7 @@ const fetchProducts = async (isLoadMore = false) => {
     // 判斷是否還有下一頁
     hasMore.value = products.value.length < totalProducts.value
   } catch (error) {
-    console.error("抓取產品失敗:", error)
+    console.error("抓取產品失敗:", error.response?.data || error.message)
   } finally {
     loadingMore.value = false
   }
