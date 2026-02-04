@@ -1,7 +1,15 @@
 SET NAMES 'utf8mb4';
 SET character_set_client = utf8mb4;
-
 USE member_order_management_backend_system;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE roles_permissions;
+TRUNCATE TABLE permissions;
+TRUNCATE TABLE roles;
+TRUNCATE TABLE users;
+TRUNCATE TABLE products;
+TRUNCATE TABLE order_items;
+TRUNCATE TABLE orders;
+SET FOREIGN_KEY_CHECKS = 1;
 
 
 -- 2. 角色與權限 (ID: 1 Admin, 2 Seller, 3 Customer)
@@ -121,7 +129,7 @@ INSERT INTO products (
 (20, '下架測試產品', 'https://images.unsplash.com/photo-1426260193283-c4daed7c2024', '[]', 100.00, 0, 0, 'roasted_bean', '亞洲', '台灣', '測試產區', '水洗', '中焙', '混種', '三級', '2022', '500m', 14.0, 600, '無', '僅供系統庫存邏輯測試', 0, 3, NOW(), NOW());
 
 -- 5. 訂單資料 (30 筆)
-INSERT INTO orders (order_id, user_id, status, total, created_at, updated_at) VALUES
+INSERT INTO orders (order_id, user_id, status, total, created_at, status_updated_at) VALUES
 (1, 11, '已完成', 1450.00, NOW(), NOW()),
 (2, 12, '待付款', 550.00, NOW(), NOW()),
 (3, 13, '待出貨', 960.00, NOW(), NOW()),
