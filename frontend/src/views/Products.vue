@@ -279,20 +279,8 @@ onMounted(async () => {
     <h2 class="title">商品管理</h2>
 
     <div class="controls">
-      <input
-        v-model="searchKeyword"
-        class="search-input"
-        placeholder="🔍 搜尋商品名稱或 ID"
-      />
-      
-      <!-- 只有 Admin 和 Seller 可以新增商品 -->
-      <button 
-        v-if="currentUserRole === 1 || currentUserRole === 2"
-        class="add-btn" 
-        @click="openCreateModal"
-      >
-        + 新增商品
-      </button>
+      <input v-model="searchKeyword" class="search-input" placeholder="🔍 搜尋商品名稱、ID 或國家" />
+      <button v-if="currentUserRole === 1 || currentUserRole === 2" class="add-btn" @click="openCreateModal">+ 新增商品</button>
     </div>
 
     <div class="table-card" v-if="!loading">
@@ -301,9 +289,9 @@ onMounted(async () => {
           <tr>
             <th>ID</th>
             <th>商品名稱</th>
-            <th>價格 (NT$)</th>
+            <th>類別</th>
+            <th>價格</th>
             <th>庫存</th>
-            <th>擁有者 ID</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -311,74 +299,114 @@ onMounted(async () => {
           <tr v-for="product in filteredProducts" :key="product.product_id">
             <td>{{ product.product_id }}</td>
             <td class="product-name">
-                {{ product.name }}
-                <div class="description-hover" :title="product.description">
-                    <span v-if="product.description"> (i) </span>
-                </div>
+              {{ product.name }}
+              <span v-if="product.country" class="tag-country">{{ product.country }}</span>
             </td>
+            <td>{{ product.product_category === 'green_bean' ? '生豆' : '熟豆' }}</td>
             <td>{{ product.price }}</td>
-            <td :class="{'low-stock': product.stock < 10 && product.stock > 0, 'out-of-stock': product.stock <= 0}">
-                {{ product.stock }}
-            </td>
-            <td>{{ product.owner_id }}</td>
+            <td :class="{'low-stock': product.stock < 10 && product.stock > 0, 'out-of-stock': product.stock <= 0}">{{ product.stock }}</td>
             <td>
               <template v-if="canManageProduct(product.owner_id)">
-                <button 
-                  class="edit-btn" 
-                  @click="openEditModal(product)"
-                >
-                  編輯
-                </button>
-                <button
-                  class="delete-btn"
-                  @click="deleteProduct(product)"
-                >
-                  刪除
-                </button>
+                <button class="edit-btn" @click="openEditModal(product)">編輯</button>
+                <button class="delete-btn" @click="deleteProduct(product)">刪除</button>
               </template>
-              <span v-else class="text-gray-400">無權限</span>
-            </td>
-          </tr>
-          <tr v-if="filteredProducts.length === 0">
-            <td colspan="6" class="text-center p-4 text-gray-500">
-              查無符合條件的商品資料
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    
-    <div v-else class="text-center p-8 text-gray-500">
-        正在載入資料...
-    </div>
 
-    <!-- 商品新增/編輯 Modal -->
     <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-content">
-        <h3 class="modal-title">
-            {{ isEditMode ? '編輯商品' : '新增商品' }}
-        </h3>
-        
-        <form @submit.prevent="submitForm" class="product-form">
-          <label>商品名稱:</label>
-          <input type="text" v-model="productForm.name" required />
+      <div class="modal-content large-modal">
+        <h3 class="modal-title">{{ isEditMode ? '編輯商品' : '新增商品' }}</h3>
+        <form @submit.prevent="submitForm" class="product-form scroll-form">
           
-          <label>價格 (NT$):</label>
-          <input type="number" step="0.01" v-model="productForm.price" required min="0.01" />
-          
-          <label>庫存數量:</label>
-          <input type="number" v-model="productForm.stock" required min="0" />
-          
-          <label>商品描述:</label>
-          <textarea v-model="productForm.description"></textarea>
-          
+          <div class="form-section">
+            <h4>基本資訊</h4>
+            <label>商品名稱 *</label>
+            <input type="text" v-model="productForm.name" required />
+            <div class="row">
+              <div class="col">
+                <label>類別</label>
+                <select v-model="productForm.product_category">
+                  <option v-for="opt in categories" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>價格 *</label>
+                <input type="number" step="0.01" v-model="productForm.price" required />
+              </div>
+              <div class="col">
+                <label>庫存 *</label>
+                <input type="number" v-model="productForm.stock" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>商品圖片</h4>
+            <div class="image-upload-box">
+              <div v-if="productForm.main_image" class="image-preview">
+                <img :src="productForm.main_image" />
+                <button type="button" @click="productForm.main_image = null" class="remove-img">移除並重選</button>
+              </div>
+              <div v-else class="upload-placeholder">
+                <input type="file" @change="handleMainImageUpload" accept="image/*" :disabled="isUploadingMain" />
+                <p>{{ isUploadingMain ? '上傳中...' : '點擊或拖曳上傳主圖' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>產地與規格</h4>
+            <div class="row">
+              <div class="col">
+                <label>洲別</label>
+                <select v-model="productForm.continent">
+                  <option :value="null">請選擇</option>
+                  <option v-for="c in continents" :key="c" :value="c">{{ c }}</option>
+                </select>
+              </div>
+              <div class="col">
+                <label>國家</label>
+                <input type="text" v-model="productForm.country" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <label>處理法</label>
+                <input type="text" v-model="productForm.process_method" />
+              </div>
+              <div class="col">
+                <label>烘焙度</label>
+                <select v-model="productForm.roast_level">
+                  <option v-for="r in roastLevels" :key="r" :value="r">{{ r }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>物理指標與描述</h4>
+            <div class="row">
+              <div class="col">
+                <label>含水量 (%)</label>
+                <input type="number" step="0.01" v-model="productForm.moisture_content" />
+              </div>
+              <div class="col">
+                <label>密度 (g/l)</label>
+                <input type="number" v-model="productForm.density" />
+              </div>
+            </div>
+            <label>風味標籤</label>
+            <input type="text" v-model="productForm.flavor_tags" placeholder="例如：柑橘, 巧克力" />
+            <label>詳細描述</label>
+            <textarea v-model="productForm.description"></textarea>
+          </div>
+
           <div class="form-actions">
-            <button type="submit" class="submit-btn">
-              {{ isEditMode ? '儲存變更' : '建立商品' }}
-            </button>
-            <button type="button" class="cancel-btn" @click="closeModal">
-              取消
-            </button>
+            <button type="submit" class="submit-btn" :disabled="isUploadingMain">儲存</button>
+            <button type="button" class="cancel-btn" @click="closeModal">取消</button>
           </div>
         </form>
       </div>
@@ -387,207 +415,30 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* 繼承會員管理頁面的基礎樣式 */
-.member-page {
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
-    "Noto Sans TC", sans-serif;
-  padding: 30px 20px;
-  max-width: 1000px;
-  margin: auto;
-}
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-.controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.controls .search-input {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  margin-right: 10px;
-}
-.add-btn {
-  background: #2ecc71;
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.add-btn:hover {
-  background: #27ae60;
-}
-.table-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-  overflow-x: auto;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-th, td {
-  text-align: left;
-  padding: 12px;
-  font-weight: 500;
-}
-th {
-  background: #f5f5f5;
-}
-tr:nth-child(even) {
-  background: #fafafa;
-}
+.member-page { padding: 30px 20px; max-width: 1000px; margin: auto; }
+.title { font-size: 2rem; margin-bottom: 20px; }
+.controls { display: flex; gap: 10px; margin-bottom: 20px; }
+.search-input { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid #ccc; }
+.add-btn { background: #2ecc71; color: #fff; padding: 10px 18px; border-radius: 12px; cursor: pointer; border:none; }
+.table-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; border-bottom: 1px solid #eee; }
+.tag-country { background: #e8f4fd; color: #3498db; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-left: 5px; }
 
-/* 商品名稱 hover 顯示描述 */
-.product-name {
-    display: flex;
-    align-items: center;
-}
-.description-hover {
-    margin-left: 5px;
-    color: #3498db;
-    cursor: help;
-    font-weight: bold;
-}
-.description-hover span {
-    border-bottom: 1px dashed #3498db;
-}
-
-
-/* 庫存警示 */
-.low-stock {
-    font-weight: 700;
-    color: orange;
-}
-.out-of-stock {
-    font-weight: 700;
-    color: red;
-}
-
-/* 操作按鈕 */
-.edit-btn {
-  background: #3498db;
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  margin-right: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.edit-btn:hover {
-  background: #2980b9;
-}
-.delete-btn {
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.delete-btn:hover {
-  background: #c0392b;
-}
-
-/* --- Modal 樣式 --- */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: #fff;
-  padding: 30px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.modal-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-}
-
-.product-form label {
-    display: block;
-    margin-top: 15px;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #333;
-}
-
-.product-form input[type="text"],
-.product-form input[type="number"],
-.product-form textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 1rem;
-}
-
-.product-form textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-.form-actions {
-    margin-top: 30px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
-.submit-btn {
-    background: #2ecc71;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.submit-btn:hover {
-    background: #27ae60;
-}
-
-.cancel-btn {
-    background: #bdc3c7;
-    color: #333;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-.cancel-btn:hover {
-    background: #95a5a6;
-}
+/* Modal 強化 */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.large-modal { width: 90%; max-width: 700px; max-height: 90vh; background: #fff; border-radius: 16px; padding: 30px; display: flex; flex-direction: column; }
+.scroll-form { overflow-y: auto; padding-right: 10px; }
+.form-section { margin-bottom: 20px; padding: 15px; background: #fafafa; border-radius: 8px; }
+.form-section h4 { margin: 0 0 15px 0; color: #8d6e63; border-left: 4px solid #8d6e63; padding-left: 10px; }
+.row { display: flex; gap: 15px; }
+.col { flex: 1; }
+.product-form label { display: block; margin: 10px 0 5px; font-weight: 600; }
+.product-form input, .product-form select, .product-form textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+.image-upload-box { border: 2px dashed #ddd; padding: 20px; text-align: center; border-radius: 8px; }
+.image-preview img { height: 120px; object-fit: cover; margin-bottom: 10px; }
+.remove-img { background: #ff7675; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.submit-btn { background: #2ecc71; color: white; padding: 10px 25px; border-radius: 8px; border: none; cursor: pointer; }
+.cancel-btn { background: #b2bec3; color: white; padding: 10px 25px; border-radius: 8px; border: none; cursor: pointer; }
 </style>
