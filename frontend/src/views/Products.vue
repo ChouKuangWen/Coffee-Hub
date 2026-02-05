@@ -50,7 +50,7 @@ const fetchProducts = async () => {
   try {
     // 假設 /products 會回傳所有商品列表
     const res = await api.get("/products/dashboard");
-    products.value = res.data;
+    products.value = res.data.items;
   } catch (err) {
     console.error("fetchProducts error:", err);
     alert("無法取得商品資料：" + (err.response?.data?.detail || err.message));
