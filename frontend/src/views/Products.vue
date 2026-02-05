@@ -7,19 +7,48 @@ import api from "@/api";
 const products = ref([]); // 儲存所有商品列表 (ProductRead)
 const loading = ref(true); // 頁面整體載入狀態
 const searchKeyword = ref(""); // 搜尋關鍵字
+const isUploadingMain = ref(false); // 主圖上傳狀態
+// const isUploadingSub = ref(false);  副圖上傳狀態(尚未啟用)
 
 // Modal 狀態
 const isModalOpen = ref(false);
 const isEditMode = ref(false); // 判斷 Modal 是新增(false)還是編輯(true)
 const currentProductId = ref(null); // 當前編輯的商品 ID
 
-// 表單狀態 (模擬 ProductCreate/ProductUpdate Schema)
-const productForm = ref({
+
+// 定義選項 (與後端 Enum 和 咖啡專業欄位對應)
+const categories = [
+  { label: "生豆", value: "green_bean" },
+  { label: "熟豆", value: "roasted_bean" },
+];
+const roastLevels = ["生豆", "極淺焙", "淺焙", "淺中焙", "中焙", "中深焙", "深焙"];
+const continents = ["非洲", "亞洲", "中南美洲", "大洋洲", "其他"];
+
+// 表單初始狀態 (將選填欄位預設為 null)
+const initialForm = {
   name: "",
-  description: "",
-  price: 0.0,
+  product_category: "roasted_bean",
+  price: 0,
   stock: 0,
-});
+  main_image: null,
+  //sub_images: [],  未來視需求啟用
+  continent: null,
+  country: null,
+  region: null,
+  process_method: null,
+  roast_level: "中焙",
+  variety: null,
+  grade_size: null,
+  harvest_year: null,
+  altitude: null,
+  moisture_content: null,
+  density: null,
+  flavor_tags: null,
+  description: null,
+  is_active: true,
+};
+
+const productForm = ref({ ...initialForm });
 
 // 當前使用者資訊 (來自 /auth/me)
 const currentUserId = ref(null);
@@ -50,32 +79,72 @@ const fetchProducts = async () => {
   try {
     // 假設 /products 會回傳所有商品列表
     const res = await api.get("/products/dashboard");
-    products.value = res.data.items;
+    products.value = res.data.items || [];
   } catch (err) {
     console.error("fetchProducts error:", err);
     alert("無法取得商品資料：" + (err.response?.data?.detail || err.message));
   }
 };
 
+// 圖片上傳通用邏輯
+const uploadImage = async (file) => {
+  if (file.size > 5 * 1024 * 1024) {
+    alert("檔案不能超過 5MB");
+    return null;
+  }
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await api.post("/upload/", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data.image_url;
+  } catch (err) {
+    alert("圖片上傳失敗");
+    return null;
+  }
+};
+
+const handleMainImageUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  isUploadingMain.value = true;
+  const url = await uploadImage(file);
+  if (url) productForm.value.main_image = url;
+  isUploadingMain.value = false;
+  e.target.value = "";
+};
+/*
+const handleSubImageUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  if (productForm.value.sub_images.length + files.length > 3) {
+    alert("副圖最多 3 張");
+    return;
+  }
+  isUploadingSub.value = true;
+  for (const file of files) {
+    const url = await uploadImage(file);
+    if (url) productForm.value.sub_images.push(url);
+  }
+  isUploadingSub.value = false;
+  e.target.value = "";
+};
+*/
+
 // --- 核心邏輯 ---
 
 // 過濾商品 (按名稱或 ID 篩選)
 const filteredProducts = computed(() => {
+  // 後端回傳的 products 已經是該使用者有權限看到的了
+  const list = products.value;
   const keyword = searchKeyword.value.toLowerCase();
-  
-  // 檢查權限：Admin (1) 看全部；Seller (2) 只能看自己的商品
-  const accessibleProducts = products.value.filter(product => {
-    if (currentUserRole.value === 1) return true; // Admin 看全部
-    if (currentUserRole.value === 2) return product.owner_id === currentUserId.value; // Seller 看自己的
-    // Customer (3) 理論上不應該進入這個管理介面，但若進入則不顯示任何資料
-    return false;
-  });
 
-  if (!keyword) return accessibleProducts;
+  if (!keyword) return list;
   
-  return accessibleProducts.filter(product =>
+  return list.filter(product =>
     product.name.toLowerCase().includes(keyword) ||
-    product.product_id.toString().includes(keyword)
+    product.product_id.toString().includes(keyword) ||
+    (product.country && product.country.toLowerCase().includes(keyword)) // 加強搜尋功能：可搜尋國家
   );
 });
 
@@ -98,10 +167,8 @@ const openCreateModal = () => {
   currentProductId.value = null;
   // 重置表單
   productForm.value = { 
-    name: "", 
-    description: "", 
-    price: 0.0, 
-    stock: 0, 
+    ...initialForm, 
+    //sub_images: [] 視情況啟用
   };
   isModalOpen.value = true;
 };
@@ -118,10 +185,12 @@ const openEditModal = (product) => {
   
   // 填充表單 (使用 parseFloat 和 parseInt 處理數據類型)
   productForm.value = {
-    name: product.name,
-    description: product.description || "",
-    price: parseFloat(product.price), // Decimal 轉 float
+    ...product,
+    price: parseFloat(product.price),
     stock: parseInt(product.stock),
+    moisture_content: product.moisture_content ? parseFloat(product.moisture_content) : null,
+    density: product.density ? parseInt(product.density) : null,
+    //sub_images: Array.isArray(product.sub_images) ? [...product.sub_images] : []
   };
   isModalOpen.value = true;
 };
@@ -140,27 +209,33 @@ const submitForm = async () => {
   }
   
   try {
-    let response;
-    // 1. 處理 Decimal 類型轉換：將數字轉為字串以確保 Decimal 精度傳輸
-    const dataToSend = {
-      ...productForm.value,
-      price: productForm.value.price.toString(),
-    };
+    // 1. 處理空值轉換與類型校正
+    const dataToSend = {};
+    Object.keys(productForm.value).forEach(key => {
+      const value = productForm.value[key];
+      // 如果是空字串，轉成 null
+      if (typeof value === "string" && value.trim() === "") {
+        dataToSend[key] = null;
+      } else {
+        dataToSend[key] = value;
+      }
+    });
+
+    // 2. 處理 Decimal 類型轉換 (轉為字串送給 Pydantic)
+    dataToSend.price = dataToSend.price.toString();
+    if (dataToSend.moisture_content !== null) {
+      dataToSend.moisture_content = dataToSend.moisture_content.toString();
+    }
     
+    // 3. 執行 API 請求
     if (isEditMode.value) {
-      // 編輯模式: PATCH
-      response = await api.patch(`/products/${currentProductId.value}`, dataToSend);
+      await api.patch(`/products/${currentProductId.value}`, dataToSend);
       alert(`商品 #${currentProductId.value} 編輯成功！`);
     } else {
-      // 新增模式: POST
-      // 注意：後端 API 必須自動處理 owner_id (如您在 api/products.py 中定義的邏輯)
-      // 如果後端需要前端傳 owner_id，則要加入 productForm.value.owner_id = currentUserId.value
-      // 由於您在 API 層處理了，這裡不傳 owner_id
-      response = await api.post("/products/", dataToSend);
+      await api.post("/products/", dataToSend);
       alert("商品新增成功！");
     }
 
-    // 刷新列表並關閉 Modal
     await fetchProducts();
     closeModal();
   } catch (err) {
