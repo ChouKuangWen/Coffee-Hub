@@ -64,7 +64,7 @@ async def read_all_products(
 
 
 # 後台商品管理：賣家/管理者專用 (必須登入) ---
-@router.get("/dashboard", response_model=List[ProductRead])
+@router.get("/dashboard", response_model=dict)
 @limiter.limit("30/minute")
 async def read_dashboard_products(
     request: Request,
@@ -78,8 +78,12 @@ async def read_dashboard_products(
     """
     # 根據角色決定篩選邏輯
     filter_id = None if current_user.role_id == 1 else current_user.user_id
-    # 設定 is_active=None 代表不篩選狀態，全部列出
-    return await get_all_products(db, owner_id=filter_id, is_active=None)
+    # 注意：get_all_products 會回傳 (products, total)，設定 is_active=None 代表不篩選狀態，全部列出
+    products, total = await get_all_products(db, owner_id=filter_id, is_active=None)
+    return {
+        "items": [ProductRead.model_validate(p) for p in products],
+        "total": total
+    }
 
 # 取得單一商品（所有角色皆有該權限）
 """所有具有預設值的參數（例如 db: AsyncSession = Depends(get_db)）都必須放在沒有預設值的參數之後。"""
