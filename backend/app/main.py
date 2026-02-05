@@ -67,8 +67,9 @@ app.add_middleware(
 app.add_middleware(CSPMiddleware)
 
 # 註冊路由
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(users.router, prefix="/users", tags=["Authentication"])
-app.include_router(products.router, prefix="/products", tags=["Authentication"])
-app.include_router(orders.router, prefix="/orders", tags=["Authentication"])
-app.include_router(order_items.router, prefix="/order_items", tags=["Authentication"])
+app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(products.router, prefix="/products", tags=["Products"])
+app.include_router(orders.router, prefix="/orders", tags=["Orders"])
+app.include_router(order_items.router, prefix="/order_items", tags=["Orders"])
+app.include_router(upload.router, prefix="/upload", tags=["Upload"])

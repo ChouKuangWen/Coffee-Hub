@@ -8,7 +8,7 @@ router = APIRouter()
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 ALLOWED_EXTENSIONS = {"image/jpeg", "image/png", "image/webp"}
 
-@router.post("/upload")
+@router.post("/")
 async def upload_image(file: UploadFile = File(...)):
     """
     接收前端上傳的圖片，並轉傳至 GCP Cloud Storage
