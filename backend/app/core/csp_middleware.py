@@ -25,7 +25,7 @@ class CSPMiddleware(BaseHTTPMiddleware):
         csp_policy = (
             "default-src 'self';"
             # 腳本來源: 允許自身來源的腳本，以及使用此 Nonce 的內嵌腳本/外部腳本
-            "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';"
+            f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net;"
             # 樣式來源: 允許自身來源的樣式，以及使用此 Nonce 的內嵌樣式
             f"style-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net;"
             "img-src 'self' data: https://fastapi.tiangolo.com;"               # 允許自身圖片和 Base64 圖片 (用於小圖標)
@@ -42,5 +42,5 @@ class CSPMiddleware(BaseHTTPMiddleware):
 
         # 新增 X-Content-Type-Options: nosniff
         response.headers["X-Content-Type-Options"] = "nosniff"
-
+        response.headers["X-Frame-Options"] = "DENY" # 防範點擊劫持
         return response
