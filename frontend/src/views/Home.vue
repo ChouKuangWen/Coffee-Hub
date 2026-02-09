@@ -99,7 +99,7 @@ const isLoggedIn = computed(() => user.value !== null)
 const goLogin = () => router.push('/login')
 const goRegister = () => router.push('/register')
 const goAccount = () => router.push('/dashboard')
-
+const goDetail = (id) => {router.push({ name: 'ProductDetail', params: { id: id } })}// 跳轉到商品詳情頁
 const handleLogout = async () => {
   try {
     await api.post("/auth/logout")
@@ -178,19 +178,20 @@ onMounted(() => {
       <div class="products-container">
         <div v-if="products.length > 0" class="product-grid">
           <div class="product-card" v-for="item in products" :key="item.product_id">
-            <div class="image-box">
-               <img :src="item.main_image || '/images/default-coffee.jpg'" :alt="item.name" />
+            <div class="image-box" @click="goDetail(item.product_id)" style="cursor: pointer;">
+              <img :src="item.main_image || '/images/default-coffee.jpg'" :alt="item.name" />
             </div>
+
             <div class="card-content">
               <span class="category-tag">{{ item.product_category === 'green_bean' ? '生豆' : '熟豆' }}</span>
-              <h4>{{ item.name }}</h4>
+              <h4 class="product-title" @click="goDetail(item.product_id)">{{ item.name }}</h4>
               <p class="info-text">{{ item.country }} | {{ item.roast_level }}</p>
               <p class="price">NT$ {{ item.price }}</p>
               <button class="buy-btn">加入購物車</button>
             </div>
           </div>
         </div>
-        
+
         <div v-else-if="!loadingMore" class="no-products">
           <p>找不到符合條件的商品...</p>
         </div>
@@ -372,8 +373,19 @@ onMounted(() => {
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-.product-card:hover {
-  transform: translateY(-8px);
+.product-title {
+  margin: 12px 0 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.product-title:hover {
+  color: #8d6e63; /* 咖啡色系，可自行調整 */
+}
+
+.product-card:hover .image-box img {
+  transform: scale(1.1);
 }
 
 .image-box {
@@ -387,6 +399,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s;
 }
 
 .card-content {
