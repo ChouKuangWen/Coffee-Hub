@@ -1,4 +1,5 @@
 # app/dependencies.py
+from typing import Optional
 from fastapi import Depends, HTTPException, status, Cookie, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession  # 非同步
@@ -108,6 +109,45 @@ async def get_current_user_from_cookie(
     print("顯示" + access_token, payload)
     return user
 
+async def get_current_user_from_cookie_optional(
+    request: Request,
+    access_token: str | None = Cookie(default=None),
+    db: AsyncSession = Depends(get_db)
+) -> Optional[Users]:
+    """
+    從 HttpOnly Cookie 讀取 access_token 並取得當前使用者 (不強制登入)
+    - 驗證成功：回傳 Users 物件
+    - 驗證失敗/未登入：回傳 None
+    """
+    if not access_token:
+        return None
+
+    try:
+        # 1. 驗證 token
+        payload = await verify_access_token(access_token, db, request=request)
+        if not payload:
+            return None
+
+        user_id = payload.get("sub")
+        role_id = payload.get("role_id")
+        if not user_id:
+            return None
+
+        # 2. 查詢資料庫
+        result = await db.execute(select(Users).where(Users.user_id == int(user_id)))
+        user = result.scalars().first()
+        if not user:
+            return None
+
+        # 3. 覆寫 role_id 並回傳
+        user.role_id = role_id
+        return user
+        
+    except Exception:
+        # 遇到任何解析錯誤，一律當作未登入處理
+        return None
+
+
 # 授權相關依賴
 def has_permission(required_role):
     """
@@ -121,7 +161,7 @@ def has_permission(required_role):
     else:
         allowed_roles = required_role
 
-    def role_checker(current_user: Users = Depends(get_current_user_from_cookie)): # 👈 修正：改用 Cookie 驗證
+    def role_checker(current_user: Users = Depends(get_current_user_from_cookie)): #  修正：改用 Cookie 驗證
         print("Checking permission: current_user.role_id =", current_user.role_id, "allowed_roles =", allowed_roles)
         if current_user.role_id not in allowed_roles:
             raise HTTPException(
