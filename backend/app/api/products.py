@@ -5,7 +5,7 @@ from typing import List, Optional
 from app.schemas.products import ProductCreate, ProductRead, ProductUpdate, ProductCategory
 from app.crud.products import get_all_products, get_product, create_new_product, update_product_information, delete_one_product
 from app.models.base import get_db   # 取得非同步資料庫 Session
-from app.dependencies import get_current_user_from_cookie, has_permission
+from app.dependencies import get_current_user_from_cookie, has_permission, get_current_user_from_cookie_optional
 from app.core.rate_limit import limiter
 
 router = APIRouter()
@@ -93,7 +93,7 @@ async def read_product(
     request: Request,
     product_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user_from_cookie)
+    current_user = Depends(get_current_user_from_cookie_optional)
     ):
     """
     商品詳細資訊：
@@ -104,18 +104,21 @@ async def read_product(
     if not product:
         raise HTTPException(status_code=404, detail="商品不存在")
 
-    # 權限檢查邏輯
-    if not product.is_active:
-        # 如果未登入，或登入者不是管理員且不是商品主人
-        if not current_user or (
-            current_user.role_id != 1 and product.owner_id != current_user.user_id
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="該商品目前不對外公開"
-            )
+    # 如果商品是公開的，所有人都能看
+    if product.is_active:
+        return product
 
-    return product
+    # 如果商品已下架，只有管理員或擁有者能看
+    # 此時 current_user 可能是 None
+    if current_user:
+        if current_user.role_id == 1 or product.owner_id == current_user.user_id:
+            return product
+    
+    # 3. 其他情況一律拒絕
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="該商品目前不對外公開"
+    )
 
 # 新增商品（管理員、賣家有權限）
 @router.post("/", response_model=ProductRead, status_code=status.HTTP_201_CREATED, 
