@@ -117,9 +117,9 @@ const categoryText = computed(() => {
 
 <style scoped>
 .product-detail-page {
-  max-width: 1200px;
+  max-width: 1100px; /* 稍微縮減容器寬度，讓佈局更緊湊 */
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 60px 20px;
   min-height: 100vh;
   text-align: left;
 }
@@ -129,42 +129,58 @@ const categoryText = computed(() => {
 }
 
 .back-btn {
-  background: none; border: none; cursor: pointer;
-  color: #666; font-size: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
 /* 佈局 */
+/* 佈局比例：圖片 0.8 / 文字 1.2，這樣圖片會變小 */
 .product-container {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 60px;
+  grid-template-columns: 0.8fr 1.2fr; 
+  gap: 80px; /* 增加間距，增加高級感 */
+  align-items: start;
 }
 
 /* 圖片 */
 .main-image img {
   width: 100%;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  max-width: 400px; /* 限制圖片最大寬度 */
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  display: block;
+  margin: 0 auto; /* 圖片在左側區域居中 */
 }
 
 /* 資訊內容 */
 .category-badge {
-  background: #f4f1ee; color: #8d6e63;
-  padding: 4px 12px; border-radius: 4px;
-  font-size: 0.85rem; font-weight: 600;
+  background: #f4f1ee;
+  color: #8d6e63;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 1rem; /* 加大 */
+  font-weight: 600;
 }
 
 .product-header h1 {
-  font-size: 2.5rem; margin: 15px 0 5px; color: #1a1a1a;
+  font-size: 3rem; /* 大標題加大 */
+  margin: 20px 0 10px;
+  color: #1a1a1a;
+  line-height: 1.2;
 }
 
 .origin-info {
-  font-size: 1.2rem; color: #666; margin-bottom: 20px;
+  font-size: 1.4rem; /* 產地資訊加大 */
+  color: #666;
+  margin-bottom: 25px;
 }
 
 .price {
-  font-size: 1.8rem; font-weight: 700; color: #b08968;
-  margin-bottom: 30px;
+  font-size: 2.2rem; /* 價格加大 */
+  font-weight: 700;
+  color: #b08968;
+  margin-bottom: 40px;
 }
 
 /* 按鈕 */
@@ -173,9 +189,16 @@ const categoryText = computed(() => {
 }
 
 .add-cart-btn {
-  flex: 1; background: #1a1a1a; color: #fff;
-  border: none; padding: 16px; border-radius: 8px;
-  font-size: 1.1rem; cursor: pointer; transition: 0.3s;
+  flex: 1; 
+  background: #1a1a1a; 
+  color: #fff;
+  border: none; 
+  padding: 18px; /* 增加內距 */
+  border-radius: 8px;
+  font-size: 1.25rem; /* 字體加大 */
+  font-weight: 600;
+  cursor: pointer; 
+  transition: 0.3s;
 }
 
 .add-cart-btn:hover { background: #444; }
@@ -188,11 +211,16 @@ const categoryText = computed(() => {
 }
 
 .spec-item label {
-  display: block; font-size: 0.85rem; color: #999; margin-bottom: 4px;
+  display: block;
+  font-size: 1rem; /* Label 加大 */
+  color: #999;
+  margin-bottom: 6px;
 }
 
 .spec-item span {
-  font-size: 1.1rem; font-weight: 500; color: #333;
+  font-size: 1.3rem; /* 數值加大 */
+  font-weight: 600;
+  color: #333;
 }
 
 .physical-specs {
@@ -201,17 +229,28 @@ const categoryText = computed(() => {
 
 /* 描述與標籤 */
 .description-section h3 {
-  font-size: 1.3rem; margin-bottom: 15px;
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  border-left: 4px solid #b08968;
+  padding-left: 15px;
 }
 
 .description-section p {
-  line-height: 1.8; color: #444; margin-bottom: 20px;
+  font-size: 1.15rem; /* 內文加大 */
+  line-height: 1.9;
+  color: #444;
+  margin-bottom: 25px;
 }
 
 .tag {
-  display: inline-block; background: #f0f0f0;
-  padding: 5px 12px; border-radius: 20px;
-  margin-right: 10px; font-size: 0.9rem; color: #666;
+  display: inline-block; 
+  background: #f0f0f0;
+  padding: 8px 16px; 
+  border-radius: 25px;
+  margin-right: 12px; 
+  margin-bottom: 10px;
+  font-size: 1rem; /* 標籤加大 */
+  color: #555;
 }
 
 /* 狀態顯示 */
@@ -227,8 +266,16 @@ const categoryText = computed(() => {
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-@media (max-width: 768px) {
-  .product-container { grid-template-columns: 1fr; gap: 30px; }
-  .product-header h1 { font-size: 1.8rem; }
+@media (max-width: 992px) {
+  .product-container { 
+    grid-template-columns: 1fr; 
+    gap: 40px; 
+  }
+  .main-image img {
+    max-width: 100%; /* 手機版恢復寬度 */
+  }
+  .product-header h1 { 
+    font-size: 2.2rem; 
+  }
 }
 </style>
