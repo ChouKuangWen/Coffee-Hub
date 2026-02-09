@@ -7,6 +7,7 @@ import Users from './views/Users.vue'
 import Register from './views/Register.vue'
 import Orders from './views/Orders.vue'
 import Products from './views/Products.vue'
+import ProductDetail from './views/ProductDetail.vue'
 import api from './api'
 
 const routes = [
@@ -15,6 +16,9 @@ const routes = [
   { path: '/login', component: Login },   // 登入頁
   { path: '/dashboard', component: Dashboard }, // 登入後的主頁
   { path: '/register', component: Register },   // 註冊頁
+  { path: '/product/:id', name: 'ProductDetail',
+    component: ProductDetail, props: true
+  }, // 讓網址的 id 可以直接當作 props 傳進組件
   { path: '/users', component: Users },  // 使用者查詢
   { path: '/orders', component: Orders },  // 訂單查詢
   { path: '/products', component: Products }  // 訂單查詢
@@ -32,7 +36,9 @@ router.beforeEach(async (to, from, next) => {
   console.log("router 守衛啟動，目標路由:", to.path)
 
   // 公開頁面直接放行
-  if (['/', '/home', '/login', '/register'].includes(to.path)) {
+  const isPublicPage = ['/home', '/login', '/register'].includes(to.path) || to.path.startsWith('/product/')
+
+  if (isPublicPage) {
     return next()
   }
 
