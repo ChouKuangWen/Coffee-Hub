@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, DateT
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
-from app.models.roles import Roles
+
 
 class Users(Base):
     __tablename__ = "users"  #對應資料表名稱
@@ -18,7 +18,7 @@ class Users(Base):
     created_at = Column(DateTime, default=func.now(), comment='建立時間')
     role = relationship("Roles", back_populates="users")
     products = relationship("Products", back_populates="owner")
-
+    cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
 
 
 
