@@ -129,3 +129,16 @@ CREATE TABLE refresh_tokens (
     INDEX (user_id),
     INDEX (jti)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='儲存使用者的 Refresh Token ';
+
+-- 建立購物車項目資料表
+CREATE TABLE cart_items (
+    cart_item_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '購物車項目 ID',
+    user_id INT NOT NULL COMMENT '使用者 ID',
+    product_id INT NOT NULL COMMENT '商品 ID',
+    quantity INT NOT NULL DEFAULT 1 COMMENT '購買數量',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入時間',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_product (user_id, product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='購物車資料表';
