@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from app.api import auth, users, products, orders, order_items, upload  # 載入 auth API 路由模組
+from app.api import auth, users, products, orders, order_items, upload, cart  # 載入 auth API 路由模組
 from app.core.csp_middleware import CSPMiddleware
 from app.core.rate_limit import limiter
 import os
@@ -73,3 +73,4 @@ app.include_router(products.router, prefix="/products", tags=["Products"])
 app.include_router(orders.router, prefix="/orders", tags=["Orders"])
 app.include_router(order_items.router, prefix="/order_items", tags=["Orders"])
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
+app.include_router(cart.router, prefix="/cart", tags=["Cart"])
