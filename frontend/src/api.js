@@ -65,4 +65,25 @@ api.interceptors.response.use(
   }
 );
 
+/**
+ * --- 購物車 API 函式模組 ---
+ */
+
+// 取得購物車清單
+export const getCart = () => api.get('/cart');
+
+// 加入商品至購物車
+export const addToCart = (productId, quantity = 1) => api.post('/cart', {
+  product_id: productId,
+  quantity: quantity
+});
+
+// 修改購物車商品數量
+export const updateCartItem = (cartItemId, quantity) => api.patch(`/cart/${cartItemId}`, {
+  quantity: quantity
+});
+
+// 刪除購物車品項
+export const deleteCartItem = (cartItemId) => api.delete(`/cart/${cartItemId}`);
+
 export default api
