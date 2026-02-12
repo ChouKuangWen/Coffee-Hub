@@ -8,6 +8,7 @@ import Register from './views/Register.vue'
 import Orders from './views/Orders.vue'
 import Products from './views/Products.vue'
 import ProductDetail from './views/ProductDetail.vue'
+import Cart from './views/Cart.vue'
 import api from './api'
 
 const routes = [
@@ -21,8 +22,8 @@ const routes = [
   }, // 讓網址的 id 可以直接當作 props 傳進組件
   { path: '/users', component: Users },  // 使用者查詢
   { path: '/orders', component: Orders },  // 訂單查詢
-  { path: '/products', component: Products }  // 訂單查詢
-
+  { path: '/products', component: Products },  // 訂單查詢
+  { path: '/cart', component: Cart },
 ]
 
 const router = createRouter({
@@ -33,26 +34,24 @@ const router = createRouter({
 
 // router 守衛
 router.beforeEach(async (to, from, next) => {
-  console.log("router 守衛啟動，目標路由:", to.path)
+  // 1. 定義「完全公開」不需要登入就能看的頁面
+  const publicPages = ['/home', '/login', '/register', '/products'];
+  // 判斷是否為公開頁面（包含動態的產品詳情頁）
+  const isPublicPage = publicPages.includes(to.path) || to.path.startsWith('/product/');
 
-  // 公開頁面直接放行
-  const isPublicPage = ['/home', '/login', '/register'].includes(to.path) || to.path.startsWith('/product/')
-
+  // 2. 如果是公開頁面，直接放行
   if (isPublicPage) {
     return next()
   }
 
+  // 3. 針對需要登入的頁面（如 /cart, /dashboard, /orders）進行檢查
   try {
-    //  Cookie 版：加上 withCredentials
-    const res = await api.get('/auth/me', {
-      withCredentials: true
-    })
-    console.log("已登入使用者:", res.data)
-
-    next()
+    // 這裡使用封裝好的 api，它已經有 interceptor 了
+    await api.get('/auth/me');
+    next();
   } catch (err) {
-    console.log("未登入或 cookie 無效，導回登入頁", err)
-    next({ path: '/login' })
+    console.log("驗證失敗，導回登入頁");
+    next({ path: '/login' });
   }
 })
 
