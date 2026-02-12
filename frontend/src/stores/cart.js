@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { getCart, addToCart, updateCartItem, deleteCartItem } from '@/api';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -20,7 +20,8 @@ export const useCartStore = defineStore('cart', {
     async fetchCart() {
       this.loading = true;
       try {
-        const response = await axios.get('/api/v1/cart', { withCredentials: true });
+        // 使用封裝好的 getCart()
+        const response = await getCart();
         this.items = response.data;
       } catch (err) {
         this.error = '無法載入購物車';
@@ -32,17 +33,16 @@ export const useCartStore = defineStore('cart', {
     // 2. 加入購物車
     async addToCart(productId, quantity = 1) {
       try {
-        const response = await axios.post('/api/v1/cart', {
-          product_id: productId,
-          quantity: quantity
-        }, { withCredentials: true });
-        
-        // 重新拉取或在本地更新，建議重新拉取確保資料與資料庫同步
+        // 使用封裝好的 addToCart()
+        await addToCart(productId, quantity);
+
+        // 重新拉取確保資料與後端同步
         await this.fetchCart();
         return { success: true };
       } catch (err) {
-        return { 
-          success: false, 
+        // err.response 已經被你的攔截器處理過，這裡抓取詳細訊息
+        return {
+          success: false,
           message: err.response?.data?.detail || '加入失敗' 
         };
       }
@@ -51,19 +51,21 @@ export const useCartStore = defineStore('cart', {
     // 3. 更新數量
     async updateQuantity(cartItemId, newQuantity) {
       try {
-        await axios.patch(`/api/v1/cart/${cartItemId}`, {
-          quantity: newQuantity
-        }, { withCredentials: true });
+        // 使用封裝好的 updateCartItem()
+        await updateCartItem(cartItemId, newQuantity);
         await this.fetchCart();
       } catch (err) {
-        alert(err.response?.data?.detail || '更新失敗');
+        // 這裡的錯誤會先經過 api.js 的 interceptor
+        // 若攔截器沒 alert，這裡可以補
+        console.error('更新失敗', err);
       }
     },
 
     // 4. 刪除品項
     async removeItem(cartItemId) {
       try {
-        await axios.delete(`/api/v1/cart/${cartItemId}`, { withCredentials: true });
+        // 使用封裝好的 deleteCartItem()
+        await deleteCartItem(cartItemId);
         await this.fetchCart();
       } catch (err) {
         this.error = '刪除失敗';
