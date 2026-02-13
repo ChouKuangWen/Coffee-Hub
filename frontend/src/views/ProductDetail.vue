@@ -1,14 +1,18 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useCartStore } from '@/stores/cart';
 import api from "@/api";
 
 const route = useRoute();
 const router = useRouter();
+const cartStore = useCartStore();
 
 const product = ref(null);
 const loading = ref(true);
+const cartLoading = ref(false); // 專門給購物車按鈕用的 loading
 const error = ref(null);
+const qty = ref(1); // 購物數量
 
 // 取得單一商品資料
 const fetchProduct = async () => {
@@ -23,6 +27,22 @@ const fetchProduct = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+// 處理加入購物車
+const handleAddToCart = async () => {
+  if (!product.value) return;
+
+  cartLoading.value = true;
+  const result = await cartStore.addToCart(product.value.id, qty.value);
+
+  if (result.success) {
+    // 這裡可以換成更漂亮的 Toast 通知
+    alert(`成功將 ${qty.value} 件商品加入購物車！`);
+  } else {
+    alert(result.message);
+  }
+  cartLoading.value = false;
 };
 
 const goBack = () => router.back();
@@ -67,11 +87,24 @@ const categoryText = computed(() => {
           <p class="price">NT$ {{ product.price }}</p>
         </header>
 
-        <div class="action-bar">
-          <div class="quantity-selector">
-            <span>庫存充足</span>
+        <div class="action-bar" v-if="product.stock > 0">
+          <div class="quantity-selector-wrapper">
+            <button @click="qty > 1 ? qty-- : null" class="qty-btn" :disabled="cartLoading">-</button>
+            <input type="number" v-model.number="qty" min="1" :max="product.stock" class="qty-input">
+            <button @click="qty < product.stock ? qty++ : null" class="qty-btn" :disabled="cartLoading">+</button>
           </div>
-          <button class="add-cart-btn">加入購物車</button>
+
+          <button
+            class="add-cart-btn"
+            @click="handleAddToCart"
+            :disabled="cartLoading || product.stock <= 0"
+          >
+            {{ cartLoading ? '處理中...' : '加入購物車' }}
+          </button>
+        </div>
+
+        <div class="action-bar" v-else>
+          <button class="add-cart-btn out-of-stock" disabled>暫時缺貨</button>
         </div>
 
         <div class="specs-grid">
@@ -262,6 +295,50 @@ const categoryText = computed(() => {
   width: 40px; height: 40px; border: 4px solid #f3f3f3;
   border-top: 4px solid #8d6e63; border-radius: 50%;
   animation: spin 1s linear infinite; margin: 0 auto 20px;
+}
+
+.quantity-selector-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.qty-btn {
+  background: #fff;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: 0.2s;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.qty-input {
+  width: 50px;
+  border: none;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  outline: none;
+  /* 移除 Chrome/Safari 的數字箭頭 */
+  appearance: textfield;
+}
+
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.add-cart-btn.out-of-stock {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
