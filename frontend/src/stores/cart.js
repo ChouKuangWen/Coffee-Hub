@@ -33,14 +33,17 @@ export const useCartStore = defineStore('cart', {
     // 2. 加入購物車
     async addToCart(productId, quantity = 1) {
       try {
-        // 使用封裝好的 addToCart()
-        await addToCart(productId, quantity);
+        // 關鍵修正：直接確保物件 Key 名稱是後端要的 'product_id'
+        await api.post('/cart', {
+          product_id: productId, // 這裡確保與後端 Pydantic 模型一致
+          quantity: quantity
+        });
 
         // 重新拉取確保資料與後端同步
         await this.fetchCart();
         return { success: true };
       } catch (err) {
-        // err.response 已經被你的攔截器處理過，這裡抓取詳細訊息
+        console.error("CartStore Error:", err.response?.data); // 多這行方便除錯
         return {
           success: false,
           message: err.response?.data?.detail || '加入失敗' 
