@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { getCart, addToCart, updateCartItem, deleteCartItem } from '@/api';
+// 匯入 api 實例(axios) 以及封裝好的函式
+import api, { getCart, updateCartItem, deleteCartItem } from '@/api';
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -11,8 +12,12 @@ export const useCartStore = defineStore('cart', {
   getters: {
     // 計算總件數
     totalItems: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    // 計算總金額
-    totalAmount: (state) => state.items.reduce((sum, item) => sum + (item.quantity * item.product.price), 0),
+    
+    // 計算總金額 (加入可選鏈 ?. 避免 product 資料尚未載入時報錯)
+    totalAmount: (state) => state.items.reduce((sum, item) => {
+      const price = item.product?.price || 0;
+      return sum + (item.quantity * price);
+    }, 0),
   },
 
   actions: {
@@ -20,57 +25,56 @@ export const useCartStore = defineStore('cart', {
     async fetchCart() {
       this.loading = true;
       try {
-        // 使用封裝好的 getCart()
         const response = await getCart();
-        this.items = response.data;
+        // 確保後端回傳的是陣列，若無資料則給空陣列
+        this.items = response.data || [];
       } catch (err) {
+        console.error('載入購物車失敗', err);
         this.error = '無法載入購物車';
       } finally {
         this.loading = false;
       }
     },
 
-    // 2. 加入購物車
+    // 2. 加入購物車 (解決 422 錯誤的關鍵)
     async addToCart(productId, quantity = 1) {
       try {
-        // 關鍵修正：直接確保物件 Key 名稱是後端要的 'product_id'
+        // 直接使用 api.post 並確保欄位名稱為 product_id (底線)
         await api.post('/cart', {
-          product_id: productId, // 這裡確保與後端 Pydantic 模型一致
+          product_id: productId, 
           quantity: quantity
         });
 
-        // 重新拉取確保資料與後端同步
+        // 成功加入後，重新拉取最新清單以同步狀態
         await this.fetchCart();
         return { success: true };
       } catch (err) {
-        console.error("CartStore Error:", err.response?.data); // 多這行方便除錯
+        console.error("加入購物車 422 詳情:", err.response?.data);
         return {
           success: false,
-          message: err.response?.data?.detail || '加入失敗' 
+          message: err.response?.data?.detail?.[0]?.msg || '加入失敗，請稍後再試' 
         };
       }
     },
 
     // 3. 更新數量
     async updateQuantity(cartItemId, newQuantity) {
+      if (newQuantity < 1) return;
       try {
-        // 使用封裝好的 updateCartItem()
         await updateCartItem(cartItemId, newQuantity);
         await this.fetchCart();
       } catch (err) {
-        // 這裡的錯誤會先經過 api.js 的 interceptor
-        // 若攔截器沒 alert，這裡可以補
-        console.error('更新失敗', err);
+        console.error('更新數量失敗', err);
       }
     },
 
     // 4. 刪除品項
     async removeItem(cartItemId) {
       try {
-        // 使用封裝好的 deleteCartItem()
         await deleteCartItem(cartItemId);
         await this.fetchCart();
       } catch (err) {
+        console.error('刪除品項失敗', err);
         this.error = '刪除失敗';
       }
     }
