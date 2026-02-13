@@ -31,7 +31,7 @@ const fetchProduct = async () => {
 
 // 處理加入購物車
 const handleAddToCart = async () => {
-  if (!product.value) return;
+  if (!product.value|| qty.value < 1) return;
 
   cartLoading.value = true;
   const result = await cartStore.addToCart(product.value.id, qty.value);
@@ -40,7 +40,7 @@ const handleAddToCart = async () => {
     // 這裡可以換成更漂亮的 Toast 通知
     alert(`成功將 ${qty.value} 件商品加入購物車！`);
   } else {
-    alert(result.message);
+    alert(`加入失敗: ${result.message}`);
   }
   cartLoading.value = false;
 };
@@ -52,7 +52,11 @@ onMounted(fetchProduct);
 // 格式化顯示類別
 const categoryText = computed(() => {
   if (!product.value) return '';
-  return product.value.product_category === 'green_bean' ? '精品生豆' : '新鮮烘焙豆';
+  const categoryMap = {
+    'green_bean': '精品生豆',
+    'roasted_bean': '新鮮烘焙豆'
+  };
+  return categoryMap[product.value.product_category] || '未分類商品';
 });
 </script>
 
