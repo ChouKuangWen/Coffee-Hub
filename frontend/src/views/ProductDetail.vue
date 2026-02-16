@@ -21,6 +21,7 @@ const fetchProduct = async () => {
     // 使用路由傳進來的 id 參數
     const res = await api.get(`/products/${route.params.id}`);
     product.value = res.data;
+    console.log("商品資料詳情:", res.data);
   } catch (err) {
     console.error("取得商品詳情失敗:", err);
     error.value = "找不到該商品或已下架";
@@ -32,9 +33,17 @@ const fetchProduct = async () => {
 // 處理加入購物車
 const handleAddToCart = async () => {
   if (!product.value|| qty.value < 1) return;
+  const targetId = product.value.id || product.value.product_id;
+  if (!targetId) {
+    alert("錯誤：無法取得商品 ID，請檢查後端回傳格式");
+    console.error("目前商品物件內容:", product.value);
+    return;
+  }
+
+  console.log("正在送出請求 - ID:", targetId, "數量:", qty.value);
 
   cartLoading.value = true;
-  const result = await cartStore.addToCart(product.value.id, qty.value);
+  const result = await cartStore.addToCart(targetId, qty.value);
 
   if (result.success) {
     // 這裡可以換成更漂亮的 Toast 通知
