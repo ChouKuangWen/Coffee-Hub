@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import update, delete
 from typing import List
+from sqlalchemy.orm import selectinload
 from app.models.base import get_db
 from app.models.cart_item import CartItem
 from app.models.products import Products
@@ -27,9 +28,14 @@ async def read_cart(
     - 使用 joinedload 確保 product 資訊一併回傳（由 Model 關聯或在此實作）。
     """
     # 這裡使用 join 確保只抓到已上架商品
-    query = select(CartItem).join(Products).where(
-        CartItem.user_id == current_user.user_id,
-        Products.is_active == True
+    query = (
+        select(CartItem)
+        .options(selectinload(CartItem.product))
+        .join(Products)
+        .where(
+            CartItem.user_id == current_user.user_id,
+            Products.is_active == True
+        )
     )
     result = await db.execute(query)
     return result.scalars().all()
@@ -62,6 +68,8 @@ async def add_to_cart(
     existing_result = await db.execute(existing_query)
     existing_item = existing_result.scalar_one_or_none()
 
+    target_id = None
+
     if existing_item:
         # 累加數量並校驗
         new_qty = existing_item.quantity + item_in.quantity
@@ -70,19 +78,27 @@ async def add_to_cart(
         
         existing_item.quantity = new_qty
         await db.commit()
-        await db.refresh(existing_item)
-        return existing_item
+    else:
+        # C. 新增項目
+        new_cart_item = CartItem(
+            user_id=current_user.user_id,
+            product_id=item_in.product_id,
+            quantity=item_in.quantity
+        )
+        db.add(new_cart_item)
+        await db.commit()
+        await db.refresh(new_cart_item)
+        target_id = new_cart_item.cart_item_id
 
-    # C. 新增項目
-    new_cart_item = CartItem(
-        user_id=current_user.user_id,
-        product_id=item_in.product_id,
-        quantity=item_in.quantity
+    # 核心修正：重新查詢包含關聯資料的 CartItem 以符合 CartItemRead Schema
+    final_query = (
+        select(CartItem)
+        .options(selectinload(CartItem.product))
+        .where(CartItem.cart_item_id == target_id)
     )
-    db.add(new_cart_item)
-    await db.commit()
-    await db.refresh(new_cart_item)
-    return new_cart_item
+    final_result = await db.execute(final_query)
+    return final_result.scalar_one()
+
 
 # 3. 更新購物車數量
 @router.patch("/{cart_item_id}", response_model=CartItemRead)
@@ -116,8 +132,13 @@ async def update_cart_item(
 
     cart_item.quantity = item_update.quantity
     await db.commit()
-    await db.refresh(cart_item)
-    return cart_item
+    final_query = (
+        select(CartItem)
+        .options(selectinload(CartItem.product))
+        .where(CartItem.cart_item_id == cart_item_id)
+    )
+    final_result = await db.execute(final_query)
+    return final_result.scalar_one()
 
 # 4. 刪除購物車品項
 @router.delete("/{cart_item_id}", status_code=status.HTTP_204_NO_CONTENT)
