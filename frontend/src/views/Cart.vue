@@ -1,30 +1,51 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue'; // 引入 ref
 import { useCartStore } from '@/stores/cart';
 import { useRouter } from 'vue-router';
 
 const cartStore = useCartStore();
 const router = useRouter();
+const isProcessing = ref(false); // 新增：全域處理鎖定，防止連點卡頓
 
-// 初始化，確保資料是最新的
-onMounted(() => {
-  cartStore.fetchCart();
+onMounted(async () => {
+  // 加入 loading 判斷，避免重複 fetch
+  if (cartStore.items.length === 0) {
+    await cartStore.fetchCart();
+  }
 });
 
-// 數量增減邏輯
+// 數量增減邏輯 (優化版)
 const updateQty = async (item, change) => {
+  if (isProcessing.value) return; // 如果正在處理中，不允許下次點擊
+  
   const newQty = item.quantity + change;
-  if (newQty >= 1 && newQty <= item.product.stock) {
-    await cartStore.updateQuantity(item.id, newQty);
+  
+  // 檢查邊界：不可小於 1，不可超過庫存
+  if (newQty >= 1 && newQty <= (item.product?.stock || 99)) {
+    isProcessing.value = true;
+    try {
+      // 修正：使用 cart_item_id 而非 id
+      await cartStore.updateQuantity(item.cart_item_id, newQty);
+    } finally {
+      isProcessing.value = false;
+    }
   }
 };
 
-// 結帳邏輯（目前先提示，未來可串接訂單 API）
+const handleRemove = async (cartItemId) => {
+  if (isProcessing.value || !confirm('確定要從購物車移除嗎？')) return;
+  isProcessing.value = true;
+  try {
+    await cartStore.removeItem(cartItemId);
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
 const proceedToCheckout = () => {
   alert('訂單功能開發中！接下來可以挑戰串接金流或建立訂單 API 哦。');
 };
 </script>
-
 
 <template>
   <div class="cart-page">
@@ -33,32 +54,32 @@ const proceedToCheckout = () => {
       <p v-if="cartStore.totalItems > 0">共 {{ cartStore.totalItems }} 件細心挑選的咖啡商品</p>
     </header>
 
-    <main v-if="cartStore.items.length > 0" class="cart-container">
+    <main v-if="cartStore.items.length > 0" class="cart-container" :class="{ 'is-loading': isProcessing }">
       <section class="cart-items">
-        <div v-for="item in cartStore.items" :key="item.id" class="cart-item">
+        <div v-for="item in cartStore.items" :key="item.cart_item_id" class="cart-item">
           <div class="item-image">
-            <img :src="item.product.main_image || '/images/default-coffee.jpg'" :alt="item.product.name">
+            <img :src="item.product?.main_image || '/images/default-coffee.jpg'" :alt="item.product?.name">
           </div>
 
           <div class="item-details">
             <div class="item-title">
-              <h3>{{ item.product.name }}</h3>
-              <p class="item-spec">{{ item.product.process_method }} | {{ item.product.roast_level }}</p>
+              <h3>{{ item.product?.name || '讀取中...' }}</h3>
+              <p class="item-spec">{{ item.product?.process_method }} | {{ item.product?.roast_level }}</p>
             </div>
-            <p class="item-price">NT$ {{ item.product.price }}</p>
+            <p class="item-price">NT$ {{ item.product?.price }}</p>
           </div>
 
           <div class="item-actions">
             <div class="quantity-controller">
-              <button @click="updateQty(item, -1)" :disabled="item.quantity <= 1">-</button>
+              <button @click="updateQty(item, -1)" :disabled="item.quantity <= 1 || isProcessing">-</button>
               <span class="qty-num">{{ item.quantity }}</span>
-              <button @click="updateQty(item, 1)" :disabled="item.quantity >= item.product.stock">+</button>
+              <button @click="updateQty(item, 1)" :disabled="item.quantity >= (item.product?.stock || 0) || isProcessing">+</button>
             </div>
-            <button @click="cartStore.removeItem(item.id)" class="remove-btn">移除</button>
+            <button @click="handleRemove(item.cart_item_id)" class="remove-btn" :disabled="isProcessing">移除</button>
           </div>
 
           <div class="item-subtotal">
-            NT$ {{ item.product.price * item.quantity }}
+            NT$ {{ (item.product?.price || 0) * item.quantity }}
           </div>
         </div>
       </section>
@@ -79,7 +100,9 @@ const proceedToCheckout = () => {
             <span>應付總額</span>
             <span class="total-amount">NT$ {{ cartStore.totalAmount }}</span>
           </div>
-          <button class="checkout-btn" @click="proceedToCheckout">前往結帳</button>
+          <button class="checkout-btn" @click="proceedToCheckout" :disabled="isProcessing">
+            {{ isProcessing ? '處理中...' : '前往結帳' }}
+          </button>
           <router-link to="/products" class="continue-shopping">繼續選購咖啡</router-link>
         </div>
       </aside>
@@ -253,6 +276,26 @@ const proceedToCheckout = () => {
   border-radius: 25px;
   text-decoration: none;
   margin-top: 20px;
+}
+
+.is-loading {
+  opacity: 0.7;
+  pointer-events: none; /* 處理中時不允許點擊任何東西 */
+  transition: opacity 0.2s;
+}
+
+.checkout-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+}
+
+/* 讓圖片維持比例避免變形 */
+.item-image img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  background-color: #f9f9f9;
 }
 
 @media (max-width: 900px) {
