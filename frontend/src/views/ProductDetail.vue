@@ -10,55 +10,62 @@ const cartStore = useCartStore();
 
 const product = ref(null);
 const loading = ref(true);
-const cartLoading = ref(false); // 專門給購物車按鈕用的 loading
+const cartLoading = ref(false); 
 const error = ref(null);
-const qty = ref(1); // 購物數量
+const qty = ref(1); 
 
-// 取得單一商品資料
 const fetchProduct = async () => {
   loading.value = true;
   try {
-    // 使用路由傳進來的 id 參數
     const res = await api.get(`/products/${route.params.id}`);
     product.value = res.data;
-    console.log("商品資料詳情:", res.data);
+    // 修正：如果庫存為 0，預設數量也要設為 0
+    if (product.value.stock === 0) qty.value = 0;
   } catch (err) {
-    console.error("取得商品詳情失敗:", err);
     error.value = "找不到該商品或已下架";
   } finally {
     loading.value = false;
   }
 };
 
-// 處理加入購物車
 const handleAddToCart = async () => {
-  if (!product.value|| qty.value < 1) return;
+  // 1. 基本安全檢查與防連點
+  if (cartLoading.value || !product.value || qty.value < 1) return;
+  
   const targetId = product.value.id || product.value.product_id;
   if (!targetId) {
-    alert("錯誤：無法取得商品 ID，請檢查後端回傳格式");
-    console.error("目前商品物件內容:", product.value);
+    alert("商品資訊不完整，無法加入");
     return;
   }
 
-  console.log("正在送出請求 - ID:", targetId, "數量:", qty.value);
-
+  // 2. 啟動鎖定狀態
   cartLoading.value = true;
-  const result = await cartStore.addToCart(targetId, qty.value);
+  
+  try {
+    const result = await cartStore.addToCart(targetId, qty.value);
 
-  if (result.success) {
-    // 這裡可以換成更漂亮的 Toast 通知
-    alert(`成功將 ${qty.value} 件商品加入購物車！`);
-  } else {
-    alert(`加入失敗: ${result.message}`);
+    if (result.success) {
+      // 3. 關鍵修正：成功後手動呼叫一次 fetchCart 確保 Navbar 數字立刻跳動
+      await cartStore.fetchCart();
+      
+      // 4. 提供更友善的導航選擇（取代單純的 alert）
+      if (confirm(`已成功加入 ${qty.value} 件商品！\n\n要立即前往購物車結帳嗎？`)) {
+        router.push('/cart');
+      }
+    } else {
+      alert(`加入失敗: ${result.message}`);
+    }
+  } catch (err) {
+    alert("系統忙碌中，請稍後再試");
+  } finally {
+    // 5. 解除鎖定
+    cartLoading.value = false;
   }
-  cartLoading.value = false;
 };
 
 const goBack = () => router.back();
-
 onMounted(fetchProduct);
 
-// 格式化顯示類別
 const categoryText = computed(() => {
   if (!product.value) return '';
   const categoryMap = {
@@ -249,6 +256,12 @@ const categoryText = computed(() => {
 
 .add-cart-btn:hover { background: #444; }
 
+.add-cart-btn:disabled {
+  background: #666; /* 處理中變成灰色 */
+  cursor: wait; /* 滑鼠標誌變成等待 */
+  opacity: 0.8;
+}
+
 /* 規格表 */
 .specs-grid {
   display: grid; grid-template-columns: 1fr 1fr;
@@ -347,6 +360,12 @@ const categoryText = computed(() => {
 .qty-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* 讓數量輸入框在處理中也變色 */
+.qty-input:disabled {
+  background: #f9f9f9;
+  color: #ccc;
 }
 
 .add-cart-btn.out-of-stock {
