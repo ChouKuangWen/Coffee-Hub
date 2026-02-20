@@ -32,12 +32,12 @@ const handleLogin = async () => {
 
     // --- 關鍵修改：同步狀態 ---
     if (response.status === 200) {
-      // 3. 將後端回傳的 user 資料存入 authStore (包含 role: 2 或 3)
+      // 3. 將後端回傳的 user 資料存入 authStore (包含 role_id: 2 或 3)
       // 假設後端回傳結構為 response.data.user
       authStore.setLoginStatus(true, response.data.user)
 
-      // 4. 如果身分是買家 (role === 3)，立即抓取購物車數字
-      if (response.data.user?.role === 3) {
+      // 4. 如果身分是買家 (role_id === 3)，立即抓取購物車數字
+      if (response.data.user?.role_id === 3) {
         await cartStore.fetchCart(true) // 強制刷新數字
       }
 

@@ -10,14 +10,14 @@ const router = useRouter();
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 // 修正身分判斷數值：賣家=2, 買家=3
-const isSeller = computed(() => authStore.user?.role === 2);
-const isBuyer = computed(() => authStore.user?.role === 3);
+const isSeller = computed(() => authStore.user?.role_id === 2);
+const isBuyer = computed(() => authStore.user?.role_id === 3);
 
 const initNavbar = async () => {
   const isAuth = await authStore.checkAuth();
   if (isAuth) {
     // 只有買家身分 (role === 3) 才需要執行購物車 API
-    if (authStore.user?.role === 3) {
+    if (authStore.user?.role_id === 3) {
       await cartStore.fetchCart(true);
     }
   }
