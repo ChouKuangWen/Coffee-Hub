@@ -48,8 +48,8 @@ const handleLogout = async () => {
 
         <template v-if="isLoggedIn">
           <template v-if="isSeller">
-            <router-link to="/seller/products" class="seller-link">我的商品</router-link>
-            <router-link to="/seller/orders">訂單管理</router-link>
+            <router-link to="/products" class="seller-link">我的商品</router-link>
+            <router-link to="/orders">訂單管理</router-link>
           </template>
 
           <template v-if="isBuyer">

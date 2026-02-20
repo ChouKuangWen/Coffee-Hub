@@ -33,8 +33,9 @@ const handleLogin = async () => {
     // --- 關鍵修改：同步狀態 ---
     if (response.status === 200) {
       // 3. 將後端回傳的 user 資料存入 authStore (包含 role_id: 2 或 3)
-      // 假設後端回傳結構為 response.data.user
-      authStore.setLoginStatus(true, response.data.user)
+      const userData = response.data.user || response.data;
+      console.log("偵測到的用戶資料:", userData); // 除錯用：確認裡面有沒有 role_id
+      authStore.setLoginStatus(true, userData)
 
       // 4. 如果身分是買家 (role_id === 3)，立即抓取購物車數字
       if (response.data.user?.role_id === 3) {
