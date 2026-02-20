@@ -21,33 +21,38 @@ export const useCartStore = defineStore('cart', {
   },
 
   actions: {
-    // 1. 取得購物車：增加一個「強制刷新」判斷，避免不必要的重複請求
+    // 1. 取得購物車：微調 fetch 邏輯
     async fetchCart(force = false) {
-      // 如果已經有資料且不是強制刷新，就不重複抓取（除非希望每次切換頁面都重新抓）
-      if (this.items.length > 0 && !force) return;
+      // 修改點：如果不是強制刷新，且已經有資料，才攔截。
+      // 這樣當 Login.vue 呼叫 fetchCart(true) 時，能確保一定會向後端拿最新資料。
+      if (!force && this.items.length > 0) return;
+      
       this.loading = true;
       try {
         const response = await getCart();
-        // 確保後端回傳的是陣列，若無資料則給空陣列
         this.items = response.data || [];
       } catch (err) {
-        console.error('載入購物車失敗', err);
-        this.error = '無法載入購物車';
+        // 修改點：如果是未登入(401)或身分不符(403，如賣家存取買家API)，自動清空購物車
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          this.$reset();
+        } else {
+          console.error('載入購物車失敗', err);
+          this.error = '無法載入購物車';
+        }
       } finally {
         this.loading = false;
       }
     },
 
-    // 2. 加入購物車 (解決 422 錯誤的關鍵)
+    // 2. 加入購物車
     async addToCart(productId, quantity = 1) {
       try {
-        // 直接使用 api.post 並確保欄位名稱為 product_id (底線)
         await api.post('/cart', {
           product_id: productId, 
           quantity: quantity
         });
 
-        // 成功加入後，重新拉取最新清單以同步狀態
+        // 成功加入後，強制刷新以確保 Navbar 的紅點數字更新
         await this.fetchCart(true);
         return { success: true };
       } catch (err) {
@@ -59,10 +64,9 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    // 3. 更新數量
+    // 3. 更新數量 (保持你的樂觀更新邏輯)
     async updateQuantity(cartItemId, newQuantity) {
       if (newQuantity < 1) return;
-      // 先在前端畫面上改掉數字，使用者會感覺「秒改」，不會當掉
       const oldItems = [...this.items];
       const item = this.items.find(i => i.cart_item_id === cartItemId);
       if (item) item.quantity = newQuantity;
@@ -70,26 +74,25 @@ export const useCartStore = defineStore('cart', {
         await updateCartItem(cartItemId, newQuantity);
       } catch (err) {
         console.error('更新數量失敗', err);
-        this.items = oldItems; // 失敗了才回滾資料
+        this.items = oldItems; 
         alert("更新失敗，請檢查網路連線");
       }
     },
 
-    // 4. 刪除品項
+    // 4. 刪除品項 (保持你的樂觀更新邏輯)
     async removeItem(cartItemId) {
       const oldItems = [...this.items];
-      // 樂觀更新：立刻從畫面移除
       this.items = this.items.filter(i => i.cart_item_id !== cartItemId);
       try {
         await deleteCartItem(cartItemId);
       } catch (err) {
         console.error('刪除品項失敗', err);
-        this.items = oldItems; // 失敗回滾
+        this.items = oldItems; 
         this.error = '刪除失敗';
       }
     },
 
-    // 5. 重要：登出時重置 Store
+    // 5. 重置 Store
     $reset() {
       this.items = [];
       this.loading = false;
