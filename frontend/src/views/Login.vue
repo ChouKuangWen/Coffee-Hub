@@ -3,8 +3,11 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import qs from 'qs'
 import api from "@/api";
-
+import { useAuthStore } from '@/stores/auth'
+import { useCartStore } from '@/stores/cart'
 const router = useRouter()
+const authStore = useAuthStore()
+const cartStore = useCartStore()
 const email = ref('')
 const password = ref('')
 const error = ref('')
@@ -27,8 +30,20 @@ const handleLogin = async () => {
     )
 
 
-    // 登入後導向至首頁
-    router.push('/')
+    // --- 關鍵修改：同步狀態 ---
+    if (response.status === 200) {
+      // 3. 將後端回傳的 user 資料存入 authStore (包含 role: 2 或 3)
+      // 假設後端回傳結構為 response.data.user
+      authStore.setLoginStatus(true, response.data.user)
+
+      // 4. 如果身分是買家 (role === 3)，立即抓取購物車數字
+      if (response.data.user?.role === 3) {
+        await cartStore.fetchCart(true) // 強制刷新數字
+      }
+
+      // 5. 最後才跳轉，這時 Navbar 已經根據 Store 的變化自動切換好了
+      router.push('/')
+    }
 
   } catch (err) {
     console.error(err)
@@ -39,12 +54,10 @@ const handleLogin = async () => {
 
 <template>
   <div class="login-page">
-    <!-- 頂部導覽列 -->
     <header class="navbar">
       <h1 class="logo">Coffee Trade</h1>
     </header>
 
-    <!-- 登入卡片 -->
     <div class="login-card">
       <h2 class="title">登入帳號</h2>
       <p class="subtitle">請輸入您的 Email 與密碼</p>
