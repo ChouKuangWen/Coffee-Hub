@@ -1,46 +1,39 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useCartStore } from '@/stores/cart';
-import api from '@/api';
+import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 const router = useRouter();
+const isLoggedIn = computed(() => authStore.isLoggedIn);
 
-const isLoggedIn = ref(false);
-const isChecking = ref(false); // 防止重複 API 請求
+// 修正身分判斷數值：賣家=2, 買家=3
+const isSeller = computed(() => authStore.user?.role === 2);
+const isBuyer = computed(() => authStore.user?.role === 3);
 
-// 檢查登入狀態
-const checkAuth = async () => {
-  if (isChecking.value) return;
-  isChecking.value = true;
-  try {
-    const res = await api.get('/auth/me');
-    if (res.data) {
-      isLoggedIn.value = true;
-      // 登入後才抓購物車，避免訪客模式下噴 401 錯誤導致卡頓
-      await cartStore.fetchCart();
+const initNavbar = async () => {
+  const isAuth = await authStore.checkAuth();
+  if (isAuth) {
+    // 只有買家身分 (role === 3) 才需要執行購物車 API
+    if (authStore.user?.role === 3) {
+      await cartStore.fetchCart(true);
     }
-  } catch (err) {
-    isLoggedIn.value = false;
-  } finally {
-    isChecking.value = false;
   }
 };
 
 onMounted(() => {
-  checkAuth();
+  initNavbar();
 });
 
 const handleLogout = async () => {
   try {
-    await api.post('/auth/logout');
-    isLoggedIn.value = false;
-    cartStore.$reset(); // 登出時清空購物車數字
+    await authStore.logout();
+    cartStore.$reset(); 
     router.push('/login');
   } catch (err) {
     console.error("登出失敗");
-    isLoggedIn.value = false; // 強制切換狀態
     router.push('/login');
   }
 };
@@ -49,20 +42,27 @@ const handleLogout = async () => {
 <template>
   <nav class="navbar">
     <div class="nav-container">
-      <router-link to="/home" class="logo">☕ 咖啡工坊</router-link>
+      <router-link to="/home" class="logo">☕ 檢索咖啡</router-link>
 
       <div class="nav-links">
-        <router-link to="/products">所有咖啡豆</router-link>
-        
+
         <template v-if="isLoggedIn">
-          <router-link to="/cart" class="cart-link">
-            <span class="cart-icon">🛒</span>
-            <span v-if="cartStore.totalItems > 0" class="cart-badge">
-              {{ cartStore.totalItems }}
-            </span>
-            購物車
-          </router-link>
-          <router-link to="/orders">我的訂單</router-link>
+          <template v-if="isSeller">
+            <router-link to="/seller/products" class="seller-link">我的商品</router-link>
+            <router-link to="/seller/orders">訂單管理</router-link>
+          </template>
+
+          <template v-if="isBuyer">
+            <router-link to="/cart" class="cart-link">
+              <span class="cart-icon">🛒</span>
+              <span v-if="cartStore.totalItems > 0" class="cart-badge">
+                {{ cartStore.totalItems }}
+              </span>
+              購物車
+            </router-link>
+            <router-link to="/orders">我的訂單</router-link>
+          </template>
+
           <button @click="handleLogout" class="logout-btn">登出</button>
         </template>
 
@@ -111,6 +111,11 @@ const handleLogout = async () => {
 }
 .nav-links a:hover {
   color: #ff9800;
+}
+
+.seller-link {
+  color: #4db8ff !important;
+  font-weight: bold;
 }
 
 /* 購物車 Badge 修正樣式 */
