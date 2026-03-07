@@ -142,3 +142,17 @@ CREATE TABLE cart_items (
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
     UNIQUE KEY unique_user_product (user_id, product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='購物車資料表';
+
+-- 建立RAG對話紀錄表
+CREATE TABLE chat_messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訊息 ID',
+    user_id INT NOT NULL COMMENT '對應的使用者 ID',
+    role ENUM('user', 'model') NOT NULL COMMENT '發言者：user(使用者) 或 model(AI)',
+    content TEXT NOT NULL COMMENT '對話內容文字',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '發送時間',
+    -- 外鍵關聯到 users 表，當使用者刪除時，對話紀錄隨之刪除
+    CONSTRAINT fk_chat_user FOREIGN KEY (user_id)
+        REFERENCES users(user_id) ON DELETE CASCADE,
+    -- 索引優化：讓查詢使用者的對話變得快
+    INDEX idx_user_history (user_id, created_at DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 聊天紀錄表';
