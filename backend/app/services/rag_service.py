@@ -1,13 +1,13 @@
 # app/services/rag_service.py
 import os
 from dotenv import load_dotenv
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import Chroma
 
-# 引入定義好的模型與 Schema
+# 引入定義好的模型
 from app.models.chat_message import ChatMessage
-from app.schemas.chat_message import ChatMessageCreate
 
 # 載入環境變數
 load_dotenv()
@@ -31,7 +31,7 @@ class RAGService:
             google_api_key=os.getenv("GOOGLE_API_KEY")
         )
 
-    def get_response(self, db: Session, user_id: int, query: str) -> str:
+    async def get_response(self, db: AsyncSession, user_id: int, query: str) -> str:
         """
         核心邏輯：檢索知識 + 讀取歷史 -> 產生回覆 -> 儲存紀錄
         """
@@ -71,7 +71,7 @@ class RAGService:
         """
 
         # --- D. 呼叫 Gemini 2.0 Flash ---
-        response = self.llm.invoke([
+        response = await self.llm.ainvoke([
             ("system", system_prompt),
             ("human", query)
         ])
@@ -86,9 +86,9 @@ class RAGService:
 
             db.add(user_msg)
             db.add(ai_msg)
-            db.commit()
+            await db.commit()
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             print(f"資料庫儲存失敗: {e}")
 
         return ai_content
