@@ -21,9 +21,15 @@ SYNC_STATUS_FILE = "scripts/sync_status.json"
 
 class VectorSyncManager:
     def __init__(self):
+
         # 1. 初始化 Embedding 模型 (翻譯官)
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-        
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/gemini-embedding-001",
+            google_api_key=os.getenv("GOOGLE_API_KEY"),
+            api_version="v1",
+            task_type="retrieval_document"
+        )
+
         # 2. 初始化向量資料庫 (倉庫)
         self.vector_db = Chroma(
             persist_directory=CHROMA_DIR,
@@ -73,7 +79,7 @@ class VectorSyncManager:
                 # 組合語意內容
                 content = (
                     f"產品名稱: {p.name}\n"
-                    f"類別: {p.category}\n"
+                    f"類別: {p.product_category}\n"
                     f"描述: {p.description}\n"
                     f"價格: {p.price}"
                 )
@@ -81,11 +87,11 @@ class VectorSyncManager:
                 # 封裝成 LangChain Document
                 doc = Document(
                     page_content=content,
-                    metadata={"product_id": p.id, "source": "mysql"}
+                    metadata={"product_id": p.product_id, "source": "mysql"}
                 )
                 documents.append(doc)
                 # 使用 product_id 作為向量庫 ID，確保更新時會自動覆蓋而非重複
-                ids.append(f"prod_{p.id}")
+                ids.append(f"prod_{p.product_id}")
 
             # 4. 寫入向量資料庫
             # 因為 Chroma 的 add_documents 內部是同步 IO，在非同步迴圈中建議交給 executor 執行

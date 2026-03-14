@@ -4,7 +4,7 @@ __pycache__/
 *.pyc
 .env
 gcp-key.json
-
+chroma_db/
 backend/app/__pycache__/main.cpython-312.pyc
 backend/app/api/__pycache__/orders.cpython-312.pyc
 backend/app/api/__pycache__/products.cpython-312.pyc
