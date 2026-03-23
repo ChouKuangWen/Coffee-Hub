@@ -79,9 +79,12 @@ class VectorSyncManager:
                 # 組合語意內容
                 content = (
                     f"產品名稱: {p.name}\n"
-                    f"類別: {p.product_category}\n"
-                    f"描述: {p.description}\n"
-                    f"價格: {p.price}"
+                    f"焙度: {p.roast_level}\n"
+                    f"產區: {p.country} {p.region}\n"
+                    f"處理法: {p.process_method}\n"
+                    f"風味標籤: {p.flavor_tags}\n"  # 這個最重要！
+                    f"產品描述: {p.description}\n"
+                    f"價格: {p.price} 元"
                 )
                 
                 # 封裝成 LangChain Document
