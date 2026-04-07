@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from app.schemas.users import UserCreate, UserRead, TokenResponse
+from app.schemas.users import UserCreate, UserRead, TokenResponse, MessageResponse
 from app.models.users import Users
 from app.core.security import verify_password, hash_password
 from app.core.jwt import create_access_token, create_refresh_token, verify_refresh_token, revoke_tokens
@@ -33,7 +33,7 @@ async def read_users_me(
     return current_user
 
 # 註冊使用者
-@router.post("/register", response_model=dict)
+@router.post("/register", response_model=MessageResponse)
 @limiter.limit("3/hour") # 限制一小時只能註冊 3 次，防止機器人大量註冊
 async def register(request: Request, user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """
@@ -195,7 +195,7 @@ async def refresh_token_endpoint(
 
 
 # 登出：將 access_token 和 refresh_token 加入黑名單
-@router.post("/logout", response_model=dict)
+@router.post("/logout", response_model=MessageResponse)
 async def logout(
     request: Request,
     response: Response,

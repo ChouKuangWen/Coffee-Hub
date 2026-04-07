@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr  # 匯入 Pydantic 的基礎模型與 email 型別驗證
+from pydantic import BaseModel, EmailStr, ConfigDict  # 匯入 Pydantic 的基礎模型與 email 型別驗證
 from typing import Optional               # 匯入 Optional，允許欄位為可選
 from datetime import datetime             # 匯入 datetime，用於建立時間欄位
 
@@ -17,11 +17,9 @@ class UserCreate(UserBase):
 # 從資料庫讀取並回傳使用者資料時使用的 Schema
 class UserRead(UserBase):
     user_id: int            # 使用者編號（資料庫主鍵）
-    email: str
     created_at: datetime    # 使用者註冊時間（自動生成）
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        from_attributes = True     # 用 Pydantic schema 回傳
 
 # 使用者登入時傳入帳號與密碼的 Schema
 class UserLogin(BaseModel):
@@ -35,16 +33,19 @@ class UserUpdate(BaseModel):
     address: Optional[str] = None
     role_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+# 用來取代原本的 dict 回傳，讓 Swagger 顯示明確訊息
+class MessageResponse(BaseModel):
+    message: str
 
 # 使用者登入或刷新 token 時，後端回傳給前端的資料格式
 class TokenResponse(BaseModel):
     access_token: Optional[str] = None
-    refresh_token: Optional[str] = None
-    token_type: str
+    token_type: str = "bearer"
     role: str          # 角色
     role_id: int       # 角色 ID
     user_id: int       # 使用者 ID
 
+    model_config = ConfigDict(from_attributes=True)
 

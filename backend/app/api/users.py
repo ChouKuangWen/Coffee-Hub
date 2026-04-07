@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from app.schemas.users import UserRead, UserCreate, UserUpdate
+from app.schemas.users import UserRead, UserCreate, UserUpdate, MessageResponse
 from app.crud.users  import get_all_users, get_user_by_id, create_user_db, update_user_crud, delete_user_crud
 from app.core.security import hash_password
 from app.core.rate_limit import limiter
@@ -60,7 +60,7 @@ async def update_user(request: Request, user_id: int, user_update: UserUpdate, d
     return updated_user
 
 # 刪除使用者 (Admin 可刪)
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", response_model=MessageResponse)
 @limiter.limit("5/minute")
 async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends(get_db),
     current_user=Depends(has_permission(1))):
@@ -69,4 +69,4 @@ async def delete_user(request: Request, user_id: int, db: AsyncSession = Depends
     if not success:
         # 找不到使用者，回傳 404 錯誤
         raise HTTPException(status_code=404, detail="User not found")
-    return {"message": "User deleted successfully"}
+    return MessageResponse(message="User deleted successfully") # 使用模型回傳
