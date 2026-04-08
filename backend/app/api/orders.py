@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.base import get_db
-from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus
+from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus, OrderListResponse, OrderMessageResponse
 from app.crud.orders import create_order, get_order, get_orders_by_user, update_order_status, delete_order, get_all_orders, get_orders_by_seller
 from typing import List
 from app.dependencies import get_current_user_from_cookie
@@ -25,7 +25,7 @@ async def create_new_order(
     return await create_order(db, order)
 
 # 查全部訂單 (Admin / Seller)
-@router.get("/list", response_model=List[OrderRead])
+@router.get("/list", response_model=OrderListResponse)
 @limiter.limit("30/minute")
 async def read_all_orders(
     request: Request,
@@ -34,15 +34,18 @@ async def read_all_orders(
 ):
     if current_user.role_id == 1:
         # 管理員 -> 全部訂單
-        return await get_all_orders(db)
+        orders = await get_all_orders(db)
     elif current_user.role_id == 2:
         # 賣家 -> 自己賣出的訂單
-        return await get_orders_by_seller(db, current_user.user_id)
+        orders = await get_orders_by_seller(db, current_user.user_id)
     else:
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
     
+    # 回傳格式必須符合 OrderListResponse
+    return OrderListResponse(items=orders, total=len(orders))
+
 # 查會員的所有訂單 (Customer 只能查自己)
-@router.get("/user/{user_id}", response_model=List[OrderRead])
+@router.get("/user/{user_id}", response_model=OrderListResponse)
 @limiter.limit("30/minute")
 async def read_orders_by_user(
     request: Request,
@@ -52,7 +55,8 @@ async def read_orders_by_user(
 ):
     if current_user.role_id != 1 and user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
-    return await get_orders_by_user(db, user_id)
+    orders = await get_orders_by_user(db, user_id)
+    return OrderListResponse(items=orders, total=len(orders))
 
 # 查單筆訂單
 @router.get("/{order_id}", response_model=OrderRead)
@@ -97,7 +101,7 @@ async def update_status(
     return update_order
 
 # 刪除訂單
-@router.delete("/{order_id}", response_model=OrderRead)
+@router.delete("/{order_id}", response_model=OrderMessageResponse)
 @limiter.limit("10/minute")
 async def remove_order(
     request: Request,
@@ -113,5 +117,5 @@ async def remove_order(
     if current_user.role_id != 1 and existing_order.user_id != current_user.user_id and existing_order.product_owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權刪除此訂單")
 
-    deleted_order = await delete_order(db, existing_order)
-    return deleted_order
+    await delete_order(db, existing_order)
+    return {"message": "訂單已成功刪除"}
