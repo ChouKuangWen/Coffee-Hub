@@ -1,19 +1,19 @@
 #app/schemas/cart.py
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
+from decimal import Decimal
 
 # --- 基礎商品資訊 (用於回傳時嵌套在購物車內) ---
 class ProductSimpleRead(BaseModel):
     product_id: int
     name: str
     main_image: Optional[str] = None
-    price: float
+    price: Decimal
     stock: int
     is_active: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- 1. 加入購物車時的輸入規範 ---
 class CartItemCreate(BaseModel):
@@ -32,9 +32,14 @@ class CartItemRead(BaseModel):
     quantity: int
     created_at: datetime
     updated_at: datetime
-    
+
     # 這裡最關鍵！嵌套商品資訊，前端就不用再自己去查 product 資料表
     product: ProductSimpleRead
 
-    class Config:
-        from_attributes = True # 允許從 SQLAlchemy 物件轉換為 Pydantic
+    model_config = ConfigDict(from_attributes=True) # 允許從 SQLAlchemy物件轉換為 Pydantic
+
+# 為了讓 API 回傳結構一致
+class CartResponse(BaseModel):
+    items: List[CartItemRead]
+    total: int
+    model_config = ConfigDict(from_attributes=True)
