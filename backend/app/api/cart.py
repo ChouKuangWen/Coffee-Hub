@@ -8,14 +8,14 @@ from sqlalchemy.orm import selectinload
 from app.models.base import get_db
 from app.models.cart_item import CartItem
 from app.models.products import Products
-from app.schemas.cart import CartItemCreate, CartItemRead, CartItemUpdate
+from app.schemas.cart import CartItemCreate, CartItemRead, CartItemUpdate, CartResponse
 from app.dependencies import get_current_user_from_cookie
 from app.core.rate_limit import limiter
 
 router = APIRouter()
 
 # 1. 取得購物車清單
-@router.get("", response_model=List[CartItemRead])
+@router.get("", response_model=CartResponse)
 @limiter.limit("30/minute")
 async def read_cart(
     request: Request,
@@ -38,7 +38,8 @@ async def read_cart(
         )
     )
     result = await db.execute(query)
-    return result.scalars().all()
+    cart_items = result.scalars().all()
+    return CartResponse(items=cart_items, total=len(cart_items))
 
 # 2. 加入購物車 (包含 Upsert 邏輯)
 @router.post("", response_model=CartItemRead, status_code=status.HTTP_201_CREATED)
@@ -68,7 +69,7 @@ async def add_to_cart(
     existing_result = await db.execute(existing_query)
     existing_item = existing_result.scalar_one_or_none()
 
-    target_id = None
+    target_id = None  # 用於最後查詢的 cart_item_id
 
     if existing_item:
         # 累加數量並校驗
@@ -77,6 +78,7 @@ async def add_to_cart(
             raise HTTPException(status_code=400, detail="加上購物車現有數量後超過庫存上限")
         
         existing_item.quantity = new_qty
+        target_id = existing_item.cart_item_id  # 獲取現有項目的 ID
         await db.commit()
     else:
         # C. 新增項目
