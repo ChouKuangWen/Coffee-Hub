@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator, HttpUrl
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List
 from decimal import Decimal
 from enum import Enum
@@ -96,3 +96,16 @@ class ProductUpdate(BaseModel):
         "from_attributes": True
     }
 
+# 前台公開列表 (含完整分頁資訊)
+class ProductPublicResponse(BaseModel):
+    items: List[ProductRead]
+    total: int
+    page: int
+    limit: int
+    model_config = ConfigDict(from_attributes=True)
+
+# 後台 Dashboard 列表 (結構較簡單)
+class ProductDashboardResponse(BaseModel):
+    items: List[ProductRead]
+    total: int
+    model_config = ConfigDict(from_attributes=True)

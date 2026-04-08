@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
-from app.schemas.products import ProductCreate, ProductRead, ProductUpdate, ProductCategory
+from app.schemas.products import ProductCreate, ProductRead, ProductUpdate, ProductPublicResponse, ProductDashboardResponse
 from app.crud.products import get_all_products, get_product, create_new_product, update_product_information, delete_one_product
 from app.models.base import get_db   # 取得非同步資料庫 Session
 from app.dependencies import get_current_user_from_cookie, has_permission, get_current_user_from_cookie_optional
@@ -11,7 +11,7 @@ from app.core.rate_limit import limiter
 router = APIRouter()
 
 # 前台公開 API (所有人皆有該權限)
-@router.get("", response_model=dict)
+@router.get("", response_model=ProductPublicResponse)
 @limiter.limit("60/minute")
 async def read_all_products(
     request: Request,
@@ -54,9 +54,9 @@ async def read_all_products(
         limit=limit
     )
 
-    # 回傳符合前端 Home.vue 期待的格式
+    # 直接回傳 dict，FastAPI 會根據 ProductPublicResponse 進行驗證與過濾
     return {
-        "items": [ProductRead.model_validate(p) for p in products],
+        "items": products,
         "total": total,
         "page": page,
         "limit": limit
@@ -64,7 +64,7 @@ async def read_all_products(
 
 
 # 後台商品管理：賣家/管理者專用 (必須登入) ---
-@router.get("/dashboard", response_model=dict)
+@router.get("/dashboard", response_model=ProductDashboardResponse)
 @limiter.limit("30/minute")
 async def read_dashboard_products(
     request: Request,
@@ -78,10 +78,10 @@ async def read_dashboard_products(
     """
     # 根據角色決定篩選邏輯
     filter_id = None if current_user.role_id == 1 else current_user.user_id
-    # 注意：get_all_products 會回傳 (products, total)，設定 is_active=None 代表不篩選狀態，全部列出
+    # 注意：get_all_products 會回傳 (products, total)
     products, total = await get_all_products(db, owner_id=filter_id, is_active=None)
     return {
-        "items": [ProductRead.model_validate(p) for p in products],
+        "items": products,
         "total": total
     }
 
