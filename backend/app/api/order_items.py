@@ -7,7 +7,7 @@ from datetime import datetime
 from app.models.base import get_db
 from app.models.users import Users
 from app.models.order_items import OrderItems
-from app.schemas.order_items import OrderItemCreate, OrderItemRead, OrderItemReadWithDetail
+from app.schemas.order_items import OrderItemCreate, OrderItemRead, OrderItemReadWithDetail, OrderItemListResponse
 from app.crud.order_items import (
     get_order_item,
     get_all_order_items,
@@ -120,7 +120,7 @@ async def delete_order_item_api(
     return deleted_item
 
 # 獲取單一訂單的所有訂單項目列表 (前端展開明細專用)
-@router.get("/by_order/{order_id}", response_model=List[OrderItemReadWithDetail])
+@router.get("/by_order/{order_id}", response_model=OrderItemListResponse)
 @limiter.limit("40/minute")
 async def read_order_items_by_order(
     request: Request,
@@ -131,8 +131,8 @@ async def read_order_items_by_order(
     # 1. 取得所有明細
     all_items = await get_order_items_by_order_id(db, order_id)
     if not all_items:
-        return []
-
+        return OrderItemListResponse(items=[], total=0)
+    
     # 2. 判斷權限與過濾資料
     is_admin = current_user.role_id == 1
     # 判斷是否為買家 (下單的人可以看到全部明細)
@@ -141,7 +141,10 @@ async def read_order_items_by_order(
     # 3. 執行過濾邏輯
     if is_admin or is_buyer:
         # 管理員與買家，看這張訂單的「全部」內容
-        return all_items
+        return OrderItemListResponse(
+            items=all_items,
+            total=len(all_items)
+        )
     else:
         # 賣家身份：只過濾出「屬於自己」的商品明細
         # 判斷標準：item.product.owner_id 等於 current_user.user_id
@@ -154,4 +157,7 @@ async def read_order_items_by_order(
         if not filtered_items:
             raise HTTPException(status_code=403, detail="無權查看此訂單明細")
             
-        return filtered_items
+        return OrderItemListResponse(
+        items=filtered_items,
+        total=len(filtered_items)
+    )
