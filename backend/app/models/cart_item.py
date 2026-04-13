@@ -7,7 +7,7 @@ from app.models.base import Base
 class CartItem(Base):
     __tablename__ = "cart_items"
     cart_item_id = Column(Integer, primary_key=True, autoincrement=True, comment='購物車項目 ID')
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, comment='使用者 ID')
+    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True, comment='使用者 ID')
     product_id = Column(Integer, ForeignKey("products.product_id", ondelete="CASCADE"), nullable=False, comment='商品 ID')
     quantity = Column(Integer, default=1, nullable=False, comment='購買數量')
     
@@ -16,12 +16,10 @@ class CartItem(Base):
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), comment='更新時間')
 
     # --- 關聯設定 ---
-    
+    # [優化] 加上 lazy="joined"，因為讀取購物車時 100% 會需要商品名稱與價格
+    product = relationship("Products", lazy="joined")
     # 關聯到使用者 (對應 Users 類別)
     user = relationship("Users", back_populates="cart_items")
-    
-    # 關聯到商品 (對應 Products 類別)
-    product = relationship("Products")
 
     # --- 約束與索引 ---
     __table_args__ = (
