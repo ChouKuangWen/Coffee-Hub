@@ -82,10 +82,15 @@ CREATE TABLE products(
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    -- 索引優化清單
+    INDEX idx_owner_id (owner_id),          -- 補強：查詢賣家商品
+    INDEX idx_price (price),                -- 補強：價格過濾/排序
     INDEX idx_category (product_category),
     INDEX idx_active (is_active),
-    INDEX idx_origin (continent, country),
-    INDEX idx_sales (sales_count)
+    INDEX idx_origin (continent, country),  -- 複合索引：產地篩選
+    INDEX idx_sales (sales_count),          -- 排序：熱銷排行
+    INDEX idx_created_at (created_at),      -- 排序：新品上市
+    CONSTRAINT fk_products_owner FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '商品資料表';
 
 
