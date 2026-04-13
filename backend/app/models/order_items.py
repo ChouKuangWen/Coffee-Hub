@@ -2,18 +2,16 @@ from sqlalchemy import Column, Integer, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
-from app.models.orders import Orders
-from app.models.products import Products
 
 class OrderItems(Base):
     __tablename__ = "order_items"  #對應資料表名稱
     order_item_id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.order_id", ondelete="CASCADE"), nullable=False, comment="訂單 ID")
-    product_id = Column(Integer, ForeignKey("products.product_id", ondelete="SET NULL"), nullable=True, comment="商品 ID")
+    order_id = Column(Integer, ForeignKey("orders.order_id", ondelete="CASCADE"), nullable=False, index=True, comment="訂單 ID")
+    product_id = Column(Integer, ForeignKey("products.product_id", ondelete="SET NULL"), nullable=True, index=True, comment="商品 ID")
     quantity = Column(Integer, nullable=False, comment="數量")
     price = Column(DECIMAL(10,2), nullable=False, comment="單價")
-    order = relationship("Orders", lazy="joined", backref="order_item", passive_deletes=True)
-    product = relationship("Products", lazy="joined", backref="order_item", passive_deletes=True)
+    order = relationship("Orders", lazy="joined", back_populates="order_items", passive_deletes=True)
+    product = relationship("Products", lazy="joined", back_populates="order_items", passive_deletes=True)
    
 
     # 動態計算小計
