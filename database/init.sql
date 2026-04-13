@@ -43,7 +43,15 @@ CREATE TABLE users(
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP  COMMENT '建立時間',
     UNIQUE KEY unique_username(username),
     UNIQUE KEY unique_email(email),
-    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE RESTRICT
+    -- 新增效能索引 (針對 JOIN 與 排序)
+    INDEX idx_user_role_id (role_id) COMMENT '加速角色關聯查詢',
+    INDEX idx_user_created_at (created_at) COMMENT '加速註冊時間排序',
+
+    -- 3. 外鍵約束 (建議明確命名，方便未來維護)
+    CONSTRAINT fk_users_role_id
+        FOREIGN KEY (role_id)
+        REFERENCES roles(role_id)
+        ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='會員資料表';
 
 -- 建立產品資料表
