@@ -1,6 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import Literal
+from typing import Literal, List
 
 # 基礎 Schema - 定義共用欄位
 class ChatMessageBase(BaseModel):
@@ -17,10 +17,11 @@ class ChatMessageRead(ChatMessageBase):
     message_id: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True  # 允許從 SQLAlchemy ORM 模型轉換
+    model_config = ConfigDict(from_attributes=True)
 
 # 訊息列表回傳時使用的 Schema
 class ChatMessageList(BaseModel):
-    messages: list[ChatMessageRead]
+    messages: List[ChatMessageRead]
     total: int
+
+    model_config = ConfigDict(from_attributes=True)
