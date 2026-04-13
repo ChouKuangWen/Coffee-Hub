@@ -12,25 +12,26 @@ class ProductCategory(str, enum.Enum):
 class Products(Base):
     __tablename__ = "products"  #對應資料表名稱
     product_id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False, comment="商品名稱")
+    name = Column(String(100), nullable=False, index=True, comment="商品名稱")
 
     # 圖片存儲連結 (Google Cloud Storage URL)
     main_image = Column(String(512), nullable=True, comment="主圖 URL")
     sub_images = Column(JSON, nullable=True, comment="副圖 URL 清單 (JSON 陣列)")
 
-    price = Column(DECIMAL(10,2), nullable=False, comment="價格")
+    price = Column(DECIMAL(10,2), nullable=False, index=True, comment="價格")
     stock = Column(Integer, nullable=False, default=0, comment="庫存數量")
-    sales_count = Column(Integer, nullable=False, default=0, comment="總銷售量")
+    sales_count = Column(Integer, nullable=False, default=0, index=True, comment="總銷售量")
     product_category = Column(
         Enum(ProductCategory),
         nullable=False,
         default=ProductCategory.roasted_bean,
+        index=True,
         comment="類別 (生豆/熟豆)"
     )
 
     # 產地資訊
-    continent = Column(String(20), nullable=True, comment="洲別")
-    country = Column(String(100), nullable=True, comment="國家")
+    continent = Column(String(20), nullable=True, index=True, comment="洲別")
+    country = Column(String(100), nullable=True, index=True, comment="國家")
     region = Column(String(100), nullable=True, comment="產區")
 
     # 咖啡規格
@@ -52,12 +53,12 @@ class Products(Base):
 
     # 商品受否上架狀態
     is_active = Column(Boolean, default=True, index=True, comment="上架狀態")
-    
+
     # 商品擁有者 (賣家)
-    owner_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, comment="商品擁有者 (賣家)")
+    owner_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), index=True, nullable=False, comment="商品擁有者 (賣家)")
     
     # 時間戳記 (若 Base 沒有定義，建議在此加入)
-    created_at = Column(DateTime, server_default=func.now(), comment="建立時間")
+    created_at = Column(DateTime, server_default=func.now(), index=True, comment="建立時間")
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), comment="更新時間")
 
     # 關聯設定
@@ -66,12 +67,8 @@ class Products(Base):
     @property
     def owner_email(self) -> str | None:
         """
-        將 owner 關聯物件中的 email 欄位，給 Pydantic 序列化。
-        在查詢中使用了 joinedload，此時 self.owner 必然已被載入。
+        透過 owner 關聯取得 email。
+        注意：必須在查詢時搭配 joinedload(Products.owner) 以避免 N+1 問題。
         """
-        # 存取已載入的 owner 關聯
-        if self.owner:
-            return self.owner.email
-        return None
-
+        return self.owner.email if self.owner else None
 
