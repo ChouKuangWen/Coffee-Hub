@@ -13,13 +13,13 @@ USE member_order_management_backend_system;
 -- 角色資料表
 CREATE TABLE roles(
     role_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '角色 ID',
-    name VARCHAR(50) NOT NULL COMMENT '角色名稱'
+    name VARCHAR(50) NOT NULL UNIQUE COMMENT '角色名稱'
 )ENGINE=InnoDB DEFAULT CHARSET=utf8MB4 COMMENT='角色資料表';
 
 -- 權限資料表
 CREATE TABLE permissions(
     permission_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '權限 ID',
-    name VARCHAR(100) NOT NULL COMMENT '權限名稱'
+    name VARCHAR(100) NOT NULL UNIQUE COMMENT '權限名稱'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='權限資料表';
 
 -- 角色權限關聯資料表（多對多關聯表)
@@ -27,8 +27,8 @@ CREATE TABLE roles_permissions(
     role_id INT NOT NULL COMMENT '角色 ID',
     permission_id INT NOT NULL COMMENT '權限 ID',
     PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES permissions(permission_id) ON DELETE CASCADE
+    CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE CASCADE,
+    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permissions(permission_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '角色權限關聯表';
 
 --  建立使用者資料表
