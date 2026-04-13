@@ -121,29 +121,28 @@ CREATE TABLE order_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單項目資料表';
 
 CREATE TABLE jwt_blacklist (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    jti VARCHAR(36) NOT NULL UNIQUE COMMENT 'JWT 的 jti 值',
-    expires_at DATETIME NOT NULL COMMENT '該 JWT 的過期時間',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='jti黑名單資料表';
-
-CREATE TABLE used_jwts (
     id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自動遞增 ID',
-    jti VARCHAR(255) NOT NULL UNIQUE COMMENT 'JWT 的唯一識別碼',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入黑名單的時間'
+    jti VARCHAR(255) NOT NULL UNIQUE COMMENT 'WT 的唯一識別碼',
+    expires_at DATETIME NOT NULL COMMENT '該 JWT 的過期時間',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入黑名單的時間',
+    INDEX idx_blacklist_jti (jti)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='儲存已登出或作廢的 JWT ID';
 
 CREATE TABLE refresh_tokens (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL,
-    token TEXT NOT NULL,
-    jti VARCHAR(255) NOT NULL,
-    issued_at DATETIME NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自動遞增 ID',
+    user_id INT NOT NULL COMMENT '使用者 ID',
+    token TEXT NOT NULL COMMENT '長效 Token 內容',
+    jti VARCHAR(255) NOT NULL UNIQUE COMMENT 'Refresh Token 的唯一識別碼',
+    issued_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME NOT NULL,
     is_revoked BOOLEAN DEFAULT FALSE,
-    INDEX (user_id),
-    INDEX (jti)
-)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='儲存使用者的 Refresh Token ';
+    -- 索引優化：加速根據使用者或狀態進行查詢
+    INDEX idx_rt_user (user_id),
+    INDEX idx_rt_jti (jti),
+    INDEX idx_rt_status (is_revoked, expires_at),
+    -- 外鍵約束：當使用者被刪除時，自動清理其所有 Token
+    CONSTRAINT fk_rt_user_id FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Refresh Token 管理表';
 
 -- 建立購物車項目資料表
 CREATE TABLE cart_items (
