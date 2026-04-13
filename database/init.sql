@@ -47,11 +47,8 @@ CREATE TABLE users(
     INDEX idx_user_role_id (role_id) COMMENT '加速角色關聯查詢',
     INDEX idx_user_created_at (created_at) COMMENT '加速註冊時間排序',
 
-    -- 3. 外鍵約束 (建議明確命名，方便未來維護)
-    CONSTRAINT fk_users_role_id
-        FOREIGN KEY (role_id)
-        REFERENCES roles(role_id)
-        ON DELETE RESTRICT
+    -- 外鍵約束 (建議明確命名，方便未來維護)
+    CONSTRAINT fk_users_role_id FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='會員資料表';
 
 -- 建立產品資料表
@@ -101,8 +98,12 @@ CREATE TABLE orders (
     status VARCHAR(50) NOT NULL DEFAULT '待付款' COMMENT '訂單狀態',
     total DECIMAL(10,2) NOT NULL COMMENT '總金額',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
-    status_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '狀態變動時間',
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+    status_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '狀態變動時間',
+    -- 索引優化清單
+    INDEX idx_order_user_id (user_id),          -- 查詢用戶訂單
+    INDEX idx_order_status (status),            -- 狀態篩選 (待付款/已出貨)
+    INDEX idx_order_created_at (created_at),    -- 日期排序
+    CONSTRAINT fk_orders_user_id FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單資料表';
 
 -- 建立訂單項目資料表
