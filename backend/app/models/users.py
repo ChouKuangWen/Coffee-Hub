@@ -12,10 +12,12 @@ class Users(Base):
     email = Column(String(100), nullable=False, unique=True, comment="信箱")
     phone = Column(String(20), nullable=False, comment="電話")
     address = Column(String(255), nullable=False, comment="地址")
-    role_id = Column(Integer, ForeignKey("roles.role_id"), nullable=False, comment="角色 ID")
+    # [優化] 加上 index=True，因為權限檢查與 JOIN role 表非常頻繁
+    role_id = Column(Integer, ForeignKey("roles.role_id"), nullable=False, index=True, comment="角色 ID")
     """default: 設定欄位的預設值。func.now(): SQLAlchemy 提供的一個函數，它會生成一個 SQL 函數呼叫，
     通常對應到資料庫系統中的 CURRENT_TIMESTAMP 或 NOW() 函數。"""
-    created_at = Column(DateTime, default=func.now(), comment='建立時間')
+    # [優化] 加上 index=True，方便後台按註冊時間排序
+    created_at = Column(DateTime, default=func.now(), index=True, comment='建立時間')
     role = relationship("Roles", back_populates="users")
     products = relationship("Products", back_populates="owner")
     cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
