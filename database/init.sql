@@ -111,12 +111,13 @@ CREATE TABLE order_items (
     order_item_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '訂單項目 ID',
     order_id INT NOT NULL COMMENT '訂單 ID',
     product_id INT  NULL COMMENT '商品 ID',
-    user_id INT NULL COMMENT '使用者 ID',
     quantity INT NOT NULL COMMENT '數量',
     price DECIMAL(10,2) NOT NULL COMMENT '單價',
-    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE SET NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+    -- 索引優化
+    INDEX idx_oi_order_id (order_id),
+    INDEX idx_oi_product_id (product_id),
+    CONSTRAINT fk_oi_order_id FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    CONSTRAINT fk_oi_product_id FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='訂單項目資料表';
 
 CREATE TABLE jwt_blacklist (
