@@ -153,8 +153,12 @@ CREATE TABLE cart_items (
     quantity INT NOT NULL DEFAULT 1 COMMENT '購買數量',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入時間',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新時間',
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+    -- 索引優化
+    INDEX idx_cart_user_id (user_id), -- 加速讀取個人購物車
+    INDEX idx_cart_updated_at (updated_at), -- 讓最新加入的商品排在最前面
+    -- 約束
+    CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT fk_cart_product FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
     UNIQUE KEY unique_user_product (user_id, product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='購物車資料表';
 
