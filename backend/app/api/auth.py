@@ -88,6 +88,12 @@ async def login(request: Request, response: Response, form_data: OAuth2PasswordR
     # 根據 username (等同於 email) 查詢使用者,連帶載入使用者角色
     result = await db.execute(select(Users).options(selectinload(Users.role)).where(Users.email == form_data.username))
     user = result.scalars().first()
+    
+    if user:
+        # 重點檢查：印出資料庫存的 hash 長度
+        print(f"DEBUG: Database Hash Length: {len(user.password_hash) if user.password_hash else 'NULL'}")
+        # 重點檢查：印出前端傳來的密碼長度（不要印出明文密碼，安全考量）
+        print(f"DEBUG: Input Password Length: {len(form_data.password) if form_data.password else 'NULL'}")
 
     # 若帳號或密碼錯誤
     if not user or not verify_password(form_data.password, user.password_hash):
