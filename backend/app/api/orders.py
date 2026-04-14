@@ -2,12 +2,19 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.base import get_db
-from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus, OrderListResponse, OrderMessageResponse
+from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus, OrderListResponse, OrderMessageResponse, STATUS_LABEL
 from app.crud.orders import create_order, get_order, get_orders_by_user, update_order_status, delete_order, get_all_orders, get_orders_by_seller
 from typing import List
 from app.dependencies import get_current_user_from_cookie
 from app.models.users import Users
 from app.core.rate_limit import limiter
+
+# 將ORM 轉換成dict序列化函式
+def serialize_order(order):
+    return OrderRead(
+        **order.__dict__,
+        status_label=STATUS_LABEL.get(order.status)
+        )
 
 router = APIRouter()
 
@@ -40,10 +47,12 @@ async def read_all_orders(
         orders = await get_orders_by_seller(db, current_user.user_id)
     else:
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
-    
-    # 回傳格式必須符合 OrderListResponse
-    return OrderListResponse(items=orders, total=len(orders))
 
+    return OrderListResponse(
+    items=[serialize_order(order) for order in orders],
+    total=len(orders)
+    )
+    
 # 查會員的所有訂單 (Customer 只能查自己)
 @router.get("/user/{user_id}", response_model=OrderListResponse)
 @limiter.limit("30/minute")
@@ -56,7 +65,10 @@ async def read_orders_by_user(
     if current_user.role_id != 1 and user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
     orders = await get_orders_by_user(db, user_id)
-    return OrderListResponse(items=orders, total=len(orders))
+    return OrderListResponse(
+    items=[serialize_order(order) for order in orders],
+    total=len(orders)
+    )
 
 # 查單筆訂單
 @router.get("/{order_id}", response_model=OrderRead)
@@ -75,7 +87,7 @@ async def read_order(
     if current_user.role_id != 1 and db_order.user_id != current_user.user_id and db_order.product_owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權查看此訂單")
     
-    return db_order
+    return serialize_order(db_order)
 
 # 更新訂單狀態（管理員及賣家）
 @router.patch("/{order_id}/status", response_model=OrderRead)
@@ -98,7 +110,7 @@ async def update_status(
         raise HTTPException(status_code=403, detail="無權更新此訂單")
 
     update_order = await update_order_status(db, existing_order, status_update)
-    return update_order
+    return serialize_order(update_order)
 
 # 刪除訂單
 @router.delete("/{order_id}", response_model=OrderMessageResponse)
