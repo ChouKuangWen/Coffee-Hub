@@ -97,30 +97,24 @@ const isExpanded = (orderId) => {
 
 // 獲取並展開/收起訂單明細
 const toggleDetails = async (orderId) => {
-  // 1. 如果已展開，則收起
-  if (expandedDetails.value[orderId]) {
-    delete expandedDetails.value[orderId];
-    expandedDetails.value = { ...expandedDetails.value };
+  if (!orderId) {
+    console.warn("orderId is invalid:", orderId);
     return;
   }
 
-  // 2. 如果未展開，則請求明細
   try {
-    loadingDetailsId.value = orderId; // 設置載入狀態
-    
-    // 🚨 假設後端提供此 API: GET /order_items/by_order/{order_id}
+    loadingDetailsId.value = orderId;
+
     const res = await api.get(`/order_items/by_order/${orderId}`);
-    
-    // 存入 expandedDetails 狀態
-    expandedDetails.value = { 
-      ...expandedDetails.value, 
-      [orderId]: res.data 
+
+    expandedDetails.value = {
+      ...expandedDetails.value,
+      [orderId]: res.data
     };
   } catch (err) {
-    console.error(`fetchOrderItems for ${orderId} error:`, err);
-    alert("無法取得訂單明細。");
+    console.error(err);
   } finally {
-    loadingDetailsId.value = null; // 清除載入狀態
+    loadingDetailsId.value = null;
   }
 };
 
@@ -217,7 +211,7 @@ onMounted(async () => {
               <td>
                 <button 
                   class="detail-btn" 
-                  @click="toggleDetails(order.order_id)"
+                  @click="toggleDetails(order?.order_id)"
                 >
                   <span v-if="loadingDetailsId === order.order_id">載入中...</span>
                   <span v-else>
