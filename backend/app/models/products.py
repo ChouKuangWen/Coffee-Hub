@@ -63,6 +63,7 @@ class Products(Base):
 
     # 關聯設定
     owner = relationship("Users", back_populates="products", lazy="joined")
+    order_items = relationship("OrderItems", back_populates="product")
 
     @property
     def owner_email(self) -> str | None:
