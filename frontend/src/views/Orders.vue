@@ -66,10 +66,11 @@ const fetchOrders = async () => {
       res = await api.get(`/orders/user/${currentUserId.value}`);
     }
 
-    orders.value = res.data;
+    orders.value = res.data.items || [];
+
   } catch (err) {
     console.error("fetchOrders error:", err);
-    alert("無法取得訂單資料：" + (err.response?.data?.detail || err.message));
+    alert("無法取得訂單資料");
   }
 };
 
@@ -207,7 +208,7 @@ onMounted(async () => {
                 </template>
                 <span v-else>{{ order.status }}</span>
               </td>
-              <td>{{ new Date(order.created_at).toLocaleDateString() }}</td>
+              <td>{{ order.created_at ? new Date(order.created_at).toLocaleDateString() : '無資料' }}</td>
               <td>
                 <button 
                   class="detail-btn" 
