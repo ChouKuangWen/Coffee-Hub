@@ -8,9 +8,19 @@ from enum import Enum
 class OrderStatus(str, Enum):
     PENDING = "待付款"
     PAID = "已付款"
+    PENDING_SHIPMENT = "待出貨"
     SHIPPED = "已出貨"
     COMPLETED = "已完成"
     CANCELLED = "已取消"
+
+STATUS_LABEL = {
+    OrderStatus.PENDING: "待付款",
+    OrderStatus.PAID: "已付款",
+    OrderStatus.PENDING_SHIPMENT: "待出貨",
+    OrderStatus.SHIPPED: "已出貨",
+    OrderStatus.COMPLETED: "已完成",
+    OrderStatus.CANCELLED: "已取消",
+}
 
 # 共同欄位基礎類別
 class OrderBase(BaseModel):
