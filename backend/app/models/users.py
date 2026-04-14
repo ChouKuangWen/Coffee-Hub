@@ -21,6 +21,7 @@ class Users(Base):
     role = relationship("Roles", back_populates="users")
     products = relationship("Products", back_populates="owner")
     cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
+    order = relationship("Orders", back_populates="user")
 
 
 
