@@ -12,3 +12,4 @@ class Orders(Base):
     created_at = Column(DateTime, default=func.now(), index=True, comment="建立時間")
     status_updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), comment="狀態變動時間")
     user = relationship("Users", back_populates="order")
+    order_items = relationship("OrderItems", back_populates="order", cascade="all, delete-orphan")
