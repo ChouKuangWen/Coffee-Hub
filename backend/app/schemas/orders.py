@@ -15,7 +15,7 @@ class OrderStatus(str, Enum):
 # 共同欄位基礎類別
 class OrderBase(BaseModel):
     status: OrderStatus = OrderStatus.PENDING
-    total: Decimal = Field(..., gt=0)
+    total: Decimal
 
 # 建立訂單用
 class OrderCreate(OrderBase):
@@ -29,8 +29,8 @@ class OrderUpdateStatus(BaseModel):
 class OrderRead(OrderBase):
     order_id: int
     user_id: Optional[int] = None
-    created_at: datetime
-    status_updated_at: datetime
+    created_at: Optional[datetime] = None
+    status_updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
