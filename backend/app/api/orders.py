@@ -9,12 +9,12 @@ from app.dependencies import get_current_user_from_cookie
 from app.models.users import Users
 from app.core.rate_limit import limiter
 
-# 將ORM 轉換成dict序列化函式
 def serialize_order(order):
-    return OrderRead(
-        **order.__dict__,
-        status_label=STATUS_LABEL.get(order.status)
-        )
+    """
+    使用 model_validate 自動處理 SQLAlchemy ORM 物件，
+    這會保留所有透過 joinedload 載入的關聯資料。
+    """
+    return OrderRead.model_validate(order)
 
 router = APIRouter()
 
@@ -29,7 +29,8 @@ async def create_new_order(
     ):
     # 會員只能新增自己的訂單
     order.user_id = current_user.user_id
-    return await create_order(db, order)
+    db_order = await create_order(db, order)
+    return serialize_order(db_order)
 
 # 查全部訂單 (Admin / Seller)
 @router.get("/list", response_model=OrderListResponse)
@@ -48,9 +49,10 @@ async def read_all_orders(
     else:
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
 
+    # 直接回傳，FastAPI 會根據 response_model 自動處理剩餘的序列化
     return OrderListResponse(
-    items=[serialize_order(order) for order in orders],
-    total=len(orders)
+        items=[serialize_order(order) for order in orders],
+        total=len(orders)
     )
     
 # 查會員的所有訂單 (Customer 只能查自己)
@@ -66,8 +68,8 @@ async def read_orders_by_user(
         raise HTTPException(status_code=403, detail="無權查看其他會員訂單")
     orders = await get_orders_by_user(db, user_id)
     return OrderListResponse(
-    items=[serialize_order(order) for order in orders],
-    total=len(orders)
+        items=[serialize_order(order) for order in orders],
+        total=len(orders)
     )
 
 # 查單筆訂單
