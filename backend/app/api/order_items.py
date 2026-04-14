@@ -21,6 +21,14 @@ from app.core.rate_limit import limiter
 
 router = APIRouter()
 
+# --- 序列化輔助函式 ---
+def serialize_item_detail(item):
+    """使用 model_validate 確保 nested relations (product, order) 被正確轉換"""
+    return OrderItemReadWithDetail.model_validate(item)
+
+def serialize_item_basic(item):
+    """用於只需基本資訊的回傳"""
+    return OrderItemRead.model_validate(item)
 
 # 取得所有訂單項目 (管理員可用)
 @router.get("/", response_model=List[OrderItemReadWithDetail])
@@ -32,7 +40,8 @@ async def read_all_order_items(
 ):
     if current_user.role_id != 1:
         raise HTTPException(status_code=403, detail="只有管理員可查看所有訂單項目")
-    return await get_all_order_items(db)
+    items = await get_all_order_items(db)
+    return [serialize_item_detail(i) for i in items]
 
 
 # 取得單一訂單項目
@@ -54,7 +63,7 @@ async def read_order_item(
        and item.product.owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權查看此訂單項目")
 
-    return item
+    return serialize_item_detail(item)
 
 
 # 新增訂單項目
@@ -70,7 +79,8 @@ async def create_order_item_api(
     if current_user.role_id != 1 and order_item.order.user_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="無權為他人訂單新增項目")
 
-    return await create_order_item(db, order_item)
+    db_item = await create_order_item(db, order_item)
+    return serialize_item_basic(db_item)
 
 
 # 更新訂單項目
@@ -94,7 +104,7 @@ async def update_order_item_api(
         raise HTTPException(status_code=403, detail="無權修改此訂單項目")
 
     updated_item = await update_order_item_info(db, existing_item, order_item_data)
-    return updated_item
+    return serialize_item_basic(updated_item)
 
 
 # 刪除訂單項目
@@ -117,7 +127,7 @@ async def delete_order_item_api(
         raise HTTPException(status_code=403, detail="無權刪除此訂單項目")
 
     deleted_item = await delete_order_item(db, existing_item)
-    return deleted_item
+    return serialize_item_basic(deleted_item)
 
 # 獲取單一訂單的所有訂單項目列表 (前端展開明細專用)
 @router.get("/by_order/{order_id}", response_model=OrderItemListResponse)
@@ -141,10 +151,7 @@ async def read_order_items_by_order(
     # 3. 執行過濾邏輯
     if is_admin or is_buyer:
         # 管理員與買家，看這張訂單的「全部」內容
-        return OrderItemListResponse(
-            items=all_items,
-            total=len(all_items)
-        )
+        filtered_items = all_items
     else:
         # 賣家身份：只過濾出「屬於自己」的商品明細
         # 判斷標準：item.product.owner_id 等於 current_user.user_id
@@ -152,12 +159,12 @@ async def read_order_items_by_order(
             item for item in all_items 
             if item.product and item.product.owner_id == current_user.user_id
         ]
-        
+
         # 如果過濾後是空的，代表這賣家根本沒商品在這張單，噴 403
         if not filtered_items:
             raise HTTPException(status_code=403, detail="無權查看此訂單明細")
-            
+
         return OrderItemListResponse(
-        items=filtered_items,
-        total=len(filtered_items)
-    )
+            items=[serialize_item_detail(item) for item in filtered_items],
+            total=len(filtered_items)
+            )
