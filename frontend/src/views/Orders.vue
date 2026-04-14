@@ -70,7 +70,7 @@ const fetchOrders = async () => {
 
   } catch (err) {
     console.error("fetchOrders error:", err);
-    alert("無法取得訂單資料");
+    alert("無法取得訂單資料：" + (err.response?.data?.detail || err.message));
   }
 };
 
@@ -93,7 +93,7 @@ const filteredOrders = computed(() => {
 
 // 判斷是否已展開 (Computed Property)
 const isExpanded = (orderId) => {
-  return computed(() => !!expandedDetails.value[orderId]);
+  return !!expandedDetails.value[orderId];
 };
 
 // 獲取並展開/收起訂單明細
@@ -110,7 +110,7 @@ const toggleDetails = async (orderId) => {
 
     expandedDetails.value = {
       ...expandedDetails.value,
-      [orderId]: res.data
+      [orderId]: res.data.items || []
     };
   } catch (err) {
     console.error(err);
