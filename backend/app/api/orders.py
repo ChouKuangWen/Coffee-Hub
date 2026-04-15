@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.base import get_db
 from app.schemas.orders import OrderCreate, OrderRead, OrderUpdateStatus, OrderListResponse, OrderMessageResponse, STATUS_LABEL
 from app.crud.orders import create_order, get_order, get_orders_by_user, update_order_status, delete_order, get_all_orders, get_orders_by_seller
+from app.crud.order_items import get_order_items_by_order_id
 from typing import List
 from app.dependencies import get_current_user_from_cookie
 from app.models.users import Users
@@ -108,8 +109,11 @@ async def update_status(
 
     # 權限檢查：管理員或賣家可以更新
     # 假設 product_owner_id 在 order 裡面
-    if current_user.role_id != 1 and existing_order.product_owner_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="無權更新此訂單")
+    if current_user.role_id != 1 :
+        items = await get_order_items_by_order_id(db, order_id)
+        # 只要這張單沒東西，或是第一件商品的擁有者不是當前登入者，就擋掉
+        if not items or items[0].product.owner_id != current_user.user_id:
+            raise HTTPException(status_code=403, detail="無權更新此訂單")
 
     update_order = await update_order_status(db, existing_order, status_update)
     return serialize_order(update_order)
