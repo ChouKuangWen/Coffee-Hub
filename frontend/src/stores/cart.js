@@ -11,13 +11,19 @@ export const useCartStore = defineStore('cart', {
   
   getters: {
     // 計算總件數
-    totalItems: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    
+    totalItems: (state) => {
+      if (!Array.isArray(state.items)) return 0;
+      return state.items.reduce((sum, item) => sum + item.quantity, 0);
+    },
+
     // 計算總金額 (加入可選鏈 ?. 避免 product 資料尚未載入時報錯)
-    totalAmount: (state) => state.items.reduce((sum, item) => {
-      const price = item.product?.price || 0;
-      return sum + (item.quantity * price);
-    }, 0),
+    totalAmount: (state) => {
+      if (!Array.isArray(state.items)) return 0;
+      return state.items.reduce((sum, item) => {
+        const price = item.product?.price || 0;
+        return sum + (item.quantity * price);
+      }, 0);
+    },
   },
 
   actions: {
@@ -30,7 +36,7 @@ export const useCartStore = defineStore('cart', {
       this.loading = true;
       try {
         const response = await getCart();
-        this.items = response.data || [];
+        this.items = response.data.items || [];
       } catch (err) {
         // 修改點：如果是未登入(401)或身分不符(403，如賣家存取買家API)，自動清空購物車
         if (err.response?.status === 401 || err.response?.status === 403) {
