@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, computed_field
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
@@ -41,6 +41,13 @@ class OrderRead(OrderBase):
     user_id: Optional[int] = None
     created_at: Optional[datetime] = None
     status_updated_at: Optional[datetime] = None
+
+    #  新增這個：讓 Pydantic 自動產生 status_label 欄位給前端
+    @computed_field
+    @property
+    def status_label(self) -> str:
+        # STATUS_LABEL 是你上面定義的字典
+        return STATUS_LABEL.get(self.status, self.status)
 
     model_config = ConfigDict(from_attributes=True)
 
