@@ -161,10 +161,10 @@ async def read_order_items_by_order(
         ]
 
         # 如果過濾後是空的，代表這賣家根本沒商品在這張單，噴 403
-        if not filtered_items:
-            raise HTTPException(status_code=403, detail="無權查看此訂單明細")
+    if not filtered_items:
+        raise HTTPException(status_code=403, detail="無權查看此訂單明細")
 
-        return OrderItemListResponse(
-            items=[serialize_item_detail(item) for item in filtered_items],
-            total=len(filtered_items)
-            )
+    return OrderItemListResponse(
+        items=[serialize_item_detail(item) for item in filtered_items],
+        total=len(filtered_items)
+        )
