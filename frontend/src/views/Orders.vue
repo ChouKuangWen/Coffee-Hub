@@ -216,7 +216,7 @@ onMounted(async () => {
                 >
                   <span v-if="loadingDetailsId === order.order_id">載入中...</span>
                   <span v-else>
-                    {{ isExpanded(order.order_id).value ? '🔼 收起明細' : '🔽 查看明細' }}
+                    {{ isExpanded(order.order_id)? '🔼 收起明細' : '🔽 查看明細' }}
                   </span>
                 </button>
                 
@@ -230,7 +230,7 @@ onMounted(async () => {
               </td>
             </tr>
 
-            <tr v-if="isExpanded(order.order_id).value" class="order-details-row">
+            <tr v-if="isExpanded(order.order_id)" class="order-details-row">
               <td colspan="6">
                 <div class="detail-container">
                   <table class="inner-table">
