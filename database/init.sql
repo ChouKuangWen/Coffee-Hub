@@ -175,3 +175,34 @@ CREATE TABLE chat_messages (
     -- 外鍵關聯
     CONSTRAINT fk_chat_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 聊天紀錄表';
+
+-- 建立Log紀錄表
+CREATE TABLE IF NOT EXISTS `audit_logs` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    
+    `user_id` INT NULL COMMENT '執行操作的使用者ID（系統操作可為 NULL）',
+    
+    `category` VARCHAR(50) NOT NULL COMMENT '類別：ORDER / PRODUCT / USER / AUTH / SYSTEM',
+    `action` VARCHAR(100) NOT NULL COMMENT '具體動作：CREATE / UPDATE / DELETE / LOGIN',
+    
+    `target_type` VARCHAR(50) DEFAULT NULL COMMENT '操作對象類型：ORDER / PRODUCT / USER',
+    `target_id` VARCHAR(100) DEFAULT NULL COMMENT '受影響的對象ID',
+    
+    `status` VARCHAR(20) NOT NULL DEFAULT 'SUCCESS' COMMENT 'SUCCESS / FAIL',
+    `error_message` TEXT DEFAULT NULL COMMENT '錯誤訊息（失敗時使用）',
+    
+    `before_data` JSON DEFAULT NULL COMMENT '變更前資料',
+    `after_data` JSON DEFAULT NULL COMMENT '變更後資料',
+    
+    `request_id` VARCHAR(100) DEFAULT NULL COMMENT '請求追蹤ID',
+    
+    `ip_address` VARCHAR(45) DEFAULT NULL,
+    `user_agent` TEXT DEFAULT NULL,
+    
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX `idx_user_id` (`user_id`),
+    INDEX `idx_category_action` (`category`, `action`),
+    INDEX `idx_created_at` (`created_at`),
+    INDEX `idx_target` (`target_type`, `target_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
