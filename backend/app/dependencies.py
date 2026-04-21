@@ -57,7 +57,7 @@ async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)
             detail="使用者不存在",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+    request.state.user_id = int(user_id)
     user.role_id = role_id  #  把 token 裡的 role_id 覆寫給 user
     return user
 
@@ -104,6 +104,7 @@ async def get_current_user_from_cookie(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    request.state.user_id = user.user_id
     # 將 token 內的 role_id 覆寫給 user
     user.role_id = role_id
     print("顯示" + access_token, payload)
