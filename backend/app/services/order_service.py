@@ -7,15 +7,43 @@ from app.schemas.orders import OrderCreate, OrderUpdateStatus
 
 from app.crud.orders import (
     create_order as crud_create_order,
-    get_order,
     update_order_status as crud_update_status,
-    delete_order as crud_delete_order
+    delete_order as crud_delete_order,
+    get_all_orders, 
+    get_orders_by_seller, 
+    get_orders_by_user, 
+    get_order_with_items
 )
 
 from app.crud.order_items import get_order_items_by_order_id
 from app.services.audit_log_service import log_action
 
+"""
+1. 讀取邏輯 (分流與權限)
+"""
 
+# 管理員服務：獲取全系統訂單
+async def get_admin_orders_service(db: AsyncSession, current_user: Users):
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=403, detail="僅限管理員存取")
+    return await get_all_orders(db)
+
+# 賣家服務：獲取該賣家相關訂單
+async def get_seller_orders_service(db: AsyncSession, current_user: Users):
+    if current_user.role_id not in [1, 2]:
+        raise HTTPException(status_code=403, detail="僅限賣家或管理員存取")
+    return await get_orders_by_seller(db, current_user.user_id)
+
+# 買家服務：獲取指定用戶訂單 (具備越權檢查)
+async def get_customer_orders_service(db: AsyncSession, target_user_id: int, current_user: Users):
+    # 只能看自己的，除非是管理員
+    if current_user.role_id != 1 and current_user.user_id != target_user_id:
+        raise HTTPException(status_code=403, detail="無權查看他人訂單")
+    return await get_orders_by_user(db, target_user_id)
+
+"""
+2. 寫入與異動邏輯 (含日誌)
+"""
 # CREATE
 async def create_order_service(
     db: AsyncSession,
@@ -52,7 +80,7 @@ async def update_order_status_service(
     order_id: int,
     status_update: OrderUpdateStatus
 ):
-    order = await get_order(db, order_id)
+    order = await get_order_with_items(db, order_id)
 
     if not order:
         raise HTTPException(status_code=404)
@@ -61,14 +89,14 @@ async def update_order_status_service(
 
         is_buyer = order.user_id == current_user.user_id
 
-        items = await get_order_items_by_order_id(db, order_id)
+        # 檢查訂單內是否有任何商品屬於該賣家
         is_seller = any(
             item.product.owner_id == current_user.user_id
-            for item in items
-        ) if items else False
+            for item in order.items
+        ) if order.items else False
 
         if not (is_buyer or is_seller):
-            raise HTTPException(status_code=403)
+            raise HTTPException(status_code=403, detail="權限不足")   
 
     updated = await crud_update_status(db, order, status_update)
     await db.commit()
@@ -81,6 +109,7 @@ async def update_order_status_service(
         category="ORDER",
         action="UPDATE_STATUS",
         target_id=str(order_id),
+        after_data={"status": status_update.status}
     )
 
     return updated
@@ -95,10 +124,10 @@ async def delete_order_service(
     current_user: Users,
     order_id: int
 ):
-    order = await get_order(db, order_id)
+    order = await get_order_with_items(db, order_id)
 
     if not order:
-        raise HTTPException(status_code=404)
+        raise HTTPException(status_code=404, detail="訂單不存在")
 
     if current_user.role_id != 1:
 
@@ -107,11 +136,11 @@ async def delete_order_service(
         items = await get_order_items_by_order_id(db, order_id)
         is_seller = any(
             item.product.owner_id == current_user.user_id
-            for item in items
-        ) if items else False
+            for item in order.items
+        ) if order.items else False
 
         if not (is_buyer or is_seller):
-            raise HTTPException(status_code=403)
+            raise HTTPException(status_code=403, detail="權限不足")
 
     await crud_delete_order(db, order)
     await db.commit()

@@ -15,18 +15,15 @@ from app.schemas.orders import (
 )
 
 from app.services.order_service import (
+    get_admin_orders_service,
+    get_seller_orders_service,
+    get_customer_orders_service,
     create_order_service,
     update_order_status_service,
     delete_order_service
 )
 
-from app.crud.orders import (
-    get_orders_by_user,
-    get_orders_by_seller,
-    get_all_orders,
-    get_order
-)
-
+from app.crud.orders import get_order
 from app.core.rate_limit import limiter
 
 router = APIRouter()
@@ -50,7 +47,7 @@ async def create_new_order(
     )
     return serialize_order(db_order)
 
-# GET USER ORDERS
+# 買家獲取訂單 (指定 User ID)
 @router.get("/user/{user_id}", response_model=OrderListResponse)
 @limiter.limit("30/minute")
 async def read_user_orders(
@@ -59,13 +56,13 @@ async def read_user_orders(
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    orders = await get_orders_by_user(db, user_id)
+    orders = await get_customer_orders_service(db, user_id, current_user)
     return {
         "items": [serialize_order(order) for order in orders],
         "total": len(orders)
     }
 
-# GET SELLER ORDERS
+# 賣家獲取訂單
 @router.get("/seller", response_model=OrderListResponse)
 @limiter.limit("30/minute")
 async def read_seller_orders(
@@ -73,13 +70,13 @@ async def read_seller_orders(
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    orders = await get_orders_by_seller(db, current_user.user_id)
+    orders = await get_seller_orders_service(db, current_user)
     return {
         "items": [serialize_order(order) for order in orders],
         "total": len(orders)
     }
 
-# GET ALL (ADMIN)
+# 管理員獲取全部訂單
 @router.get("/all", response_model=OrderListResponse)
 @limiter.limit("30/minute")
 async def read_all_orders(
@@ -87,13 +84,13 @@ async def read_all_orders(
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    orders = await get_all_orders(db)
+    orders = await get_admin_orders_service(db, current_user)
     return {
         "items": [serialize_order(order) for order in orders],
         "total": len(orders)
     }
 
-# GET SINGLE ORDER
+# 獲取單個訂單
 @router.get("/{order_id}", response_model=OrderRead)
 @limiter.limit("30/minute")
 async def read_order(
@@ -107,7 +104,7 @@ async def read_order(
         raise HTTPException(status_code=404, detail="訂單不存在")
     return serialize_order(order)
 
-# UPDATE STATUS
+# 更新
 @router.patch("/{order_id}/status", response_model=OrderRead)
 @limiter.limit("20/minute")
 async def update_status(
@@ -123,7 +120,7 @@ async def update_status(
     )
     return serialize_order(updated_order)
 
-# DELETE ORDER
+# 刪除
 @router.delete("/{order_id}", response_model=OrderMessageResponse)
 @limiter.limit("10/minute")
 async def delete_order(

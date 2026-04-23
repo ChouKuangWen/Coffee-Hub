@@ -13,14 +13,6 @@ class OrderStatus(str, Enum):
     COMPLETED = "已完成"
     CANCELLED = "已取消"
 
-STATUS_LABEL = {
-    OrderStatus.PENDING: "待付款",
-    OrderStatus.PAID: "已付款",
-    OrderStatus.PENDING_SHIPMENT: "待出貨",
-    OrderStatus.SHIPPED: "已出貨",
-    OrderStatus.COMPLETED: "已完成",
-    OrderStatus.CANCELLED: "已取消",
-}
 
 # 共同欄位基礎類別
 class OrderBase(BaseModel):
@@ -47,8 +39,7 @@ class OrderRead(OrderBase):
     @property
     def status_label(self) -> str:
         # STATUS_LABEL 是你上面定義的字典
-        return STATUS_LABEL.get(self.status, self.status)
-
+        return self.status.value if isinstance(self.status, OrderStatus) else self.status
     model_config = ConfigDict(from_attributes=True)
 
 # 2. 列表包裝，讓 Swagger 顯示 {items: [], total: 0}
