@@ -53,14 +53,17 @@ const fetchCurrentUser = async () => {
   }
 };
 
-// 2. 讀取訂單列表
+// 2. 讀取訂單列表 (配合 API 分離架構)
 const fetchOrders = async () => {
   try {
     let res;
 
-    if (currentUserRole.value === 1 || currentUserRole.value === 2) {
-      // Admin / Seller
-      res = await api.get("/orders/list");
+    if (currentUserRole.value === 1) {
+      // Admin
+      res = await api.get("/orders/all");
+    } else if (currentUserRole.value === 2) {
+      // Seller
+      res = await api.get("/orders/seller");
     } else {
       // Customer
       res = await api.get(`/orders/user/${currentUserId.value}`);
@@ -85,33 +88,28 @@ const filteredOrders = computed(() => {
     // 搜尋訂單 ID
     order.order_id.toString().includes(keyword) ||
     // 搜尋狀態
-    order.status.toLowerCase().includes(keyword) ||
+    order.status_label.includes(keyword) ||
     // 搜尋總金額
     order.total.toString().includes(keyword) 
   );
 });
 
 // 判斷是否已展開 (Computed Property)
-const isExpanded = (orderId) => {
-  return !!expandedDetails.value[orderId];
-};
+const isExpanded = (orderId) => !!expandedDetails.value[orderId];
 
 // 獲取並展開/收起訂單明細
 const toggleDetails = async (orderId) => {
-  if (!orderId) {
-    console.warn("orderId is invalid:", orderId);
+  if (!orderId) return;
+  // 如果已經展開了，就收起來（切換功能）
+  if (isExpanded(orderId)) {
+    delete expandedDetails.value[orderId];
     return;
   }
 
   try {
     loadingDetailsId.value = orderId;
-
     const res = await api.get(`/order_items/by_order/${orderId}`);
-
-    expandedDetails.value = {
-      ...expandedDetails.value,
-      [orderId]: res.data.items || []
-    };
+    expandedDetails.value[orderId] = res.data.items || [];
   } catch (err) {
     console.error(err);
   } finally {
@@ -120,8 +118,8 @@ const toggleDetails = async (orderId) => {
 };
 
 // 更新訂單狀態（Admin 或 Seller 權限）
-const updateOrderStatus = async (orderId, newStatus) => {
-  if (!confirm(`確定要將訂單 #${orderId} 的狀態變更為 [${newStatus}] 嗎？`)) return;
+const updateOrderStatus = async (orderId, newStatusLabel) => {
+  if (!confirm(`確定要將訂單 #${orderId} 的狀態變更為 [${newStatusLabel}] 嗎？`)) return;
 
   try {
     // 後端 API: PATCH /orders/{order_id}/status
@@ -130,9 +128,8 @@ const updateOrderStatus = async (orderId, newStatus) => {
     
     // 重新載入訂單列表以更新狀態
     await fetchOrders(); 
-
   } catch (err) {
-    console.error("updateOrderStatus error:", err);
+
     alert("狀態更新失敗：" + (err.response?.data?.detail || err.message));
   }
 };
@@ -197,16 +194,19 @@ onMounted(async () => {
               <td>
                 <template v-if="currentUserRole === 1 || currentUserRole === 2">
                   <select 
-                    :value="order.status"
+                    :value="order.status_label"
                     @change="updateOrderStatus(order.order_id, $event.target.value)"
                     class="status-select"
                   >
-                    <option v-for="(name, val) in statusOptions" :key="val" :value="name">
-                      {{ name }}
-                    </option>
+                    <option value="待付款">待付款</option>
+                    <option value="已付款">已付款</option>
+                    <option value="待出貨">待出貨</option>
+                    <option value="已出貨">已出貨</option>
+                    <option value="已完成">已完成</option>
+                    <option value="已取消">已取消</option>
                   </select>
                 </template>
-                <span v-else>{{ order.status }}</span>
+                <span v-else class="status-badge">{{ order.status_label }}</span>
               </td>
               <td>{{ order.created_at ? new Date(order.created_at).toLocaleDateString() : '無資料' }}</td>
               <td>
@@ -216,7 +216,7 @@ onMounted(async () => {
                 >
                   <span v-if="loadingDetailsId === order.order_id">載入中...</span>
                   <span v-else>
-                    {{ isExpanded(order.order_id)? '🔼 收起明細' : '🔽 查看明細' }}
+                    {{ isExpanded(order.order_id)? ' 收起明細' : ' 查看明細' }}
                   </span>
                 </button>
                 
