@@ -92,8 +92,8 @@ async def update_order_status_service(
         # 檢查訂單內是否有任何商品屬於該賣家
         is_seller = any(
             item.product.owner_id == current_user.user_id
-            for item in order.items
-        ) if order.items else False
+            for item in order.order_items
+        ) if order.order_items else False
 
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")   
@@ -136,8 +136,8 @@ async def delete_order_service(
         items = await get_order_items_by_order_id(db, order_id)
         is_seller = any(
             item.product.owner_id == current_user.user_id
-            for item in order.items
-        ) if order.items else False
+            for item in order.order_items
+        ) if order.order_items else False
 
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")

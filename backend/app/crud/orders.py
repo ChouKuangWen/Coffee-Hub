@@ -32,7 +32,7 @@ async def get_order_with_items(db: AsyncSession, order_id: int):
     result = await db.execute(
         select(Orders)
         .options(
-            selectinload(Orders.items)      # 載入訂單明細
+            selectinload(Orders.order_items)      # 載入訂單明細
             .selectinload(OrderItems.product) # 嵌套載入產品資訊 (內含 owner_id)
         )
         .where(Orders.order_id == order_id)
@@ -43,7 +43,7 @@ async def get_order_with_items(db: AsyncSession, order_id: int):
 async def get_orders_by_user(db: AsyncSession, user_id: int):
     result = await db.execute(
         select(Orders)
-        .options(selectinload(Orders.items)) # 預加載明細，防止 Pydantic 422 報錯
+        .options(selectinload(Orders.order_items)) # 預加載明細，防止 Pydantic 422 報錯
         .where(Orders.user_id == user_id)
     )
     return result.scalars().all()
@@ -55,7 +55,7 @@ async def get_orders_by_seller(db: AsyncSession, seller_id: int):
         .join(OrderItems, Orders.order_id == OrderItems.order_id)
         .join(Products, OrderItems.product_id == Products.product_id)
         .where(Products.owner_id == seller_id)
-        .options(selectinload(Orders.items)) # 預加載明細
+        .options(selectinload(Orders.order_items)) # 預加載明細
         .distinct()
     )
     result = await db.execute(stmt)
@@ -63,7 +63,7 @@ async def get_orders_by_seller(db: AsyncSession, seller_id: int):
 
 # GET ALL (ADMIN)
 async def get_all_orders(db: AsyncSession):
-    result = await db.execute(select(Orders).options(selectinload(Orders.items)))
+    result = await db.execute(select(Orders).options(selectinload(Orders.order_items)))
     return result.scalars().all()
 
 # UPDATE STATUS
@@ -72,7 +72,7 @@ async def update_order_status(db: AsyncSession, order, status_update: OrderUpdat
     order.status_updated_at = datetime.now()
     await db.flush()
     # 確保回傳時已經有預加載 items，否則 API 序列化會失敗
-    await db.refresh(order, ["items"])
+    await db.refresh(order, ["order_items"])
     return order
 
 # DELETE
