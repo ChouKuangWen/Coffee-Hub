@@ -61,11 +61,13 @@ async def create_product_service(db: AsyncSession, request: Request, background_
 
     db_product = await crud_create_new_product(db, product_in, current_user.user_id)
     await db.commit()
+    after_data = {"name": db_product.name, "price": str(db_product.price)}
 
     await log_action(db=db, background_tasks=background_tasks, request=request,
                      user_id=current_user.user_id, category="PRODUCT", action="CREATE",
                      target_id=str(db_product.product_id),
-                     after_data={"name": db_product.name, "price": str(db_product.price)})
+                     after_data=after_data,
+                     request_id=request.state.request_id)
     return db_product
 
 
@@ -78,6 +80,9 @@ async def update_product_service(db: AsyncSession, request: Request, background_
     # 賣家權限檢查 (管理員 role_id=1 除外)
     if current_user.role_id != 1 and existing.owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="您無權編輯此商品")
+
+    before_data = {"name": existing.name, "price": str(existing.price)}
+
     # 安全淨化處理
     if product_in.description:
         product_in.description = sanitize_user_input(product_in.description)
@@ -86,13 +91,15 @@ async def update_product_service(db: AsyncSession, request: Request, background_
 
     updated = await crud_update_product_information(db, product_in, existing)
     await db.commit()
+    after_data = {"name": updated.name, "price": str(updated.price)}
 
     await log_action(db=db, background_tasks=background_tasks, request=request,
                      user_id=current_user.user_id, category="PRODUCT", action="UPDATE",
-                     target_id=str(product_id), after_data={"name": updated.name})
+                     target_id=str(product_id), before_data=before_data, after_data=after_data,
+                     request_id=request.state.request_id)
     return updated
 
-
+    
 # 刪除商品
 async def delete_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
                                  current_user: Users, product_id: int):
@@ -103,10 +110,12 @@ async def delete_product_service(db: AsyncSession, request: Request, background_
     if current_user.role_id != 1 and existing.owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="您無權刪除此商品")
 
+    before_data = {"name": existing.name, "price": str(existing.price)}
     await crud_delete_one_product(db, existing)
     await db.commit()
 
     await log_action(db=db, background_tasks=background_tasks, request=request,
                      user_id=current_user.user_id, category="PRODUCT", action="DELETE",
-                     target_id=str(product_id))
+                     target_id=str(product_id), before_data=before_data,
+                     request_id=request.state.request_id)
     return None
