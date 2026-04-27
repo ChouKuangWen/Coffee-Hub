@@ -72,16 +72,9 @@ async def create_new_product(db: AsyncSession, product_in: ProductCreate, owner_
     product_data = product_in.model_dump()
     # 強制綁定從 Token 取得的 owner_id
     product_data["owner_id"] = owner_id
-
-    # 安全淨化處理
-    if product_data.get("description"):
-        product_data["description"] = sanitize_user_input(product_data["description"])
-    if product_data.get("flavor_tags"):
-        product_data["flavor_tags"] = sanitize_user_input(product_data["flavor_tags"])
-
     new_product = Products(**product_data)
     db.add(new_product)
-    await db.commit()
+    await db.flush()
     await db.refresh(new_product)
     return new_product
 
@@ -93,23 +86,23 @@ async def update_product_information(
 ):
     # 僅取出有傳入的欄位 (避免將未傳入的欄位覆蓋為空)
     update_data = product_in.model_dump(exclude_unset=True)
-
+    """
     # 淨化 description (若有更新的話)
     if update_data.get("description"):
         update_data["description"] = sanitize_user_input(update_data["description"])
-
+    """
     # 迭代更新屬性
     for field, value in update_data.items():
         setattr(existing_product, field, value)
 
-    await db.commit()
+    await db.flush()
     await db.refresh(existing_product)
     return existing_product
 
 # 刪除商品
 async def delete_one_product(db: AsyncSession, existing_product: Products):
     await db.delete(existing_product)
-    await db.commit()
+    await db.flush()
     return existing_product
 
 
