@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload, joinedload
 from app.models.order_items import OrderItems
-from app.models.products import Products
 
 async def get_order_item(db: AsyncSession, order_item_id: int):
     result = await db.execute(
@@ -30,20 +29,20 @@ async def get_all_order_items(db: AsyncSession):
 async def create_order_item(db: AsyncSession, order_item_data):
     new_item = OrderItems(**order_item_data.dict())
     db.add(new_item)
-    await db.commit()
+    await db.flush()
     await db.refresh(new_item)
     return new_item
 
 async def update_order_item_info(db: AsyncSession, existing_item, order_item_data):
     for field, value in order_item_data.dict(exclude_unset=True).items():
         setattr(existing_item, field, value)
-    await db.commit()
+    await db.flush()
     await db.refresh(existing_item)
     return existing_item
 
 async def delete_order_item(db: AsyncSession, existing_item):
     await db.delete(existing_item)
-    await db.commit()
+    await db.flush()
     return existing_item
 
 # 根據 order_id 獲取所有訂單明細
