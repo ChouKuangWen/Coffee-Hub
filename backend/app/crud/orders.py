@@ -68,8 +68,8 @@ async def get_all_orders(db: AsyncSession):
     return result.scalars().all()
 
 # UPDATE STATUS
-async def update_order_status(db: AsyncSession, order, status_update: OrderUpdateStatus):
-    order.status = status_update.status.value if isinstance(status_update.status, Enum) else status_update.status
+async def update_order_status(db: AsyncSession, order, new_status: str):
+    order.status = new_status
     if hasattr(order, "status_updated_at"):
         order.status_updated_at = datetime.now()
 

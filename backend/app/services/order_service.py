@@ -105,14 +105,20 @@ async def update_order_status_service(
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")   
 
-    before_data = order.status
-    after_data = status_update.status.value if isinstance(status_update.status, Enum) else str(status_update.status)
+    after_data = (
+        status_update.status.value
+        if hasattr(status_update.status, "value")
+        else str(status_update.status)
+    )
 
+    before_data = str(order.status)
+
+    # 如果狀態一樣 不更新
     if before_data == after_data:
         return order
-    
+
     try:
-        updated = await crud_update_status(db, order, status_update)
+        updated = await crud_update_status(db, order, after_data)
         await db.commit()
 
         await log_action(
