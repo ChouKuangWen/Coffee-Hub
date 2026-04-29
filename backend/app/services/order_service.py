@@ -17,6 +17,7 @@ from app.crud.orders import (
 
 from app.crud.order_items import get_order_items_by_order_id
 from app.services.audit_log_service import log_action
+from datetime import datetime
 
 """
 1. 讀取邏輯 (分流與權限)
@@ -55,20 +56,25 @@ async def create_order_service(
     order.user_id = current_user.user_id
 
     db_order = await crud_create_order(db, order)
-    await db.commit()
-    after_data = {"order_id": db_order.order_id, "total": str(db_order.total)}
+    try:
+        await db.commit()
+        after_data = {"order_id": db_order.order_id, "total": str(db_order.total)}
 
-    await log_action(
-        db=db,
-        background_tasks=background_tasks,
-        request=request,
-        user_id=current_user.user_id,
-        category="ORDER",
-        action="CREATE",
-        target_id=str(db_order.order_id),
-        after_data=after_data,
-        request_id=request.state.request_id
-    )
+        await log_action(
+            db=db,
+            background_tasks=background_tasks,
+            request=request,
+            user_id=current_user.user_id,
+            category="ORDER",
+            action="CREATE",
+            target_id=str(db_order.order_id),
+            after_data=after_data,
+            request_id=getattr(request.state, "request_id", None),
+            ip_address=getattr(request.state, "ip_address", None)
+        )
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="建立訂單失敗")
 
     return db_order
 
@@ -85,7 +91,7 @@ async def update_order_status_service(
     order = await get_order_with_items(db, order_id)
 
     if not order:
-        raise HTTPException(status_code=404)
+        raise HTTPException(status_code=404, detail="訂單不存在")
 
     if current_user.role_id != 1:
 
@@ -102,21 +108,26 @@ async def update_order_status_service(
 
     before_data = {"status": order.status}
     updated = await crud_update_status(db, order, status_update)
-    await db.commit()
-    after_data = {"status": status_update.status}
     
-    await log_action(
-        db=db,
-        background_tasks=background_tasks,
-        request=request,
-        user_id=current_user.user_id,
-        category="ORDER",
-        action="UPDATE_STATUS",
-        target_id=str(order_id),
-        before_data=before_data,
-        after_data=after_data,
-        request_id=request.state.request_id
-    )
+    try:
+        await db.commit()
+        after_data = {"status": status_update.status}
+        await log_action(
+            db=db,
+            background_tasks=background_tasks,
+            request=request,
+            user_id=current_user.user_id,
+            category="ORDER",
+            action="UPDATE_STATUS",
+            target_id=str(order_id),
+            before_data=before_data,
+            after_data=after_data,
+            request_id=getattr(request.state, "request_id", None),
+            ip_address=getattr(request.state, "ip_address", None)
+        )
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="更新訂單狀態失敗")
 
     return updated
 
@@ -150,18 +161,22 @@ async def delete_order_service(
     
     before_data = {"order_id": order.order_id, "total": str(order.total)}
     await crud_delete_order(db, order)
-    await db.commit()
-
-    await log_action(
-        db=db,
-        background_tasks=background_tasks,
-        request=request,
-        user_id=current_user.user_id,
-        category="ORDER",
-        action="DELETE",
-        target_id=str(order_id),
-        before_data=before_data,
-        request_id=request.state.request_id
-    )
+    try:
+        await db.commit()
+        await log_action(
+            db=db,
+            background_tasks=background_tasks,
+            request=request,
+            user_id=current_user.user_id,
+            category="ORDER",
+            action="DELETE",
+            target_id=str(order_id),
+            before_data=before_data,
+            request_id=getattr(request.state, "request_id", None),
+            ip_address=getattr(request.state, "ip_address", None)
+        )
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="刪除訂單失敗")
 
     return {"message": "訂單已刪除"}
