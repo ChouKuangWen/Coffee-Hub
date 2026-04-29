@@ -112,6 +112,7 @@ async def update_order_status_service(
     
     try:
         updated = await crud_update_status(db, order, status_update)
+        # 提交（此時 updated 物件會過期）
         await db.commit()
 
         await log_action(
@@ -125,11 +126,14 @@ async def update_order_status_service(
             before_data={"status": before_data},
             after_data={"status": after_data}
         )
+
+        # 重新從資料庫抓一次完整物件回傳給前端
+        # 這樣可以避免回傳過期物件導致的 500 錯誤
+        return await get_order_with_items(db, order_id)
+
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="更新訂單狀態失敗")
-
-    return updated
 
 
 

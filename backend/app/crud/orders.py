@@ -69,10 +69,10 @@ async def get_all_orders(db: AsyncSession):
 # UPDATE STATUS
 async def update_order_status(db: AsyncSession, order, status_update: OrderUpdateStatus):
     order.status = status_update.status
-    order.status_updated_at = datetime.now()
+    if hasattr(order, "status_updated_at"):
+        order.status_updated_at = datetime.now()
+
     await db.flush()
-    # 確保回傳時已經有預加載 items，否則 API 序列化會失敗
-    await db.refresh(order, ["order_items"])
     return order
 
 # DELETE
