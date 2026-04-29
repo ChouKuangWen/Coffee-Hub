@@ -58,7 +58,7 @@ async def create_order_service(
     db_order = await crud_create_order(db, order)
     try:
         await db.commit()
-        after_data = {"order_id": db_order.order_id, "total": str(db_order.total)}
+        after_data = {"order_id": str(db_order.order_id), "total": str(db_order.total)}
 
         await log_action(
             db=db,
@@ -68,9 +68,7 @@ async def create_order_service(
             category="ORDER",
             action="CREATE",
             target_id=str(db_order.order_id),
-            after_data=after_data,
-            request_id=getattr(request.state, "request_id", None),
-            ip_address=getattr(request.state, "ip_address", None)
+            after_data=after_data
         )
     except Exception:
         await db.rollback()
@@ -106,12 +104,16 @@ async def update_order_status_service(
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")   
 
-    before_data = {"status": order.status}
-    updated = await crud_update_status(db, order, status_update)
+    before_data = str(order.status)
+    after_data = str(status_update.status)
+
+    if before_data == after_data:
+        return order
     
     try:
+        updated = await crud_update_status(db, order, status_update)
         await db.commit()
-        after_data = {"status": status_update.status}
+
         await log_action(
             db=db,
             background_tasks=background_tasks,
@@ -120,10 +122,8 @@ async def update_order_status_service(
             category="ORDER",
             action="UPDATE_STATUS",
             target_id=str(order_id),
-            before_data=before_data,
-            after_data=after_data,
-            request_id=getattr(request.state, "request_id", None),
-            ip_address=getattr(request.state, "ip_address", None)
+            before_data={"status": before_data},
+            after_data={"status": after_data}
         )
     except Exception:
         await db.rollback()
@@ -158,10 +158,10 @@ async def delete_order_service(
 
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")
-    
-    before_data = {"order_id": order.order_id, "total": str(order.total)}
-    await crud_delete_order(db, order)
+
+    before_data = {"order_id": str(order.order_id), "total": str(order.total), "status": str(order.status)}
     try:
+        await crud_delete_order(db, order)
         await db.commit()
         await log_action(
             db=db,
@@ -171,9 +171,7 @@ async def delete_order_service(
             category="ORDER",
             action="DELETE",
             target_id=str(order_id),
-            before_data=before_data,
-            request_id=getattr(request.state, "request_id", None),
-            ip_address=getattr(request.state, "ip_address", None)
+            before_data=before_data
         )
     except Exception:
         await db.rollback()
