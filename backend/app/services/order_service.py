@@ -1,4 +1,5 @@
 # app/services/order_service.py
+from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, BackgroundTasks, HTTPException
 
@@ -104,15 +105,14 @@ async def update_order_status_service(
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")   
 
-    before_data = str(order.status)
-    after_data = str(status_update.status)
+    before_data = order.status
+    after_data = status_update.status.value if isinstance(status_update.status, Enum) else str(status_update.status)
 
     if before_data == after_data:
         return order
     
     try:
         updated = await crud_update_status(db, order, status_update)
-        # 提交（此時 updated 物件會過期）
         await db.commit()
 
         await log_action(
@@ -127,8 +127,6 @@ async def update_order_status_service(
             after_data={"status": after_data}
         )
 
-        # 重新從資料庫抓一次完整物件回傳給前端
-        # 這樣可以避免回傳過期物件導致的 500 錯誤
         return await get_order_with_items(db, order_id)
 
     except Exception:
@@ -154,7 +152,6 @@ async def delete_order_service(
 
         is_buyer = order.user_id == current_user.user_id
 
-        items = await get_order_items_by_order_id(db, order_id)
         is_seller = any(
             item.product.owner_id == current_user.user_id
             for item in order.order_items

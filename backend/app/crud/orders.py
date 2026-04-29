@@ -1,4 +1,5 @@
 # app/crud/orders.py
+from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import delete
@@ -11,7 +12,7 @@ from datetime import datetime
 
 # CREATE
 async def create_order(db: AsyncSession, order: OrderCreate):
-    new_order = Orders(**order.model_dump())
+    new_order = Orders(**order.model_dump(mode="json"))
     db.add(new_order)
     await db.flush()
     return new_order
@@ -68,7 +69,7 @@ async def get_all_orders(db: AsyncSession):
 
 # UPDATE STATUS
 async def update_order_status(db: AsyncSession, order, status_update: OrderUpdateStatus):
-    order.status = status_update.status
+    order.status = status_update.status.value if isinstance(status_update.status, Enum) else status_update.status
     if hasattr(order, "status_updated_at"):
         order.status_updated_at = datetime.now()
 
