@@ -123,13 +123,13 @@ const updateOrderStatus = async (orderId, newStatusLabel) => {
 
   try {
     // 後端 API: PATCH /orders/{order_id}/status
-    await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+    await api.patch(`/orders/${orderId}/status`, { status: newStatusLabel });
     alert("訂單狀態更新成功！");
     
     // 重新載入訂單列表以更新狀態
     await fetchOrders(); 
   } catch (err) {
-
+    console.error("updateOrderStatus error:", err);
     alert("狀態更新失敗：" + (err.response?.data?.detail || err.message));
   }
 };
