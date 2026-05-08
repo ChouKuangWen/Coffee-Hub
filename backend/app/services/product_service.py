@@ -1,7 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, BackgroundTasks, HTTPException, status
-from typing import Optional, Tuple, List
-
+from typing import Optional
 from app.models.users import Users
 from app.schemas.products import ProductCreate, ProductUpdate
 from app.crud.products import (
@@ -60,14 +59,22 @@ async def create_product_service(db: AsyncSession, request: Request, background_
         product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
 
     db_product = await crud_create_new_product(db, product_in, current_user.user_id)
-    await db.commit()
-    after_data = {"name": db_product.name, "price": str(db_product.price)}
-
-    await log_action(db=db, background_tasks=background_tasks, request=request,
-                     user_id=current_user.user_id, category="PRODUCT", action="CREATE",
-                     target_id=str(db_product.product_id),
-                     after_data=after_data,
-                     request_id=request.state.request_id)
+    try:
+        await db.commit()
+        after_data = {"name": db_product.name, "price": str(db_product.price)}
+        try:
+            await log_action(
+                db=db, background_tasks=background_tasks, request=request,
+                user_id=current_user.user_id, category="PRODUCT", action="CREATE",
+                target_id=str(db_product.product_id),
+                after_data=after_data,
+                request_id=getattr(request.state, "request_id", None)
+                )
+        except Exception as e:
+            print(f"log_action failed: {e}")
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="建立商品失敗")
     return db_product
 
 
@@ -89,15 +96,24 @@ async def update_product_service(db: AsyncSession, request: Request, background_
     if product_in.flavor_tags:
         product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
 
-    updated = await crud_update_product_information(db, product_in, existing)
-    await db.commit()
-    after_data = {"name": updated.name, "price": str(updated.price)}
+    try:
+        updated = await crud_update_product_information(db, product_in, existing)
+        await db.commit()
+        after_data = {"name": updated.name, "price": str(updated.price)}
+        try:
+            await log_action(db=db, background_tasks=background_tasks, request=request,
+                    user_id=current_user.user_id, category="PRODUCT", action="UPDATE",
+                    target_id=str(product_id), before_data=before_data, after_data=after_data,
+                    request_id=getattr(request.state, "request_id", None)
+                    )
+        except Exception as e:
+            print(f"log_action failed: {e}")
+        return await crud_get_product(db, product_id)  # 避免回傳過期物件
 
-    await log_action(db=db, background_tasks=background_tasks, request=request,
-                     user_id=current_user.user_id, category="PRODUCT", action="UPDATE",
-                     target_id=str(product_id), before_data=before_data, after_data=after_data,
-                     request_id=request.state.request_id)
-    return updated
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="更新商品失敗")
+
 
     
 # 刪除商品
@@ -111,11 +127,18 @@ async def delete_product_service(db: AsyncSession, request: Request, background_
         raise HTTPException(status_code=403, detail="您無權刪除此商品")
 
     before_data = {"name": existing.name, "price": str(existing.price)}
-    await crud_delete_one_product(db, existing)
-    await db.commit()
-
-    await log_action(db=db, background_tasks=background_tasks, request=request,
+    try:
+        await crud_delete_one_product(db, existing)
+        await db.commit()
+        try:
+            await log_action(db=db, background_tasks=background_tasks, request=request,
                      user_id=current_user.user_id, category="PRODUCT", action="DELETE",
                      target_id=str(product_id), before_data=before_data,
-                     request_id=request.state.request_id)
-    return None
+                     request_id=getattr(request.state, "request_id", None))
+        except Exception as e:
+            print(f"log_action failed: {e}")
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="刪除商品失敗")
+
+    return {"message": "商品已刪除"}
