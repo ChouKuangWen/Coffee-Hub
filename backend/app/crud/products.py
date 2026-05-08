@@ -75,7 +75,6 @@ async def create_new_product(db: AsyncSession, product_in: ProductCreate, owner_
     new_product = Products(**product_data)
     db.add(new_product)
     await db.flush()
-    await db.refresh(new_product)
     return new_product
 
 # 更新商品
@@ -96,7 +95,6 @@ async def update_product_information(
         setattr(existing_product, field, value)
 
     await db.flush()
-    await db.refresh(existing_product)
     return existing_product
 
 # 刪除商品
