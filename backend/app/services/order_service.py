@@ -1,24 +1,18 @@
 # app/services/order_service.py
-from enum import Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, BackgroundTasks, HTTPException
-
 from app.models.users import Users
 from app.schemas.orders import OrderCreate, OrderUpdateStatus
-
 from app.crud.orders import (
     create_order as crud_create_order,
     update_order_status as crud_update_status,
     delete_order as crud_delete_order,
-    get_all_orders, 
-    get_orders_by_seller, 
-    get_orders_by_user, 
+    get_all_orders,
+    get_orders_by_seller,
+    get_orders_by_user,
     get_order_with_items
 )
-
-from app.crud.order_items import get_order_items_by_order_id
 from app.services.audit_log_service import log_action
-from datetime import datetime
 
 """
 1. 讀取邏輯 (分流與權限)
@@ -60,17 +54,20 @@ async def create_order_service(
     try:
         await db.commit()
         after_data = {"order_id": str(db_order.order_id), "total": str(db_order.total)}
-
-        await log_action(
-            db=db,
-            background_tasks=background_tasks,
-            request=request,
-            user_id=current_user.user_id,
-            category="ORDER",
-            action="CREATE",
-            target_id=str(db_order.order_id),
-            after_data=after_data
-        )
+        try:
+            await log_action(
+                db=db,
+                background_tasks=background_tasks,
+                request=request,
+                user_id=current_user.user_id,
+                category="ORDER",
+                action="CREATE",
+                target_id=str(db_order.order_id),
+                after_data=after_data,
+                request_id=getattr(request.state, "request_id", None)
+                )
+        except Exception as e:
+            print(f" log_action failed: {e}")
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="建立訂單失敗")
@@ -105,33 +102,35 @@ async def update_order_status_service(
         if not (is_buyer or is_seller):
             raise HTTPException(status_code=403, detail="權限不足")   
 
-    after_data = (
+    before_data = {"status": str(order.status)}
+    after_data = str(
         status_update.status.value
         if hasattr(status_update.status, "value")
-        else str(status_update.status)
+        else (status_update.status)
     )
 
-    before_data = str(order.status)
-
     # 如果狀態一樣 不更新
-    if before_data == after_data:
+    if before_data["status"] == after_data:
         return order
 
     try:
         updated = await crud_update_status(db, order, after_data)
         await db.commit()
-
-        await log_action(
-            db=db,
-            background_tasks=background_tasks,
-            request=request,
-            user_id=current_user.user_id,
-            category="ORDER",
-            action="UPDATE_STATUS",
-            target_id=str(order_id),
-            before_data={"status": before_data},
-            after_data={"status": after_data}
-        )
+        try:
+            await log_action(
+                db=db,
+                background_tasks=background_tasks,
+                request=request,
+                user_id=current_user.user_id,
+                category="ORDER",
+                action="UPDATE_STATUS",
+                target_id=str(order_id),
+                before_data={"status": before_data},
+                after_data={"status": after_data},
+                request_id=getattr(request.state, "request_id", None)
+            )
+        except Exception as e:
+            print(f"log_action failed: {e}")
 
         return await get_order_with_items(db, order_id)
 
@@ -170,16 +169,20 @@ async def delete_order_service(
     try:
         await crud_delete_order(db, order)
         await db.commit()
-        await log_action(
-            db=db,
-            background_tasks=background_tasks,
-            request=request,
-            user_id=current_user.user_id,
-            category="ORDER",
-            action="DELETE",
-            target_id=str(order_id),
-            before_data=before_data
-        )
+        try:
+            await log_action(
+                db=db,
+                background_tasks=background_tasks,
+                request=request,
+                user_id=current_user.user_id,
+                category="ORDER",
+                action="DELETE",
+                target_id=str(order_id),
+                before_data=before_data,
+                request_id=getattr(request.state, "request_id", None)
+            )
+        except Exception as e:
+            print(f"log_action failed: {e}")
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="刪除訂單失敗")
