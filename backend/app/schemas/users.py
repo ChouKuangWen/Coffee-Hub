@@ -42,10 +42,11 @@ class MessageResponse(BaseModel):
 # 使用者登入或刷新 token 時，後端回傳給前端的資料格式
 class TokenResponse(BaseModel):
     access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
     role: str          # 角色
     role_id: int       # 角色 ID
     user_id: int       # 使用者 ID
-
+    jti: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
