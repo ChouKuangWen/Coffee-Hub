@@ -60,7 +60,7 @@ async def service_login_user(db: AsyncSession, request: Request, background_task
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="帳號或密碼錯誤")
 
-    access_token = create_access_token({
+    access_token, jti_value = create_access_token({
         "sub": str(user.user_id),
         "username": user.email,
         "role_id": user.role_id,
@@ -91,7 +91,8 @@ async def service_login_user(db: AsyncSession, request: Request, background_task
         "token_type": "bearer",
         "role": user.role.name,
         "role_id": user.role_id,
-        "user_id": user.user_id
+        "user_id": user.user_id,
+        "jti": jti_value
     }
 
 # refresh token
@@ -104,7 +105,7 @@ async def service_refresh_token(db: AsyncSession, request: Request, background_t
     if not user:
         raise HTTPException(status_code=404, detail="使用者不存在")
 
-    access_token = create_access_token({
+    access_token, jti_value = create_access_token({
         "user_id": user.user_id,
         "username": user.email,
         "role_id": user.role_id
@@ -126,7 +127,8 @@ async def service_refresh_token(db: AsyncSession, request: Request, background_t
         "token_type": "bearer",
         "role": user.role.name,
         "role_id": user.role_id,
-        "user_id": user.user_id
+        "user_id": user.user_id,
+        "jti": jti_value
     }
 
 # 登出
