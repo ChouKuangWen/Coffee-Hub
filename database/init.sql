@@ -101,6 +101,8 @@ CREATE TABLE orders (
     total DECIMAL(10,2) NOT NULL COMMENT '總金額',
     checkout_key VARCHAR(36) NULL,
     checkout_fingerprint VARCHAR(64) NULL,
+    stock_deducted BOOLEAN NOT NULL DEFAULT FALSE,
+    stock_returned_at DATETIME NULL,
     UNIQUE KEY uq_orders_checkout(user_id,checkout_key),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
     status_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '狀態變動時間',
@@ -120,6 +122,7 @@ CREATE TABLE order_items (
     price DECIMAL(10,2) NOT NULL COMMENT '單價',
     product_name VARCHAR(100) NULL,
     seller_id INT NULL,
+    shipped_at DATETIME NULL,
     CONSTRAINT fk_oi_snapshot_seller FOREIGN KEY(seller_id) REFERENCES users(user_id),
     -- 索引優化
     INDEX idx_oi_order_id (order_id),
@@ -235,3 +238,21 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 INSERT INTO schema_migrations(version) VALUES ('001_account_lifecycle');
 
 INSERT IGNORE INTO schema_migrations(version) VALUES ('002_simulated_checkout');
+
+CREATE TABLE IF NOT EXISTS order_cancellations (
+    cancellation_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    requested_by INT NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_by INT NULL,
+    reviewed_at DATETIME NULL,
+    review_note VARCHAR(500) NULL,
+    INDEX ix_order_cancellations_order_id(order_id),
+    FOREIGN KEY(order_id) REFERENCES orders(order_id),
+    FOREIGN KEY(requested_by) REFERENCES users(user_id),
+    FOREIGN KEY(reviewed_by) REFERENCES users(user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO schema_migrations(version) VALUES ('003_order_lifecycle');

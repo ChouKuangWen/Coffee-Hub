@@ -1,6 +1,7 @@
 """模擬建單交易與訂單資料授權；不呼叫會自行提交的 CRUD。"""
 import hashlib
 import json
+from datetime import datetime, timezone
 from decimal import Decimal
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -11,6 +12,8 @@ from app.models.products import Products
 from app.models.cart_item import CartItem
 from app.models.orders import Orders
 from app.models.order_items import OrderItems
+from app.models.order_cancellation import OrderCancellation
+from app.schemas.orders import OrderRead, CancellationRead
 from app.crud.orders import get_all_orders, get_orders_by_user, get_order_with_items
 from app.services.audit_log_service import record_required_action
 
@@ -27,12 +30,20 @@ async def get_customer_orders_service(db, target_user_id, current_user):
     return await get_orders_by_user(db, target_user_id)
 
 
-def seller_order_view(order, seller_id):
-    items = [item for item in order.order_items if item.seller_id == seller_id]
+def _can_ship(order, seller_id, items):
+    return (order.status == "待出貨" and order.stock_deducted and order.stock_returned_at is None
+            and bool(items) and all(item.seller_id is not None for item in items)
+            and any(item.seller_id == seller_id and item.shipped_at is None for item in items))
+
+
+def seller_order_view(order, seller_id, all_items=None):
+    all_items = order.order_items if all_items is None else all_items
+    items = [item for item in all_items if item.seller_id == seller_id]
     if not items:
         raise HTTPException(status_code=403, detail="無權查看此訂單")
     return dict(order_id=order.order_id, status=order.status, status_label=order.status,
-                created_at=order.created_at,
+                created_at=order.created_at, can_ship=_can_ship(order, seller_id, all_items),
+                seller_shipment_status="已出貨" if all(item.shipped_at is not None for item in items) else "未出貨",
                 seller_total=sum((item.subtotal for item in items), Decimal("0.00")))
 
 
@@ -61,10 +72,14 @@ async def get_authorized_order(db, order_id, current_user, sales=False):
     raise HTTPException(status_code=403, detail="無權查看此訂單")
 
 
-async def create_order_service(db, request, background_tasks, current_user, order):
+def _require_simulation():
     if not (getattr(settings, "ENABLE_SIMULATED_CHECKOUT", False)
             and getattr(settings, "APP_ENV", "") == "test"):
-        raise HTTPException(status_code=403, detail="僅隔離測試環境可啟用模擬建單")
+        raise HTTPException(status_code=403, detail="僅隔離測試環境可啟用模擬訂單異動")
+
+
+async def create_order_service(db, request, background_tasks, current_user, order):
+    _require_simulation()
     if current_user.role_id not in (2, 3):
         raise HTTPException(status_code=403, detail="Admin 不參與買家流程")
     selected = {item.cart_item_id: item.quantity for item in order.items}
@@ -115,7 +130,7 @@ async def create_order_service(db, request, background_tasks, current_user, orde
         if total > Decimal("99999999.99"):
             raise HTTPException(status_code=409, detail="商品金額超出可儲存範圍")
         created = Orders(user_id=actor.user_id, status="待出貨", total=total,
-                         checkout_key=key, checkout_fingerprint=fingerprint)
+                         checkout_key=key, checkout_fingerprint=fingerprint, stock_deducted=True)
         db.add(created)
         await db.flush()
         for item in cart:
@@ -140,9 +155,197 @@ async def create_order_service(db, request, background_tasks, current_user, orde
         raise HTTPException(status_code=500, detail="模擬建單失敗，所有異動已回滾")
 
 
+def _now():
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+async def _lock_lifecycle(db, request, current_user, order_id, roles):
+    # 與前三批一致：先鎖操作者，再鎖訂單；商品依 ID 固定順序鎖定。
+    actor = (await db.execute(select(Users).where(Users.user_id == current_user.user_id)
+        .with_for_update().execution_options(populate_existing=True))).scalar_one_or_none()
+    if (not actor or not actor.is_active or actor.role_id not in roles
+            or actor.token_version != request.state.auth_version):
+        raise HTTPException(status_code=403, detail="目前帳號無權執行此操作")
+    order = (await db.execute(select(Orders).where(Orders.order_id == order_id)
+        .with_for_update().execution_options(populate_existing=True))).scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="訂單不存在")
+    return actor, order
+
+
+async def _lock_order_items(db, order_id):
+    return (await db.execute(select(OrderItems).options(lazyload("*"))
+        .where(OrderItems.order_id == order_id).order_by(OrderItems.order_item_id)
+        .with_for_update().execution_options(populate_existing=True))).scalars().all()
+
+
+async def _audit_order(db, request, actor, order, action, before, after):
+    await record_required_action(db, request, user_id=actor.user_id, category="ORDER",
+        target_type="ORDER", action=action, target_id=order.order_id,
+        before_data=before, after_data=after)
+
+
+async def request_cancellation(db, request, current_user, order_id, data):
+    _require_simulation()
+    try:
+        actor, order = await _lock_lifecycle(db, request, current_user, order_id, (2, 3))
+        if order.user_id != actor.user_id:
+            raise HTTPException(status_code=403, detail="只能申請取消本人訂單")
+        if order.status not in ("待付款", "已付款", "待出貨"):
+            raise HTTPException(status_code=409, detail="目前狀態不允許一般取消申請")
+        items = await _lock_order_items(db, order_id)
+        if any(item.shipped_at is not None for item in items):
+            raise HTTPException(status_code=409, detail="已有品項出貨，不允許一般整單取消")
+        pending = (await db.execute(select(OrderCancellation).where(
+            OrderCancellation.order_id == order_id, OrderCancellation.status == "pending")
+            .with_for_update())).scalar_one_or_none()
+        if pending:
+            if pending.reason != data.reason:
+                raise HTTPException(status_code=409, detail="已有待審取消申請")
+            result = CancellationRead.model_validate(pending)
+            await db.commit()
+            return result
+        cancellation = OrderCancellation(order_id=order_id, requested_by=actor.user_id, reason=data.reason)
+        db.add(cancellation)
+        await db.flush()
+        await _audit_order(db, request, actor, order, "CANCELLATION_REQUEST",
+            {"status": order.status}, {"status": order.status, "cancellation_id": cancellation.cancellation_id})
+        await db.refresh(cancellation)
+        result = CancellationRead.model_validate(cancellation)
+        await db.commit()
+        return result
+    except HTTPException:
+        await db.rollback()
+        raise
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="取消申請或必要審計失敗，未完成操作")
+
+
+async def get_cancellations(db, current_user, order_id):
+    order = (await db.execute(select(Orders).where(Orders.order_id == order_id))).scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=404, detail="訂單不存在")
+    if current_user.role_id != 1 and order.user_id != current_user.user_id:
+        raise HTTPException(status_code=403, detail="無權查看取消申請")
+    return (await db.execute(select(OrderCancellation).where(OrderCancellation.order_id == order_id)
+        .order_by(OrderCancellation.cancellation_id.desc()))).scalars().all()
+
+
+async def review_cancellation(db, request, current_user, cancellation_id, data):
+    _require_simulation()
+    if current_user.role_id != 1:
+        raise HTTPException(status_code=403, detail="僅 Admin 可以審核取消申請")
+    try:
+        order_id = (await db.execute(select(OrderCancellation.order_id).where(
+            OrderCancellation.cancellation_id == cancellation_id))).scalar_one_or_none()
+        if order_id is None:
+            raise HTTPException(status_code=404, detail="取消申請不存在")
+        actor, order = await _lock_lifecycle(db, request, current_user, order_id, (1,))
+        cancellation = (await db.execute(select(OrderCancellation).where(
+            OrderCancellation.cancellation_id == cancellation_id).with_for_update()
+            .execution_options(populate_existing=True))).scalar_one()
+        if cancellation.status != "pending":
+            if cancellation.status != data.decision or cancellation.review_note != data.review_note:
+                raise HTTPException(status_code=409, detail="已完成審核，不可變更決定")
+            result = CancellationRead.model_validate(cancellation)
+            await db.commit()
+            return result
+        before = {"status": order.status, "stock_returned": order.stock_returned_at is not None,
+                  "cancellation_status": cancellation.status}
+        returned = []
+        if data.decision == "approved":
+            if order.status not in ("待付款", "已付款", "待出貨"):
+                raise HTTPException(status_code=409, detail="已出貨或目前狀態不允許取消")
+            if not order.stock_deducted or order.stock_returned_at is not None:
+                raise HTTPException(status_code=409, detail="缺少可信扣庫存證據，或已退還庫存")
+            items = await _lock_order_items(db, order_id)
+            if any(item.shipped_at is not None for item in items):
+                raise HTTPException(status_code=409, detail="已有品項出貨，不允許核准整單取消")
+            if not items or any(item.product_id is None or item.quantity <= 0 for item in items):
+                raise HTTPException(status_code=409, detail="歷史商品資料不足，無法安全退庫存")
+            quantities = {}
+            for item in items:
+                quantities[item.product_id] = quantities.get(item.product_id, 0) + item.quantity
+            products = (await db.execute(select(Products).options(lazyload(Products.owner))
+                .where(Products.product_id.in_(quantities)).order_by(Products.product_id)
+                .with_for_update().execution_options(populate_existing=True))).scalars().all()
+            if len(products) != len(quantities) or any(
+                    p.stock < 0 or p.stock + quantities[p.product_id] > 2147483647 for p in products):
+                raise HTTPException(status_code=409, detail="商品不存在或退庫存超出可儲存範圍")
+            for product in products:
+                product.stock += quantities[product.product_id]
+                returned.append({"product_id": product.product_id, "quantity": quantities[product.product_id]})
+            order.status = "已取消"
+            order.status_updated_at = _now()
+            order.stock_returned_at = _now()
+        cancellation.status = data.decision
+        cancellation.reviewed_by = actor.user_id
+        cancellation.reviewed_at = _now()
+        cancellation.review_note = data.review_note
+        await _audit_order(db, request, actor, order, "CANCELLATION_REVIEW", before,
+            {"status": order.status, "cancellation_id": cancellation_id,
+             "decision": data.decision, "returned": returned})
+        result = CancellationRead.model_validate(cancellation)
+        await db.commit()
+        return result
+    except HTTPException:
+        await db.rollback()
+        raise
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="取消審核、退庫存或必要審計失敗，所有異動已回滾")
+
+
 async def update_order_status_service(db, request, background_tasks, current_user, order_id, status_update):
-    # 完整取消／退庫存與多賣家狀態矩陣不屬本批，禁止舊入口繞過一致性規則。
-    raise HTTPException(status_code=409, detail="狀態異動須經核准流程，目前不開放直接修改")
+    _require_simulation()
+    try:
+        actor, order = await _lock_lifecycle(db, request, current_user, order_id, (1, 2))
+        target = status_update.status.value
+        items = await _lock_order_items(db, order_id)
+        if not order.stock_deducted or order.stock_returned_at is not None:
+            raise HTTPException(status_code=409, detail="非可驗證的有效模擬訂單")
+        if actor.role_id == 2:
+            owned = [item for item in items if item.seller_id == actor.user_id]
+            if not owned:
+                raise HTTPException(status_code=403, detail="不能操作其他 Seller 的出貨品項")
+            if target != "已出貨":
+                raise HTTPException(status_code=403, detail="Seller 僅可標記本人品項已出貨")
+            if order.status not in ("待出貨", "已出貨") or any(item.seller_id is None for item in items):
+                raise HTTPException(status_code=409, detail="目前狀態或歷史快照不允許出貨")
+            changed = [item for item in owned if item.shipped_at is None]
+            if changed:
+                if order.status != "待出貨":
+                    raise HTTPException(status_code=409, detail="訂單與品項出貨狀態不一致")
+                before = order.status
+                for item in changed:
+                    item.shipped_at = _now()
+                if all(item.shipped_at is not None for item in items):
+                    order.status = "已出貨"
+                    order.status_updated_at = _now()
+                await _audit_order(db, request, actor, order, "SHIP_ITEMS",
+                    {"status": before, "items": [{"order_item_id": item.order_item_id, "shipped_at": None} for item in changed]},
+                    {"status": order.status, "items": [{"order_item_id": item.order_item_id, "shipped_at": item.shipped_at.isoformat()} for item in changed]})
+        else:
+            if target != "已完成":
+                raise HTTPException(status_code=409, detail="Admin 僅可將已出貨改為已完成；取消請走審核")
+            if order.status != "已完成":
+                if order.status != "已出貨" or not items or any(item.shipped_at is None for item in items):
+                    raise HTTPException(status_code=409, detail="全部品項已出貨後才能完成")
+                before = order.status
+                order.status = target
+                order.status_updated_at = _now()
+                await _audit_order(db, request, actor, order, "STATUS_CHANGE", {"status": before}, {"status": target})
+        result = (OrderRead.model_validate(order) if actor.role_id == 1
+                  else seller_order_view(order, actor.user_id, items))
+        await db.commit()
+        return result
+    except HTTPException:
+        await db.rollback()
+        raise
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="訂單狀態或必要審計失敗，未完成操作")
 
 
 async def delete_order_service(db, request, background_tasks, current_user, order_id):

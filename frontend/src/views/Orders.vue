@@ -13,25 +13,10 @@ const currentUserRole = ref(null); // 當前登入的使用者角色 ID
 // 儲存已展開的訂單明細
 // 結構: { order_id: [item1, item2], ... }
 const expandedDetails = ref({});
-const loadingDetailsId = ref(null); // 正在載入明細的 order_id
-
-// 訂單狀態下拉選單
-const statusOptions = reactive({
-  1: "待付款",
-  2: "已付款",
-  3: "已出貨",
-  4: "已完成",
-  5: "已取消",
-});
-const statusMap = {
-  "待付款": 1, 
-  "已付款": 2, 
-  "已出貨": 3, 
-  "已完成": 4, 
-  "已取消": 5
-};
-// 角色對照 (來自上一個組件)
-const roleMap = { 1: "Admin", 2: "Seller", 3: "Customer" };
+const loadingDetailsId = ref(null);
+const cancellations = ref({});
+const processing = ref(false);
+let viewVersion = 0; // 正在載入明細的 order_id
 
 const searchKeyword = ref("");
 
@@ -56,6 +41,10 @@ const fetchCurrentUser = async () => {
 
 // 2. 讀取訂單列表 (配合 API 分離架構)
 const fetchOrders = async () => {
+  const version = ++viewVersion;
+  orders.value = [];
+  expandedDetails.value = {};
+  cancellations.value = {};
   try {
     let res;
 
@@ -70,7 +59,7 @@ const fetchOrders = async () => {
       res = await api.get(`/orders/user/${currentUserId.value}`);
     }
 
-    orders.value = res.data.items || [];
+    if (version === viewVersion) orders.value = res.data.items || [];
 
   } catch (err) {
     console.error("fetchOrders error:", err);
@@ -108,14 +97,59 @@ const toggleDetails = async (orderId) => {
   }
 
   try {
+    const version = viewVersion;
     loadingDetailsId.value = orderId;
     const res = await api.get(`/order_items/by_order/${orderId}`, { params: { sales: salesMode.value } });
+    if (version !== viewVersion) return;
     expandedDetails.value[orderId] = res.data.items || [];
+    if (!salesMode.value) {
+      const response = await api.get(`/orders/${orderId}/cancellation-requests`);
+      if (version === viewVersion) cancellations.value[orderId] = response.data;
+    }
   } catch (err) {
     console.error(err);
   } finally {
     loadingDetailsId.value = null;
   }
+};
+
+const requestCancellation = async (orderId) => {
+  if (processing.value) return;
+  const reason = window.prompt('請填寫取消原因（最多 500 字）。申請不會立即取消或退還庫存。');
+  if (!reason?.trim()) return;
+  processing.value = true;
+  try {
+    await api.post(`/orders/${orderId}/cancellation-requests`, { reason: reason.trim() });
+    alert('取消申請已送出，等待 Admin 審核；尚未退還庫存。');
+    await fetchOrders();
+  } catch (err) {
+    alert(err.response?.data?.detail || '取消申請失敗');
+  } finally { processing.value = false; }
+};
+
+const reviewCancellation = async (id, decision) => {
+  if (processing.value || !confirm(decision === 'approved' ? '核准取消並一次性退還測試庫存？' : '拒絕此取消申請？')) return;
+  const review_note = window.prompt('審核備註（選填，最多 500 字）');
+  if (review_note === null) return;
+  processing.value = true;
+  try {
+    await api.patch(`/orders/cancellation-requests/${id}`, { decision, review_note: review_note.trim() || null });
+    alert('審核已完成。');
+    await fetchOrders();
+  } catch (err) {
+    alert(err.response?.data?.detail || '審核失敗，未完成異動');
+  } finally { processing.value = false; }
+};
+
+const changeStatus = async (orderId, status) => {
+  if (processing.value || !confirm(status === '已出貨' ? '標記本人所有品項為測試已出貨？任一品項出貨後不能一般整單取消。' : '全部已出貨，確認將模擬訂單標記已完成？')) return;
+  processing.value = true;
+  try {
+    await api.patch(`/orders/${orderId}/status`, { status });
+    await fetchOrders();
+  } catch (err) {
+    alert(err.response?.data?.detail || '狀態更新失敗');
+  } finally { processing.value = false; }
 };
 
 // --- 初始化 ---
@@ -131,7 +165,7 @@ onMounted(async () => {
   <div class="order-page member-page">
     <h2 class="title">模擬訂單查詢</h2>
     <p>測試交易，不代表付款或物流。</p>
-    <label v-if="currentUserRole === 2"><input type="checkbox" v-model="salesMode" @change="expandedDetails = {}; fetchOrders()">銷售查詢（僅本人品項與金額）</label>
+    <label v-if="currentUserRole === 2"><input type="checkbox" v-model="salesMode" @change="fetchOrders()" :disabled="processing">銷售查詢（僅本人品項與金額）</label>
 
     <div class="controls">
       <input
@@ -160,7 +194,8 @@ onMounted(async () => {
               <td v-if="!salesMode">{{ order.user_id }}</td>
               <td>{{ order.total ?? order.seller_total }}</td>
               <td>
-                <span class="status-badge">{{ order.status_label }}</span>
+                <span class="status-badge">整單：{{ order.status_label }}</span>
+                <span v-if="salesMode">／本人品項：{{ order.seller_shipment_status }}</span>
               </td>
               <td>{{ order.created_at ? new Date(order.created_at).toLocaleDateString() : '無資料' }}</td>
               <td>
@@ -173,8 +208,9 @@ onMounted(async () => {
                     {{ isExpanded(order.order_id)? ' 收起明細' : ' 查看明細' }}
                   </span>
                 </button>
-                
-
+                <button v-if="salesMode && order.can_ship" :disabled="processing" @click="changeStatus(order.order_id, '已出貨')">本人品項出貨</button>
+                <button v-if="currentUserRole === 1 && order.status === '已出貨'" :disabled="processing" @click="changeStatus(order.order_id, '已完成')">標記已完成</button>
+                <button v-if="!salesMode && currentUserRole !== 1 && ['待付款', '已付款', '待出貨'].includes(order.status)" :disabled="processing" @click="requestCancellation(order.order_id)">申請取消</button>
               </td>
             </tr>
 
@@ -190,6 +226,7 @@ onMounted(async () => {
                         <th>數量</th>
                         <th>單價</th>
                         <th>小計</th>
+                        <th>品項出貨</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -200,9 +237,22 @@ onMounted(async () => {
                         <td>{{ item.quantity }}</td>
                         <td>${{ item.price }}</td>
                         <td>${{ item.subtotal }}</td>
+                        <td>{{ item.shipped_at ? '已出貨' : '未出貨' }}</td>
                       </tr>
                     </tbody>
                   </table>
+                  <section v-if="!salesMode">
+                    <h4>取消申請紀錄</h4>
+                    <p v-if="!cancellations[order.order_id]?.length">尚無取消申請</p>
+                    <div v-for="entry in cancellations[order.order_id]" :key="entry.cancellation_id">
+                      <p>#{{ entry.cancellation_id }} {{ { pending: '待審核', approved: '已核准', rejected: '已拒絕' }[entry.status] }}：{{ entry.reason }}</p>
+                      <p v-if="entry.review_note">審核備註：{{ entry.review_note }}</p>
+                      <template v-if="currentUserRole === 1 && entry.status === 'pending'">
+                        <button :disabled="processing" @click="reviewCancellation(entry.cancellation_id, 'approved')">核准取消及退庫存</button>
+                        <button :disabled="processing" @click="reviewCancellation(entry.cancellation_id, 'rejected')">拒絕取消</button>
+                      </template>
+                    </div>
+                  </section>
                   <div class="detail-summary">
                     <strong>{{ salesMode ? '本人銷售商品金額：' : '模擬訂單商品金額：' }}</strong> ${{ order.total ?? order.seller_total }}
                   </div>

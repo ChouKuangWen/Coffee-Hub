@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DECIMAL, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DECIMAL, ForeignKey, DateTime, UniqueConstraint, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
@@ -11,6 +11,8 @@ class Orders(Base):
     total = Column(DECIMAL(10,2), nullable=False, comment="總金額")
     checkout_key = Column(String(36), nullable=True)
     checkout_fingerprint = Column(String(64), nullable=True)
+    stock_deducted = Column(Boolean, nullable=False, default=False, server_default="0")
+    stock_returned_at = Column(DateTime, nullable=True)
     __table_args__ = (UniqueConstraint('user_id', 'checkout_key', name='uq_orders_checkout'),)
     created_at = Column(DateTime, default=func.now(), index=True, comment="建立時間")
     status_updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), comment="狀態變動時間")

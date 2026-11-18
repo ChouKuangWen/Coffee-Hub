@@ -8,6 +8,7 @@ from app.models.users import Users
 
 from app.schemas.orders import (
     OrderCreate,
+    CancellationCreate, CancellationReview, CancellationRead,
     SellerOrderRead,
     SellerOrderListResponse,
     OrderUpdateStatus,
@@ -18,6 +19,7 @@ from app.schemas.orders import (
 
 from app.services.order_service import (
     get_authorized_order,
+    request_cancellation, get_cancellations, review_cancellation,
     get_admin_orders_service,
     get_seller_orders_service,
     get_customer_orders_service,
@@ -103,7 +105,7 @@ async def read_order(
     return await get_authorized_order(db, order_id, current_user, sales)
 
 # 更新
-@router.patch("/{order_id}/status", response_model=OrderRead)
+@router.patch("/{order_id}/status", response_model=OrderRead | SellerOrderRead)
 @limiter.limit("20/minute")
 async def update_status(
     request: Request,
@@ -116,7 +118,7 @@ async def update_status(
     updated_order = await update_order_status_service(
         db, request, background_tasks, current_user, order_id, status_update
     )
-    return serialize_order(updated_order)
+    return updated_order
 
 # 刪除
 @router.delete("/{order_id}", response_model=OrderMessageResponse)
@@ -131,3 +133,26 @@ async def delete_order(
     return await delete_order_service(
         db, request, background_tasks, current_user, order_id
     )
+
+
+@router.post("/{order_id}/cancellation-requests", response_model=CancellationRead)
+@limiter.limit("10/minute")
+async def create_cancellation(request: Request, order_id: int, data: CancellationCreate,
+                              db: AsyncSession = Depends(get_db),
+                              current_user: Users = Depends(get_current_user_from_cookie)):
+    return await request_cancellation(db, request, current_user, order_id, data)
+
+
+@router.get("/{order_id}/cancellation-requests", response_model=list[CancellationRead])
+@limiter.limit("30/minute")
+async def read_cancellations(request: Request, order_id: int, db: AsyncSession = Depends(get_db),
+                             current_user: Users = Depends(get_current_user_from_cookie)):
+    return await get_cancellations(db, current_user, order_id)
+
+
+@router.patch("/cancellation-requests/{cancellation_id}", response_model=CancellationRead)
+@limiter.limit("20/minute")
+async def review_cancellation_api(request: Request, cancellation_id: int, data: CancellationReview,
+                                  db: AsyncSession = Depends(get_db),
+                                  current_user: Users = Depends(get_current_user_from_cookie)):
+    return await review_cancellation(db, request, current_user, cancellation_id, data)

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 from typing import Optional, List
 from decimal import Decimal
+from datetime import datetime
 from app.schemas.products import ProductRead
 from app.schemas.orders import OrderRead
 
@@ -21,6 +22,7 @@ class OrderItemRead(OrderItemBase):
     order_item_id: int
     product_name: Optional[str] = None
     seller_id: Optional[int] = None
+    shipped_at: Optional[datetime] = None
 
     # 使用 V2 的計算欄位，自動算出小計
     @computed_field

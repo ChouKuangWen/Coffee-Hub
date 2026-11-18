@@ -73,7 +73,8 @@ async def _scenario(env, monkeypatch):
                 FOREIGN KEY(product_id) REFERENCES products(product_id) ON DELETE SET NULL) ENGINE=InnoDB"""))
             await conn.execute(text("INSERT INTO orders(total) VALUES(12.50)"))
             await conn.execute(text("INSERT INTO order_items(order_id,quantity,price) VALUES(1,1,12.50)"))
-            for migration in ("001_account_lifecycle.sql", "002_simulated_checkout.sql", "002_simulated_checkout.sql"):
+            await conn.run_sync(AuditLog.__table__.create)
+            for migration in ("001_account_lifecycle.sql", "002_simulated_checkout.sql", "002_simulated_checkout.sql", "003_order_lifecycle.sql"):
                 script = Path("../database/migrations", migration).read_text(encoding="utf-8")
                 sql = "\n".join(line for line in script.splitlines() if not line.lstrip().startswith("--"))
                 for statement in sql.split(";"):
@@ -227,7 +228,7 @@ async def _scenario(env, monkeypatch):
                 check(await seller.get(f"/order_items/{other_item['order_item_id']}"), 403)
             check(await a.patch(f"/order_items/{details[0]['order_item_id']}", json={"order_id": order_id, "product_id": p2['product_id'], "quantity": 1, "price": "1"}), 409)
             check(await admin.delete(f'/orders/{order_id}'), 409)
-            check(await a.patch(f'/orders/{order_id}/status', json={'status': '已取消'}), 409)
+            check(await a.patch(f'/orders/{order_id}/status', json={'status': '已取消'}), 403)
             check(await s1.patch(f"/products/{p1['product_id']}", json={'name': 'renamed', 'price': '99.00'}))
             check(await s1.delete(f"/products/{p1['product_id']}"), 204)
             assert check(await a.get(f'/order_items/by_order/{order_id}'))['items'] == details

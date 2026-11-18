@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, computed_field, Field, field_validator
 from uuid import UUID
+from typing import Literal
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
@@ -42,6 +43,7 @@ class OrderCreate(BaseModel):
 # 更新訂單狀態用（可自訂）
 class OrderUpdateStatus(BaseModel):
     status: OrderStatus # 強制驗證傳入的值
+    model_config = ConfigDict(extra="forbid")
 
 # 回傳訂單資料用
 class OrderRead(OrderBase):
@@ -70,6 +72,8 @@ class SellerOrderRead(BaseModel):
     status_label: str
     created_at: Optional[datetime] = None
     seller_total: Decimal
+    can_ship: bool = False
+    seller_shipment_status: Literal["未出貨", "已出貨"] = "未出貨"
 
 
 class SellerOrderListResponse(BaseModel):
@@ -78,3 +82,27 @@ class SellerOrderListResponse(BaseModel):
 
 class OrderMessageResponse(BaseModel):
     message: str
+
+
+class CancellationCreate(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class CancellationReview(BaseModel):
+    decision: Literal["approved", "rejected"]
+    review_note: Optional[str] = Field(None, max_length=500)
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class CancellationRead(BaseModel):
+    cancellation_id: int
+    order_id: int
+    requested_by: int
+    reason: str
+    status: Literal["pending", "approved", "rejected"]
+    created_at: datetime
+    reviewed_by: Optional[int] = None
+    reviewed_at: Optional[datetime] = None
+    review_note: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
