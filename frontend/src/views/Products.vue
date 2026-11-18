@@ -10,7 +10,7 @@ const products = ref([]); // 儲存所有商品列表 (ProductRead)
 const loading = ref(true); // 頁面整體載入狀態
 const searchKeyword = ref(""); // 搜尋關鍵字
 const isUploadingMain = ref(false); // 主圖上傳狀態
-// const isUploadingSub = ref(false);  副圖上傳狀態(尚未啟用)
+const isUploadingSub = ref(false);
 
 // Modal 狀態
 const isModalOpen = ref(false);
@@ -33,7 +33,7 @@ const initialForm = {
   price: 0,
   stock: 0,
   main_image: null,
-  //sub_images: [],  未來視需求啟用
+  sub_images: [],
   continent: null,
   country: null,
   region: null,
@@ -91,19 +91,25 @@ const fetchProducts = async () => {
 
 // 圖片上傳通用邏輯
 const uploadImage = async (file) => {
+  if (!currentProductId.value) {
+    alert('請先儲存建立商品，再上傳圖片。');
+    return null;
+  }
   if (file.size > 5 * 1024 * 1024) {
     alert("檔案不能超過 5MB");
     return null;
   }
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("product_id", currentProductId.value);
   try {
     const res = await api.post("/upload/", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data.image_url;
   } catch (err) {
-    alert("圖片上傳失敗");
+    const detail = err.response?.data?.detail;
+    alert(typeof detail === 'string' ? detail : '圖片上傳失敗，原圖片保持不變。');
     return null;
   }
 };
@@ -117,7 +123,6 @@ const handleMainImageUpload = async (e) => {
   isUploadingMain.value = false;
   e.target.value = "";
 };
-/*
 const handleSubImageUpload = async (e) => {
   const files = Array.from(e.target.files);
   if (productForm.value.sub_images.length + files.length > 3) {
@@ -125,14 +130,19 @@ const handleSubImageUpload = async (e) => {
     return;
   }
   isUploadingSub.value = true;
-  for (const file of files) {
-    const url = await uploadImage(file);
-    if (url) productForm.value.sub_images.push(url);
+  const pending = [];
+  try {
+    for (const file of files) {
+      const url = await uploadImage(file);
+      if (!url) return;
+      pending.push(url);
+    }
+    productForm.value.sub_images.push(...pending);
+  } finally {
+    isUploadingSub.value = false;
+    e.target.value = "";
   }
-  isUploadingSub.value = false;
-  e.target.value = "";
 };
-*/
 
 // --- 核心邏輯 ---
 
@@ -171,7 +181,7 @@ const openCreateModal = () => {
   // 重置表單
   productForm.value = { 
     ...initialForm, 
-    //sub_images: [] 視情況啟用
+    sub_images: []
   };
   isModalOpen.value = true;
 };
@@ -193,13 +203,14 @@ const openEditModal = (product) => {
     stock: parseInt(product.stock),
     moisture_content: product.moisture_content ? parseFloat(product.moisture_content) : null,
     density: product.density ? parseInt(product.density) : null,
-    //sub_images: Array.isArray(product.sub_images) ? [...product.sub_images] : []
+    sub_images: Array.isArray(product.sub_images) ? [...product.sub_images] : []
   };
   isModalOpen.value = true;
 };
 
 // 關閉 Modal
 const closeModal = () => {
+  if (isUploadingMain.value || isUploadingSub.value) return;
   isModalOpen.value = false;
 };
 
@@ -235,8 +246,11 @@ const submitForm = async () => {
       await api.patch(`/products/${currentProductId.value}`, dataToSend);
       alert(`商品 #${currentProductId.value} 編輯成功！`);
     } else {
-      await api.post("/products/", dataToSend);
-      alert("商品新增成功！");
+      const created = await api.post("/products/", dataToSend);
+      await fetchProducts();
+      openEditModal(created.data);
+      alert('商品已建立；可繼續上傳圖片，按儲存後完成圖片關聯。');
+      return;
     }
 
     await fetchProducts();
@@ -351,16 +365,25 @@ onMounted(async () => {
 
           <div class="form-section">
             <h4>商品圖片</h4>
+            <p v-if="!isEditMode">請先儲存建立商品，再上傳圖片。</p>
+            <p>JPEG／PNG／WebP，每張最多 5 MiB、單邊 8192 像素、2000 萬像素；不支援動畫。新圖上傳後按儲存才替換，取消編輯不影響原圖。</p>
             <div class="image-upload-box">
               <div v-if="productForm.main_image" class="image-preview">
-                <img :src="productForm.main_image" />
-                <button type="button" @click="productForm.main_image = null" class="remove-img">移除並重選</button>
+                <img :src="productForm.main_image" alt="主圖預覽" />
+                <button type="button" @click="productForm.main_image = null" :disabled="isUploadingMain" class="remove-img">移除主圖（儲存後生效）</button>
               </div>
-              <div v-else class="upload-placeholder">
-                <input type="file" @change="handleMainImageUpload" accept="image/*" :disabled="isUploadingMain" />
-                <p>{{ isUploadingMain ? '上傳中...' : '點擊或拖曳上傳主圖' }}</p>
-              </div>
+              <label>上傳／替換主圖
+                <input type="file" @change="handleMainImageUpload" accept="image/jpeg,image/png,image/webp" :disabled="!isEditMode || isUploadingMain || isUploadingSub" />
+              </label>
+              <p v-if="isUploadingMain">主圖上傳中，請稍候。</p>
             </div>
+            <h4>副圖（最多 3 張）</h4>
+            <div v-for="(url, index) in productForm.sub_images" :key="url" class="image-preview">
+              <img :src="url" :alt="`副圖 ${index + 1}`" />
+              <button type="button" @click="productForm.sub_images.splice(index, 1)" :disabled="isUploadingSub">移除副圖（儲存後生效）</button>
+            </div>
+            <input type="file" multiple @change="handleSubImageUpload" accept="image/jpeg,image/png,image/webp" :disabled="!isEditMode || isUploadingMain || isUploadingSub || productForm.sub_images.length >= 3" />
+            <p v-if="isUploadingSub">副圖上傳中，請稍候。</p>
           </div>
 
           <div class="form-section">
@@ -412,8 +435,8 @@ onMounted(async () => {
 
           <label>上架狀態 <select v-model="productForm.is_active"><option :value="true">上架</option><option :value="false">下架</option></select></label>
           <div class="form-actions">
-            <button type="submit" class="submit-btn" :disabled="isUploadingMain">儲存</button>
-            <button type="button" class="cancel-btn" @click="closeModal">取消</button>
+            <button type="submit" class="submit-btn" :disabled="isUploadingMain || isUploadingSub">儲存</button>
+            <button type="button" class="cancel-btn" @click="closeModal" :disabled="isUploadingMain || isUploadingSub">取消</button>
           </div>
         </form>
       </div>

@@ -1,44 +1,42 @@
-import os
-import uuid
-from datetime import datetime
+"""僅在顯式呼叫時建立 GCS Client；匯入不讀憑證、不連雲端。"""
 from google.cloud import storage
+from google.api_core.exceptions import NotFound
+from datetime import datetime, timezone
 
-# BUCKET名稱放在環境變數中，方便雲端與本地切換
-BUCKET_NAME = os.getenv("GCP_BUCKET_NAME")
 
 class GCPStorage:
     def __init__(self):
-        """
-        1. 本地開發：用環境變數 GOOGLE_APPLICATION_CREDENTIALS 指向的 JSON。
-        2. 雲端環境：自動使用 Cloud Run 的執行身分 (Service Account)。
-        """
-        try:
+        self.client = None
+
+    def _blob(self, bucket, object_name):
+        if self.client is None:
             self.client = storage.Client()
-            self.bucket = self.client.bucket(BUCKET_NAME)
-            print(f"成功連線至 GCS Bucket: {BUCKET_NAME}")
-        except Exception as e:
-            print(f"GCP Storage 連線失敗: {e}")
+        return self.client.bucket(bucket).blob(object_name)
 
-    def upload_file(self, file_obj, folder="products"):
+    def upload_bytes(self, bucket, object_name, contents, content_type, image_id, sha256):
+        blob = self._blob(bucket, object_name)
+        blob.metadata = {"coffeehub_image_id": image_id, "sha256": sha256}
+        # 隨機新物件；絕不覆寫既有 generation。
+        blob.upload_from_string(contents, content_type=content_type, if_generation_match=0, timeout=60)
+        return int(blob.generation)
+
+    def inspect_object(self, bucket, object_name):
+        blob = self._blob(bucket, object_name)
         try:
-            # 生成唯一檔名
-            ext = os.path.splitext(file_obj.filename)[1]
-            unique_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex}{ext}"
-            blob_path = f"{folder}/{unique_filename}"
-            blob = self.bucket.blob(blob_path)
-            
-            # 上傳檔案流
-            blob.upload_from_file(
-                file_obj.file,
-                content_type=file_obj.content_type
-            )
-
-            # 回傳網址
-            return f"https://storage.googleapis.com/{BUCKET_NAME}/{blob_path}"
-        
-        except Exception as e:
-            print(f"上傳錯誤: {e}")
+            blob.reload(timeout=30)
+        except NotFound:
             return None
+        expiry = blob.retention_expiration_time
+        return {"generation": int(blob.generation), "metadata": blob.metadata or {},
+                "held": bool(blob.temporary_hold or blob.event_based_hold
+                             or (expiry is not None and expiry > datetime.now(timezone.utc)))}
 
-# 實例化物件
+    def delete_generation(self, bucket, object_name, generation):
+        blob = self._blob(bucket, object_name)
+        try:
+            blob.delete(if_generation_match=generation, timeout=30)
+        except NotFound:
+            pass
+
+
 gcs_storage = GCPStorage()

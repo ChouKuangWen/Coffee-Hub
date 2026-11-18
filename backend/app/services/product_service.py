@@ -15,6 +15,7 @@ from app.crud.products import (
 )
 from app.services.audit_log_service import record_required_action
 from app.core.sanitizer import sanitize_user_input
+from app.services.image_service import image_urls, synchronize_product_images
 
 
 async def _lock_active_actor(db, request, current_user, owner_id=None, activating=False):
@@ -98,6 +99,7 @@ async def create_product_service(db: AsyncSession, request: Request, background_
         if product_in.flavor_tags:
             product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
         product = await crud_create_new_product(db, product_in, current_user.user_id)
+        await synchronize_product_images(db, request, current_user, product, set(), [None, []])
         await record_required_action(db, request, user_id=current_user.user_id, category="PRODUCT",
                                      target_type="PRODUCT", action="CREATE", target_id=product.product_id,
                                      after_data=_product_state(product))
@@ -116,11 +118,14 @@ async def update_product_service(db: AsyncSession, request: Request, background_
     try:
         existing = await _locked_product(db, request, current_user, product_id, product_in.is_active is True)
         before = _product_state(existing)
+        before_urls = image_urls(existing)
+        before_layout = [existing.main_image, list(existing.sub_images or [])]
         if product_in.description:
             product_in.description = sanitize_user_input(product_in.description)
         if product_in.flavor_tags:
             product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
         updated = await crud_update_product_information(db, product_in, existing)
+        await synchronize_product_images(db, request, current_user, updated, before_urls, before_layout)
         await record_required_action(db, request, user_id=current_user.user_id, category="PRODUCT",
                                      target_type="PRODUCT", action="UPDATE", target_id=product_id,
                                      before_data=before, after_data=_product_state(updated))

@@ -11,3 +11,4 @@ from .used_jwt import UsedJWT
 from .refresh_token import RefreshToken
 from .seller_application import SellerApplication
 from .order_cancellation import OrderCancellation
+from .image_asset import ImageAsset

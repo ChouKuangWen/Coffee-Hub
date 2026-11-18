@@ -256,3 +256,32 @@ CREATE TABLE IF NOT EXISTS order_cancellations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT IGNORE INTO schema_migrations(version) VALUES ('003_order_lifecycle');
+
+CREATE TABLE IF NOT EXISTS image_assets (
+    image_id VARCHAR(36) NOT NULL PRIMARY KEY,
+    product_id INT NOT NULL,
+    uploaded_by INT NOT NULL,
+    environment VARCHAR(30) NOT NULL,
+    bucket VARCHAR(63) NOT NULL,
+    object_name VARCHAR(255) NOT NULL,
+    public_url VARCHAR(512) NOT NULL UNIQUE,
+    content_sha256 VARCHAR(64) NOT NULL,
+    generation BIGINT NULL,
+    content_type VARCHAR(20) NOT NULL,
+    size_bytes INT NOT NULL,
+    width INT NOT NULL,
+    height INT NOT NULL,
+    state VARCHAR(20) NOT NULL DEFAULT 'uploading',
+    cleanup_after DATETIME NULL,
+    cleanup_attempts INT NOT NULL DEFAULT 0,
+    last_error VARCHAR(50) NULL,
+    is_held BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX ix_image_assets_product_id(product_id),
+    INDEX ix_image_assets_cleanup_after(cleanup_after),
+    UNIQUE KEY uq_image_asset_object(bucket,object_name),
+    FOREIGN KEY(product_id) REFERENCES products(product_id),
+    FOREIGN KEY(uploaded_by) REFERENCES users(user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO schema_migrations(version) VALUES ('004_image_assets');
