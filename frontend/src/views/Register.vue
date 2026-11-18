@@ -11,7 +11,6 @@ const username = ref('')
 const password = ref('')
 const phone = ref('')
 const address = ref('')
-const roleId = ref(3) // 預設角色為 3 (Customer)
 
 // 訊息顯示
 const successMessage = ref('')
@@ -29,8 +28,7 @@ const handleRegister = async () => {
       username: username.value,
       password: password.value,
       phone: phone.value,
-      address: address.value,
-      role_id: parseInt(roleId.value) // 確保為數字格式
+      address: address.value
     }
 
     // 發送 POST 請求到後端 API
@@ -48,7 +46,8 @@ const handleRegister = async () => {
     console.error('註冊失敗:', err.response)
     // 顯示後端回傳的錯誤訊息
     if (err.response && err.response.data && err.response.data.detail) {
-      errorMessage.value = err.response.data.detail
+      const detail = err.response.data.detail
+      errorMessage.value = Array.isArray(detail) ? detail.map(item => item.msg).join('；') : detail
     } else {
       errorMessage.value = '註冊失敗，請稍後再試。'
     }
@@ -87,12 +86,7 @@ const goLogin = () => {
         <div class="input-group">
           <input v-model="address" type="text" placeholder="地址" required />
         </div>
-        <div class="input-group">
-          <select v-model="roleId" class="role-select">
-            <option :value="3">買家 (Customer)</option>
-            <option :value="2">賣家 (Manager)</option>
-          </select>
-        </div>
+        <p>新帳號為 Customer；成為 Seller 須另經管理員核准。</p>
         
         <button type="submit">註冊</button>
       </form>

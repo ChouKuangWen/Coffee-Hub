@@ -53,7 +53,7 @@ async def verify_access_token(token: str, db: AsyncSession, request: Request = N
         #role_id: str = payload.get("role")        # 角色名稱
         role_id: int = int(payload.get("role_id", 0))  # 確保轉成整數
 
-        if user_id is None or jti is None: # 檢查 user_id 和 jti 是否都存在
+        if user_id is None or not jti or int(user_id) <= 0 or role_id not in (1, 2, 3):
             raise credentials_exception()
 
         # 檢查是否在黑名單（如登出）且是否為一次性 token 且已使用
@@ -68,7 +68,7 @@ async def verify_access_token(token: str, db: AsyncSession, request: Request = N
         return {"sub": user_id, "username": username, "jti": jti, "role_id": role_id} # 回傳包含 username 和 jti 的字典
 
 
-    except JWTError:
+    except (JWTError, TypeError, ValueError):
         raise credentials_exception()
 
 # 建立 Refresh Token（並寫入資料庫）

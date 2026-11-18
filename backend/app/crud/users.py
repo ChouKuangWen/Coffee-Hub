@@ -26,7 +26,7 @@ async def create_user_db(db: AsyncSession, user: UserCreate) -> Users:
         email=user.email,
         phone=user.phone,
         address=user.address,
-        role_id=user.role_id,
+        role_id=3,
         password_hash=user.password
     )
     db.add(new_user)          # 加入當前交易 Session
@@ -38,10 +38,10 @@ async def update_user_crud(db: AsyncSession, user_id: int, user_update: UserUpda
     db_user = await get_user_by_id(db, user_id)
     if not db_user:
         return None          # 找不到使用者則回傳 None
-    update_data = user_update.dict(exclude_unset=True)  # 只取有被設定的欄位
+    update_data = user_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        # 檢查是否為需要淨化的字串欄位
-            setattr(db_user, key,  value) # 使用淨化後的值
+        if key in {"username", "email", "phone", "address"}:
+            setattr(db_user, key, value)
 
     await db.flush()    # 提交資料庫變更
     return db_user

@@ -21,9 +21,6 @@ from app.services.auth_service import (
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
 
-# 只允許 Manager = 2, Customer = 3
-allowed_roles = [2, 3]
-
 #  取得目前登入使用者資訊
 @router.get("/me", response_model=UserRead)
 async def read_users_me(
@@ -43,8 +40,7 @@ async def register(request: Request,
     """
     註冊新使用者。
     - 檢查電子郵件是否已被註冊。
-    - 僅允許 Manager 與 Customer
-    - Admin 必須手動於資料庫新增
+    - 僅建立 Customer；Seller 角色須另經 Admin 核准。
     - 對密碼進行雜湊處理。
     - 將新使用者寫入資料庫。
     """

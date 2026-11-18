@@ -1,5 +1,6 @@
 # backend/app/services/user_service.py
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from fastapi import Request, BackgroundTasks, HTTPException
 from app.crud.users import (
     get_all_users, get_user_by_id,
@@ -21,7 +22,10 @@ async def service_get_all_users(db: AsyncSession, request: Request, current_user
 async def service_get_user(db: AsyncSession, request: Request, current_user: Users, user_id: int):
     if current_user.role_id != 1 and current_user.user_id != user_id:
         raise HTTPException(status_code=403, detail="無權限查看此使用者")
-    return await get_user_by_id(db, user_id)
+    user = await get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="使用者不存在")
+    return user
 
 # 建立使用者
 async def service_create_user(
@@ -30,17 +34,21 @@ async def service_create_user(
 ):
     if current_user.role_id != 1:
         raise HTTPException(status_code=403, detail="只有 Admin 可以建立使用者")
+    if user.role_id != 3:
+        raise HTTPException(status_code=403, detail="一般新增僅能建立 Customer；Seller 須經核准流程")
     # [安全] 在 Service 層做淨化與密碼雜湊
     user.username = sanitize_user_input(user.username)
     user.address = sanitize_user_input(user.address)
     user.password = hash_password(user.password)
 
     # 呼叫 CRUD 建立使用者
-    new_user = await create_user_db(db, user)
-
     # [交易控制] 主交易 commit
     try:
+        new_user = await create_user_db(db, user)
         await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Email 或帳號名稱已被使用")
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="建立使用者失敗")
@@ -51,8 +59,7 @@ async def service_create_user(
             db=db, background_tasks=background_tasks, request=request,
             user_id=current_user.user_id, category="USER", action="CREATE",
             target_id=str(new_user.user_id),
-            after_data={"username": new_user.username, "email": new_user.email},
-            request_id=getattr(request.state, "request_id", None)
+            after_data={"role_id": 3},
         )
     except Exception as e:
         print(f"[WARN] log_action failed: {e}")
@@ -70,20 +77,27 @@ async def service_update_user(
     # 先取得更新前的資料
     before_data = await get_user_by_id(db, user_id)
     if not before_data:
-        return None
+        raise HTTPException(status_code=404, detail="使用者不存在")
+
+    changed_fields = set(user_update.model_fields_set)
+    if not changed_fields <= {"username", "email", "phone", "address"}:
+        raise HTTPException(status_code=403, detail="角色及帳號狀態不可透過個資更新變更")
 
     # [安全] 在 Service 層做淨化
-    if user_update.username:
+    if "username" in changed_fields:
         user_update.username = sanitize_user_input(user_update.username)
-    if user_update.address:
+        if not user_update.username.strip():
+            raise HTTPException(status_code=422, detail="帳號名稱不可為空白")
+    if "address" in changed_fields:
         user_update.address = sanitize_user_input(user_update.address)
-
-    # 呼叫 CRUD 更新
-    updated_user = await update_user_crud(db, user_id, user_update)
 
     # [交易控制] 主交易 commit
     try:
+        updated_user = await update_user_crud(db, user_id, user_update)
         await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Email 或帳號名稱已被使用")
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="更新使用者失敗")
@@ -94,9 +108,7 @@ async def service_update_user(
             db=db, background_tasks=background_tasks, request=request,
             user_id=current_user.user_id, category="USER", action="UPDATE",
             target_id=str(user_id),
-            before_data={"username": before_data.username, "email": before_data.email},
-            after_data={"username": updated_user.username, "email": updated_user.email},
-            request_id=getattr(request.state, "request_id", None)
+            after_data={"changed_fields": sorted(changed_fields)},
         )
     except Exception as e:
         print(f"[WARN] log_action failed: {e}")

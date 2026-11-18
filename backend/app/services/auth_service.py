@@ -2,6 +2,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from fastapi import Request, BackgroundTasks, HTTPException
 from jose import jwt, JWTError
 from app.models.users import Users
@@ -11,17 +13,16 @@ from app.core.jwt import create_access_token, create_refresh_token, verify_refre
 from app.core.config import settings
 from app.services.audit_log_service import log_action
 
-allowed_roles = [2, 3]  # Manager=2, Customer=3
-
 # 註冊
 async def service_register_user(db: AsyncSession, request: Request, background_tasks: BackgroundTasks, user_data: UserCreate):
-    result = await db.execute(select(Users).where(Users.email == user_data.email))
+    if user_data.role_id != 3:
+        raise HTTPException(status_code=403, detail="註冊僅能建立 Customer 帳號")
+    result = await db.execute(select(Users).where(or_(
+        Users.email == user_data.email, Users.username == user_data.username
+    )))
     user = result.scalars().first()
     if user:
-        raise HTTPException(status_code=400, detail="Email 已被註冊")
-
-    if user_data.role_id not in allowed_roles:
-        raise HTTPException(status_code=400, detail="只能選擇賣家或買家")
+        raise HTTPException(status_code=400, detail="Email 或帳號名稱已被註冊")
 
     hashed_password = hash_password(user_data.password)
     new_user = Users(
@@ -30,12 +31,15 @@ async def service_register_user(db: AsyncSession, request: Request, background_t
         password_hash=hashed_password,
         phone=user_data.phone,
         address=user_data.address,
-        role_id=user_data.role_id
+        role_id=3
     )
     db.add(new_user)
 
     try:
         await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Email 或帳號名稱已被註冊")
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="註冊失敗")
@@ -45,8 +49,7 @@ async def service_register_user(db: AsyncSession, request: Request, background_t
             db=db, background_tasks=background_tasks, request=request,
             user_id=new_user.user_id, category="AUTH", action="REGISTER",
             target_id=str(new_user.user_id),
-            after_data={"username": new_user.username, "email": new_user.email},
-            request_id=getattr(request.state, "request_id", None)
+            after_data={"role_id": 3},
         )
     except Exception as e:
         print(f"[WARN] log_action failed: {e}")
@@ -80,7 +83,6 @@ async def service_login_user(db: AsyncSession, request: Request, background_task
             user_id=user.user_id, category="AUTH", action="LOGIN",
             target_id=str(user.user_id),
             after_data={"role": user.role.name, "email": user.email},
-            request_id=getattr(request.state, "request_id", None)
         )
     except Exception as e:
         print(f"[WARN] log_action failed: {e}")
@@ -117,7 +119,6 @@ async def service_refresh_token(db: AsyncSession, request: Request, background_t
             user_id=user.user_id, category="AUTH", action="REFRESH_TOKEN",
             target_id=str(user.user_id),
             after_data={"role": user.role.name, "email": user.email},
-            request_id=getattr(request.state, "request_id", None)
         )
     except Exception as e:
         print(f"[WARN] log_action failed: {e}")
@@ -155,7 +156,6 @@ async def service_logout_user(db: AsyncSession, request: Request, background_tas
             user_id=user.user_id, category="AUTH", action="LOGOUT",
             target_id=str(user.user_id),
             before_data={"email": user.email},
-            request_id=getattr(request.state, "request_id", None)
         )
     except Exception as e:
         print(f"[WARN] log_action failed: {e}")

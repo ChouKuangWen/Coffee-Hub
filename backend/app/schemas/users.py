@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, ConfigDict  # 匯入 Pydantic 的基礎模型與 email 型別驗證
-from typing import Optional               # 匯入 Optional，允許欄位為可選
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
+from typing import Optional, Literal
 from datetime import datetime             # 匯入 datetime，用於建立時間欄位
 
 # 共用欄位基礎模型：用於其他 schema 繼承（避免重複）
@@ -12,7 +12,10 @@ class UserBase(BaseModel):
 
 # 建立新使用者時使用的 Schema，包含 password 欄位
 class UserCreate(UserBase):
+    # 一般建立帳號一律是 Customer；升 Seller 必須走核准流程。
+    role_id: Literal[3] = 3
     password: str           # 密碼（明文傳入後端，後端雜湊儲存）
+    model_config = ConfigDict(extra="forbid")
 
 # 從資料庫讀取並回傳使用者資料時使用的 Schema
 class UserRead(UserBase):
@@ -28,12 +31,19 @@ class UserLogin(BaseModel):
 
 # 更新使用者資料時使用的 Schema（允許部分欄位為空）
 class UserUpdate(BaseModel):
+    username: Optional[str] = Field(None, min_length=1, max_length=50)
     email: Optional[EmailStr] = None  # Optional要搭配 "= None" 才會變成可選的
     phone: Optional[str] = None
     address: Optional[str] = None
-    role_id: Optional[int] = None
+    # 明確拒絕 role_id／password_hash 等非個資欄位，而不是靜默忽略。
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
-    model_config = ConfigDict(from_attributes=True)
+    @field_validator("username", "email", "phone", "address")
+    @classmethod
+    def reject_explicit_null(cls, value):
+        if value is None:
+            raise ValueError("會員欄位不可為 null；不修改時請省略欄位")
+        return value
 
 # 用來取代原本的 dict 回傳，讓 Swagger 顯示明確訊息
 class MessageResponse(BaseModel):

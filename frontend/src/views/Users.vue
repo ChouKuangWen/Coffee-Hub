@@ -42,8 +42,14 @@ const fetchCurrentUser = async () => {
 // 讀取所有使用者
 const fetchUsers = async () => {
   try {
-    const res = await api.get("/users/");
-    users.value = res.data;
+    if (!currentUser.value) return;
+    if (currentUser.value.role_id === 1) {
+      const res = await api.get("/users/");
+      users.value = res.data;
+    } else {
+      const res = await api.get(`/users/${currentUser.value.user_id}`);
+      users.value = [res.data];
+    }
   } catch (err) {
     console.error("fetchUsers error:", err);
     alert("無法取得使用者資料：" + (err.response?.data?.detail || err.message));
@@ -92,18 +98,25 @@ const closeModal = () => {
 // 儲存 (新增或編輯)
 const saveUser = async () => {
   try {
+    const payload = {
+      username: form.value.username,
+      email: form.value.email,
+      phone: form.value.phone,
+      address: form.value.address,
+    };
     if (editingUser.value) {
-      await api.put(`/users/${editingUser.value.user_id}`, form.value);
+      await api.put(`/users/${editingUser.value.user_id}`, payload);
       alert("使用者更新成功！");
     } else {
-      await api.post("/users/", form.value);
+      await api.post("/users/", { ...payload, password: form.value.password });
       alert("使用者新增成功！");
     }
     await fetchUsers();
     closeModal();
   } catch (err) {
     console.error("saveUser error:", err);
-    alert("操作失敗：" + (err.response?.data?.detail || err.message));
+    const detail = err.response?.data?.detail;
+    alert("操作失敗：" + (Array.isArray(detail) ? detail.map(item => item.msg).join('；') : detail || err.message));
   }
 };
 
@@ -202,14 +215,7 @@ onMounted(async () => {
           <label>地址：</label>
           <input v-model="form.address" />
 
-          <template v-if="currentUser?.role_id === 1">
-            <label>角色：</label>
-            <select v-model.number="form.role_id">
-              <option :value="1">Admin</option>
-              <option :value="2">Seller</option>
-              <option :value="3">Customer</option>
-            </select>
-          </template>
+          <p>此表單僅維護會員資料；角色須經核准流程變更。</p>
 
           <template v-if="!editingUser">
             <label>密碼：</label>
