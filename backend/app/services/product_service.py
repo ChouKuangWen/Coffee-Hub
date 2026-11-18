@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, BackgroundTasks, HTTPException, status
 from typing import Optional
 from sqlalchemy import select
+from sqlalchemy.orm import lazyload
+from app.models.products import Products
 from app.models.users import Users
 from app.schemas.products import ProductCreate, ProductUpdate
 from app.crud.products import (
@@ -11,7 +13,7 @@ from app.crud.products import (
     update_product_information as crud_update_product_information,
     delete_one_product as crud_delete_one_product
 )
-from app.services.audit_log_service import log_action
+from app.services.audit_log_service import record_required_action
 from app.core.sanitizer import sanitize_user_input
 
 
@@ -43,9 +45,12 @@ async def get_public_products_service(db: AsyncSession, page: int, limit: int,
 
 
 # 後台 Dashboard 查詢
-async def get_dashboard_products_service(db: AsyncSession, current_user: Users):
+async def get_dashboard_products_service(db: AsyncSession, current_user: Users, page=1, limit=20):
+    if current_user.role_id not in (1, 2):
+        raise HTTPException(status_code=403, detail="僅限 Admin 或 Seller")
     filter_id = None if current_user.role_id == 1 else current_user.user_id
-    products, total = await crud_get_all_products(db, owner_id=filter_id, is_active=None)
+    products, total = await crud_get_all_products(db, owner_id=filter_id, is_active=None,
+                                                skip=(page - 1) * limit, limit=limit)
     return products, total
 
 
@@ -65,99 +70,84 @@ async def get_product_service(db: AsyncSession, product_id: int, current_user: O
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="該商品目前不對外公開")
 
 
-# 新增商品
-async def create_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
-                                 current_user: Users, product_in: ProductCreate):
-    await _lock_active_actor(db, request, current_user, activating=product_in.is_active)
-    # 安全淨化處理
-    if product_in.description:
-        product_in.description = sanitize_user_input(product_in.description)
-    if product_in.flavor_tags:
-        product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
-
-    db_product = await crud_create_new_product(db, product_in, current_user.user_id)
-    try:
-        await db.commit()
-        after_data = {"name": db_product.name, "price": str(db_product.price)}
-        try:
-            await log_action(
-                db=db, background_tasks=background_tasks, request=request,
-                user_id=current_user.user_id, category="PRODUCT", action="CREATE",
-                target_id=str(db_product.product_id),
-                after_data=after_data,
-                request_id=getattr(request.state, "request_id", None)
-                )
-        except Exception as e:
-            print(f"log_action failed: {e}")
-    except Exception:
-        await db.rollback()
-        raise HTTPException(status_code=500, detail="建立商品失敗")
-    return db_product
+def _product_state(product):
+    return {"name": product.name, "price": str(product.price),
+            "stock": product.stock, "is_active": product.is_active}
 
 
-# 更新商品
-async def update_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
-                                 current_user: Users, product_id: int, product_in: ProductUpdate):
+async def _locked_product(db, request, current_user, product_id, activating=False):
     existing = await crud_get_product(db, product_id)
     if not existing:
         raise HTTPException(status_code=404, detail="商品不存在")
-    await _lock_active_actor(db, request, current_user, existing.owner_id, product_in.is_active is True)
-    # 賣家權限檢查 (管理員 role_id=1 除外)
+    await _lock_active_actor(db, request, current_user, existing.owner_id, activating)
+    result = await db.execute(select(Products).options(lazyload(Products.owner))
+                              .where(Products.product_id == product_id).with_for_update()
+                              .execution_options(populate_existing=True))
+    existing = result.scalar_one()
     if current_user.role_id != 1 and existing.owner_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="您無權編輯此商品")
+        raise HTTPException(status_code=403, detail="您無權管理此商品")
+    return existing
 
-    before_data = {"name": existing.name, "price": str(existing.price)}
 
-    # 安全淨化處理
-    if product_in.description:
-        product_in.description = sanitize_user_input(product_in.description)
-    if product_in.flavor_tags:
-        product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
-
+async def create_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
+                                 current_user: Users, product_in: ProductCreate):
     try:
-        updated = await crud_update_product_information(db, product_in, existing)
+        await _lock_active_actor(db, request, current_user, activating=product_in.is_active)
+        if product_in.description:
+            product_in.description = sanitize_user_input(product_in.description)
+        if product_in.flavor_tags:
+            product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
+        product = await crud_create_new_product(db, product_in, current_user.user_id)
+        await record_required_action(db, request, user_id=current_user.user_id, category="PRODUCT",
+                                     target_type="PRODUCT", action="CREATE", target_id=product.product_id,
+                                     after_data=_product_state(product))
         await db.commit()
-        after_data = {"name": updated.name, "price": str(updated.price)}
-        try:
-            await log_action(db=db, background_tasks=background_tasks, request=request,
-                    user_id=current_user.user_id, category="PRODUCT", action="UPDATE",
-                    target_id=str(product_id), before_data=before_data, after_data=after_data,
-                    request_id=getattr(request.state, "request_id", None)
-                    )
-        except Exception as e:
-            print(f"log_action failed: {e}")
-        return await crud_get_product(db, product_id)  # 避免回傳過期物件
+        return await crud_get_product(db, product.product_id)
+    except HTTPException:
+        await db.rollback()
+        raise
+    except Exception:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="建立商品失敗")
 
+
+async def update_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
+                                 current_user: Users, product_id: int, product_in: ProductUpdate):
+    try:
+        existing = await _locked_product(db, request, current_user, product_id, product_in.is_active is True)
+        before = _product_state(existing)
+        if product_in.description:
+            product_in.description = sanitize_user_input(product_in.description)
+        if product_in.flavor_tags:
+            product_in.flavor_tags = sanitize_user_input(product_in.flavor_tags)
+        updated = await crud_update_product_information(db, product_in, existing)
+        await record_required_action(db, request, user_id=current_user.user_id, category="PRODUCT",
+                                     target_type="PRODUCT", action="UPDATE", target_id=product_id,
+                                     before_data=before, after_data=_product_state(updated))
+        await db.commit()
+        return await crud_get_product(db, product_id)
+    except HTTPException:
+        await db.rollback()
+        raise
     except Exception:
         await db.rollback()
         raise HTTPException(status_code=500, detail="更新商品失敗")
 
 
-    
-# 刪除商品
 async def delete_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
                                  current_user: Users, product_id: int):
-    existing = await crud_get_product(db, product_id)
-    if not existing:
-        raise HTTPException(status_code=404, detail="商品不存在")
-    await _lock_active_actor(db, request, current_user, existing.owner_id)
-    # 檢查權限
-    if current_user.role_id != 1 and existing.owner_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="您無權刪除此商品")
-
-    before_data = {"name": existing.name, "price": str(existing.price)}
     try:
+        existing = await _locked_product(db, request, current_user, product_id)
+        before = _product_state(existing)
         await crud_delete_one_product(db, existing)
+        await record_required_action(db, request, user_id=current_user.user_id, category="PRODUCT",
+                                     target_type="PRODUCT", action="DEACTIVATE", target_id=product_id,
+                                     before_data=before, after_data=_product_state(existing))
         await db.commit()
-        try:
-            await log_action(db=db, background_tasks=background_tasks, request=request,
-                     user_id=current_user.user_id, category="PRODUCT", action="DELETE",
-                     target_id=str(product_id), before_data=before_data,
-                     request_id=getattr(request.state, "request_id", None))
-        except Exception as e:
-            print(f"log_action failed: {e}")
+        return {"message": "商品已下架"}
+    except HTTPException:
+        await db.rollback()
+        raise
     except Exception:
         await db.rollback()
-        raise HTTPException(status_code=500, detail="刪除商品失敗")
-
-    return {"message": "商品已刪除"}
+        raise HTTPException(status_code=500, detail="下架商品失敗")

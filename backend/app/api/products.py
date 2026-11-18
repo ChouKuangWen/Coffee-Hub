@@ -77,6 +77,8 @@ async def read_all_products(
 @limiter.limit("30/minute")
 async def read_dashboard_products(
     request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user = Depends(get_current_user_from_cookie)
     ):
@@ -87,7 +89,7 @@ async def read_dashboard_products(
     """
 
     # 注意：get_all_products 會回傳 (products, total)
-    products, total = await  get_dashboard_products_service(db, current_user)
+    products, total = await get_dashboard_products_service(db, current_user, page, limit)
     return {
         "items": [serialize_product(p) for p in products],
         "total": total

@@ -19,6 +19,8 @@ class OrderItemCreate(OrderItemBase):
 # 讀取資料時使用
 class OrderItemRead(OrderItemBase):
     order_item_id: int
+    product_name: Optional[str] = None
+    seller_id: Optional[int] = None
 
     # 使用 V2 的計算欄位，自動算出小計
     @computed_field
@@ -30,8 +32,8 @@ class OrderItemRead(OrderItemBase):
 
 # 產品詳細資訊
 class OrderItemReadWithDetail(OrderItemRead):
-    product: Optional[ProductRead] = None
-    order: Optional[OrderRead] = None
+    # 歷史明細只輸出快照，避免洩漏整單金額、買家與即時商品資料。
+    pass
 
 # 列表回應模型 (讓 Swagger 顯示 {items, total})
 class OrderItemListResponse(BaseModel):

@@ -8,6 +8,8 @@ from app.models.users import Users
 
 from app.schemas.orders import (
     OrderCreate,
+    SellerOrderRead,
+    SellerOrderListResponse,
     OrderUpdateStatus,
     OrderRead,
     OrderListResponse,
@@ -15,6 +17,7 @@ from app.schemas.orders import (
 )
 
 from app.services.order_service import (
+    get_authorized_order,
     get_admin_orders_service,
     get_seller_orders_service,
     get_customer_orders_service,
@@ -63,7 +66,7 @@ async def read_user_orders(
     }
 
 # 賣家獲取訂單
-@router.get("/seller", response_model=OrderListResponse)
+@router.get("/seller", response_model=SellerOrderListResponse)
 @limiter.limit("30/minute")
 async def read_seller_orders(
     request: Request,
@@ -71,10 +74,7 @@ async def read_seller_orders(
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
     orders = await get_seller_orders_service(db, current_user)
-    return {
-        "items": [serialize_order(order) for order in orders],
-        "total": len(orders)
-    }
+    return {"items": orders, "total": len(orders)}
 
 # 管理員獲取全部訂單
 @router.get("/all", response_model=OrderListResponse)
@@ -91,18 +91,16 @@ async def read_all_orders(
     }
 
 # 獲取單個訂單
-@router.get("/{order_id}", response_model=OrderRead)
+@router.get("/{order_id}", response_model=OrderRead | SellerOrderRead)
 @limiter.limit("30/minute")
 async def read_order(
     request: Request,
     order_id: int,
+    sales: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    order = await get_order(db, order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="訂單不存在")
-    return serialize_order(order)
+    return await get_authorized_order(db, order_id, current_user, sales)
 
 # 更新
 @router.patch("/{order_id}/status", response_model=OrderRead)

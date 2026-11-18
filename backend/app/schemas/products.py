@@ -11,13 +11,13 @@ class ProductCategory(str, Enum):
 
 # 共用欄位（給 Create、Read、Update 繼承）
 class ProductBase(BaseModel):
-    name: str = Field(..., description="商品名稱") # 商品名稱
+    name: str = Field(..., min_length=1, max_length=100, description="商品名稱")
     # 圖片相關 (使用 str 或 HttpUrl)
     main_image: Optional[str] = Field(None, description="主圖 GCS URL")
     sub_images: Optional[List[str]] = Field(default_factory=list, description="副圖 URL 清單 (最多三張)")
     
-    price: Decimal = Field(..., gt=0, description="價格")  # 價格，使用 Decimal 保留精度
-    stock: int = Field(default=0, ge=0, description="庫存數量")  # 庫存數量
+    price: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2, description="價格")
+    stock: int = Field(default=0, ge=0, le=2147483647, strict=True, description="庫存數量")
     product_category: ProductCategory = Field(default=ProductCategory.roasted_bean)
     
     # 產地與專業規格
@@ -61,12 +61,11 @@ class ProductRead(ProductBase):
 
 # 商品更新時使用（允許部分欄位）
 class ProductUpdate(BaseModel):
-    name: Optional[str] = None
-    price: Optional[Decimal] = None
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    price: Optional[Decimal] = Field(None, gt=0, max_digits=10, decimal_places=2)
     main_image: Optional[str] = None
     sub_images: Optional[List[str]] = None
-    price: Optional[Decimal] = None
-    stock: Optional[int] = None
+    stock: Optional[int] = Field(None, ge=0, le=2147483647, strict=True)
     product_category: Optional[ProductCategory] = None
     continent: Optional[str] = None
     country: Optional[str] = None
@@ -82,6 +81,13 @@ class ProductUpdate(BaseModel):
     flavor_tags: Optional[str] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
+
+    @field_validator('name', 'price', 'stock', 'product_category', 'is_active')
+    @classmethod
+    def required_when_present(cls, value):
+        if value is None:
+            raise ValueError('此欄位不可為 null')
+        return value
 
     @field_validator('sub_images')
     @classmethod

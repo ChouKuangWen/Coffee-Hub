@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DECIMAL, ForeignKey
+from sqlalchemy import Column, Integer, String, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
@@ -10,6 +10,8 @@ class OrderItems(Base):
     product_id = Column(Integer, ForeignKey("products.product_id", ondelete="SET NULL"), nullable=True, index=True, comment="商品 ID")
     quantity = Column(Integer, nullable=False, comment="數量")
     price = Column(DECIMAL(10,2), nullable=False, comment="單價")
+    product_name = Column(String(100), nullable=True)
+    seller_id = Column(Integer, ForeignKey("users.user_id"), nullable=True)
     order = relationship("Orders", lazy="joined", back_populates="order_items", passive_deletes=True)
     product = relationship("Products", lazy="joined", back_populates="order_items", passive_deletes=True)
    

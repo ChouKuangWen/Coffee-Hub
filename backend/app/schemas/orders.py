@@ -1,4 +1,5 @@
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field, Field, field_validator
+from uuid import UUID
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
@@ -20,8 +21,23 @@ class OrderBase(BaseModel):
     total: Decimal
 
 # 建立訂單用
-class OrderCreate(OrderBase):
-    user_id: Optional[int] = None # 建立時可選，路由會從 current_user 帶入
+class CheckoutItem(BaseModel):
+    cart_item_id: int = Field(gt=0, strict=True)
+    quantity: int = Field(gt=0, le=2147483647, strict=True)
+    model_config = ConfigDict(extra="forbid")
+
+
+class OrderCreate(BaseModel):
+    checkout_key: UUID
+    items: List[CheckoutItem] = Field(min_length=1, max_length=100)
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator('items')
+    @classmethod
+    def unique_items(cls, items):
+        if len({item.cart_item_id for item in items}) != len(items):
+            raise ValueError('購物車品項不可重複')
+        return items
 
 # 更新訂單狀態用（可自訂）
 class OrderUpdateStatus(BaseModel):
@@ -45,6 +61,19 @@ class OrderRead(OrderBase):
 # 2. 列表包裝，讓 Swagger 顯示 {items: [], total: 0}
 class OrderListResponse(BaseModel):
     items: List[OrderRead]
+    total: int
+
+
+class SellerOrderRead(BaseModel):
+    order_id: int
+    status: OrderStatus
+    status_label: str
+    created_at: Optional[datetime] = None
+    seller_total: Decimal
+
+
+class SellerOrderListResponse(BaseModel):
+    items: List[SellerOrderRead]
     total: int
 
 class OrderMessageResponse(BaseModel):

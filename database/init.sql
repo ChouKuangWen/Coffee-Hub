@@ -99,6 +99,9 @@ CREATE TABLE orders (
     user_id INT  NULL COMMENT '下單會員 ID',
     status VARCHAR(50) NOT NULL DEFAULT '待付款' COMMENT '訂單狀態',
     total DECIMAL(10,2) NOT NULL COMMENT '總金額',
+    checkout_key VARCHAR(36) NULL,
+    checkout_fingerprint VARCHAR(64) NULL,
+    UNIQUE KEY uq_orders_checkout(user_id,checkout_key),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '建立時間',
     status_updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '狀態變動時間',
     -- 索引優化清單
@@ -115,6 +118,9 @@ CREATE TABLE order_items (
     product_id INT  NULL COMMENT '商品 ID',
     quantity INT NOT NULL COMMENT '數量',
     price DECIMAL(10,2) NOT NULL COMMENT '單價',
+    product_name VARCHAR(100) NULL,
+    seller_id INT NULL,
+    CONSTRAINT fk_oi_snapshot_seller FOREIGN KEY(seller_id) REFERENCES users(user_id),
     -- 索引優化
     INDEX idx_oi_order_id (order_id),
     INDEX idx_oi_product_id (product_id),
@@ -227,3 +233,5 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
     applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 INSERT INTO schema_migrations(version) VALUES ('001_account_lifecycle');
+
+INSERT IGNORE INTO schema_migrations(version) VALUES ('002_simulated_checkout');

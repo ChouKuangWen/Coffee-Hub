@@ -4,6 +4,8 @@ import { useRouter } from "vue-router";
 import api from "@/api";
 
 // --- 狀態管理 ---
+const page = ref(1);
+const total = ref(0);
 const products = ref([]); // 儲存所有商品列表 (ProductRead)
 const loading = ref(true); // 頁面整體載入狀態
 const searchKeyword = ref(""); // 搜尋關鍵字
@@ -78,8 +80,9 @@ const fetchCurrentUser = async () => {
 const fetchProducts = async () => {
   try {
     // 假設 /products 會回傳所有商品列表
-    const res = await api.get("/products/dashboard");
+    const res = await api.get("/products/dashboard", { params: { page: page.value, limit: 20 } });
     products.value = res.data.items || [];
+    total.value = res.data.total;
   } catch (err) {
     console.error("fetchProducts error:", err);
     alert("無法取得商品資料：" + (err.response?.data?.detail || err.message));
@@ -251,11 +254,11 @@ const deleteProduct = async (product) => {
     return;
   }
 
-  if (!confirm(`確定要刪除商品 ID #${product.product_id}: ${product.name} 嗎？`)) return;
+  if (!confirm(`確定要下架商品 ID #${product.product_id}: ${product.name} 嗎？`)) return;
 
   try {
     await api.delete(`/products/${product.product_id}`);
-    alert("商品刪除成功！");
+    alert("商品已下架！");
     await fetchProducts(); // 刷新列表
   } catch (err) {
     console.error("Delete error:", err);
@@ -303,17 +306,20 @@ onMounted(async () => {
               <span v-if="product.country" class="tag-country">{{ product.country }}</span>
             </td>
             <td>{{ product.product_category === 'green_bean' ? '生豆' : '熟豆' }}</td>
-            <td>{{ product.price }}</td>
+            <td>{{ product.price }} / {{ product.is_active ? '上架' : '下架' }}</td>
             <td :class="{'low-stock': product.stock < 10 && product.stock > 0, 'out-of-stock': product.stock <= 0}">{{ product.stock }}</td>
             <td>
               <template v-if="canManageProduct(product.owner_id)">
                 <button class="edit-btn" @click="openEditModal(product)">編輯</button>
-                <button class="delete-btn" @click="deleteProduct(product)">刪除</button>
+                <button class="delete-btn" @click="deleteProduct(product)">下架</button>
               </template>
             </td>
           </tr>
         </tbody>
       </table>
+      <button :disabled="page <= 1" @click="page--; fetchProducts()">上一頁</button>
+      <span>第 {{ page }} 頁，共 {{ total }} 筆</span>
+      <button :disabled="page * 20 >= total" @click="page++; fetchProducts()">下一頁</button>
     </div>
 
     <div v-if="isModalOpen" class="modal-overlay" @click.self="closeModal">
@@ -334,11 +340,11 @@ onMounted(async () => {
               </div>
               <div class="col">
                 <label>價格 *</label>
-                <input type="number" step="0.01" v-model="productForm.price" required />
+                <input type="number" step="0.01" min="0.01" max="99999999.99" v-model="productForm.price" required />
               </div>
               <div class="col">
                 <label>庫存 *</label>
-                <input type="number" v-model="productForm.stock" required />
+                <input type="number" min="0" max="2147483647" step="1" v-model.number="productForm.stock" required />
               </div>
             </div>
           </div>
@@ -404,6 +410,7 @@ onMounted(async () => {
             <textarea v-model="productForm.description"></textarea>
           </div>
 
+          <label>上架狀態 <select v-model="productForm.is_active"><option :value="true">上架</option><option :value="false">下架</option></select></label>
           <div class="form-actions">
             <button type="submit" class="submit-btn" :disabled="isUploadingMain">儲存</button>
             <button type="button" class="cancel-btn" @click="closeModal">取消</button>

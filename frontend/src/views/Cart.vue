@@ -2,16 +2,18 @@
 import { onMounted, ref } from 'vue'; // 引入 ref
 import { useCartStore } from '@/stores/cart';
 import { useRouter } from 'vue-router';
+import api from '@/api';
 
 const cartStore = useCartStore();
 const router = useRouter();
+const checkoutAttempt = ref(null);
+const selectedIds = ref([]);
 const isProcessing = ref(false); // 新增：全域處理鎖定，防止連點卡頓
 
 onMounted(async () => {
-  // 加入 loading 判斷，避免重複 fetch
-  if (cartStore.items.length === 0) {
-    await cartStore.fetchCart();
-  }
+  // 每次進入重新確認可選品項；建單時後端仍會再次驗證。
+  await cartStore.fetchCart(true);
+  selectedIds.value = cartStore.items.filter(i => i.product?.is_active).map(i => i.cart_item_id);
 });
 
 // 數量增減邏輯 (優化版)
@@ -21,7 +23,7 @@ const updateQty = async (item, change) => {
   const newQty = item.quantity + change;
   
   // 檢查邊界：不可小於 1，不可超過庫存
-  if (newQty >= 1 && newQty <= (item.product?.stock || 99)) {
+  if (newQty >= 1 && newQty <= (item.product?.stock ?? 0)) {
     isProcessing.value = true;
     try {
       // 修正：使用 cart_item_id 而非 id
@@ -42,8 +44,33 @@ const handleRemove = async (cartItemId) => {
   }
 };
 
-const proceedToCheckout = () => {
-  alert('訂單功能開發中！接下來可以挑戰串接金流或建立訂單 API 哦。');
+const proceedToCheckout = async () => {
+  if (isProcessing.value) return;
+  const items = cartStore.items.filter(i => selectedIds.value.includes(i.cart_item_id))
+    .map(i => ({ cart_item_id: i.cart_item_id, quantity: i.quantity }));
+  if (!items.length) return alert('請勾選本次轉單品項');
+  const signature = JSON.stringify(items);
+  if (!checkoutAttempt.value || checkoutAttempt.value.signature !== signature) {
+    checkoutAttempt.value = { signature, payload: { checkout_key: crypto.randomUUID(), items } };
+  }
+  isProcessing.value = true;
+  try {
+    const response = await api.post('/orders/', checkoutAttempt.value.payload);
+    checkoutAttempt.value = null;
+    await cartStore.fetchCart(true);
+    alert(`模擬訂單 #${response.data.order_id} 已建立，商品金額 TWD ${response.data.total}；未付款、未安排物流。`);
+    router.push('/orders');
+  } catch (err) {
+    // 網路／伺服器錯誤保留相同鍵與 payload，安全重試。
+    const status = err.response?.status;
+    if (status && status < 500) {
+      checkoutAttempt.value = null;
+      await cartStore.fetchCart(true);
+    }
+    alert(err.response?.data?.detail || '連線失敗，請以相同品項重試');
+  } finally {
+    isProcessing.value = false;
+  }
 };
 </script>
 
@@ -57,13 +84,14 @@ const proceedToCheckout = () => {
     <main v-if="cartStore.items.length > 0" class="cart-container" :class="{ 'is-loading': isProcessing }">
       <section class="cart-items">
         <div v-for="item in cartStore.items" :key="item.cart_item_id" class="cart-item">
+          <input type="checkbox" v-model="selectedIds" :value="item.cart_item_id" :disabled="!item.product?.is_active || isProcessing" aria-label="選取轉單品項">
           <div class="item-image">
             <img :src="item.product?.main_image || '/images/default-coffee.jpg'" :alt="item.product?.name">
           </div>
 
           <div class="item-details">
             <div class="item-title">
-              <h3>{{ item.product?.name || '讀取中...' }}</h3>
+              <h3>{{ item.product?.name || '讀取中...' }} {{ item.product?.is_active ? '' : '（已下架，請移除）' }}</h3>
               <p class="item-spec">{{ item.product?.process_method }} | {{ item.product?.roast_level }}</p>
             </div>
             <p class="item-price">NT$ {{ item.product?.price }}</p>
@@ -71,9 +99,9 @@ const proceedToCheckout = () => {
 
           <div class="item-actions">
             <div class="quantity-controller">
-              <button @click="updateQty(item, -1)" :disabled="item.quantity <= 1 || isProcessing">-</button>
+              <button @click="updateQty(item, -1)" :disabled="!item.product?.is_active || item.quantity <= 1 || isProcessing">-</button>
               <span class="qty-num">{{ item.quantity }}</span>
-              <button @click="updateQty(item, 1)" :disabled="item.quantity >= (item.product?.stock || 0) || isProcessing">+</button>
+              <button @click="updateQty(item, 1)" :disabled="!item.product?.is_active || item.quantity >= (item.product?.stock || 0) || isProcessing">+</button>
             </div>
             <button @click="handleRemove(item.cart_item_id)" class="remove-btn" :disabled="isProcessing">移除</button>
           </div>
@@ -91,17 +119,14 @@ const proceedToCheckout = () => {
             <span>商品總計</span>
             <span>NT$ {{ cartStore.totalAmount }}</span>
           </div>
-          <div class="summary-line">
-            <span>運費</span>
-            <span class="free-shipping">免運費優惠中</span>
-          </div>
+          <p>僅隔離測試環境可建立模擬訂單，不含付款、運費、折扣、稅額或物流。</p>
           <hr>
           <div class="summary-total">
-            <span>應付總額</span>
+            <span>購物車商品參考金額</span>
             <span class="total-amount">NT$ {{ cartStore.totalAmount }}</span>
           </div>
           <button class="checkout-btn" @click="proceedToCheckout" :disabled="isProcessing">
-            {{ isProcessing ? '處理中...' : '前往結帳' }}
+            {{ isProcessing ? '處理中...' : '選取品項建立模擬訂單' }}
           </button>
           <router-link to="/products" class="continue-shopping">繼續選購咖啡</router-link>
         </div>

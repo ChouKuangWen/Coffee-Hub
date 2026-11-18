@@ -99,7 +99,7 @@ async def update_product_information(
 
 # 刪除商品
 async def delete_one_product(db: AsyncSession, existing_product: Products):
-    await db.delete(existing_product)
+    existing_product.is_active = False
     await db.flush()
     return existing_product
 

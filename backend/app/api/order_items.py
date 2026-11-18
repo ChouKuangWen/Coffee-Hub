@@ -6,6 +6,7 @@ from app.models.base import get_db
 from app.models.users import Users
 from app.schemas.order_items import OrderItemCreate, OrderItemRead, OrderItemReadWithDetail, OrderItemListResponse
 from app.services.order_items_service import (
+    get_authorized_order_item,
     create_order_item_service,
     update_order_item_service,
     delete_order_item_service,
@@ -49,18 +50,8 @@ async def read_order_item(
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    item = await get_order_item(db, order_item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="訂單項目不存在")
-
-    # 權限檢查
-    if current_user.role_id != 1 \
-       and item.order.user_id != current_user.user_id \
-       and item.product.owner_id != current_user.user_id:
-        raise HTTPException(status_code=403, detail="無權查看此訂單項目")
-
+    item = await get_authorized_order_item(db, order_item_id, current_user)
     return serialize_item_detail(item)
-
 
 # 新增訂單項目
 @router.post("/", response_model=OrderItemRead)
@@ -112,10 +103,11 @@ async def delete_order_item_api(
 async def read_order_items_by_order(
     request: Request,
     order_id: int,
+    sales: bool = False,
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    filtered_items = await get_order_items_by_order_service(db, current_user, order_id)
+    filtered_items = await get_order_items_by_order_service(db, current_user, order_id, sales)
     return OrderItemListResponse(
         items=[serialize_item_detail(item) for item in filtered_items],
         total=len(filtered_items)

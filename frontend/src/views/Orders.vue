@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import api from "@/api";
 
 // --- 狀態管理 ---
+const salesMode = ref(false);
 const orders = ref([]); // 儲存所有訂單列表 (OrderRead)
 const loading = ref(true); // 頁面整體載入狀態
 const currentUserId = ref(null); // 當前登入的使用者 ID
@@ -61,7 +62,7 @@ const fetchOrders = async () => {
     if (currentUserRole.value === 1) {
       // Admin
       res = await api.get("/orders/all");
-    } else if (currentUserRole.value === 2) {
+    } else if (currentUserRole.value === 2 && salesMode.value) {
       // Seller
       res = await api.get("/orders/seller");
     } else {
@@ -90,7 +91,7 @@ const filteredOrders = computed(() => {
     // 搜尋狀態
     order.status_label.includes(keyword) ||
     // 搜尋總金額
-    order.total.toString().includes(keyword) 
+    (order.total ?? order.seller_total).toString().includes(keyword)
   );
 });
 
@@ -108,7 +109,7 @@ const toggleDetails = async (orderId) => {
 
   try {
     loadingDetailsId.value = orderId;
-    const res = await api.get(`/order_items/by_order/${orderId}`);
+    const res = await api.get(`/order_items/by_order/${orderId}`, { params: { sales: salesMode.value } });
     expandedDetails.value[orderId] = res.data.items || [];
   } catch (err) {
     console.error(err);
@@ -116,41 +117,6 @@ const toggleDetails = async (orderId) => {
     loadingDetailsId.value = null;
   }
 };
-
-// 更新訂單狀態（Admin 或 Seller 權限）
-const updateOrderStatus = async (orderId, newStatusLabel) => {
-  if (!confirm(`確定要將訂單 #${orderId} 的狀態變更為 [${newStatusLabel}] 嗎？`)) return;
-
-  try {
-    // 後端 API: PATCH /orders/{order_id}/status
-    await api.patch(`/orders/${orderId}/status`, { status: newStatusLabel });
-    alert("訂單狀態更新成功！");
-    
-    // 重新載入訂單列表以更新狀態
-    await fetchOrders(); 
-  } catch (err) {
-    console.error("updateOrderStatus error:", err);
-    alert("狀態更新失敗：" + (err.response?.data?.detail || err.message));
-  }
-};
-
-// 刪除訂單
-const deleteOrder = async (orderId) => {
-  if (!confirm("確定要刪除此訂單及其所有明細嗎？")) return;
-  
-  try {
-    // 後端 API: DELETE /orders/{order_id}
-    await api.delete(`/orders/${orderId}`);
-    alert("訂單刪除成功！");
-    
-    // 重新載入訂單列表
-    await fetchOrders(); 
-  } catch (err) {
-    console.error("deleteOrder error:", err);
-    alert("刪除失敗：" + (err.response?.data?.detail || err.message));
-  }
-};
-
 
 // --- 初始化 ---
 onMounted(async () => {
@@ -163,7 +129,9 @@ onMounted(async () => {
 
 <template>
   <div class="order-page member-page">
-    <h2 class="title">訂單管理</h2>
+    <h2 class="title">模擬訂單查詢</h2>
+    <p>測試交易，不代表付款或物流。</p>
+    <label v-if="currentUserRole === 2"><input type="checkbox" v-model="salesMode" @change="expandedDetails = {}; fetchOrders()">銷售查詢（僅本人品項與金額）</label>
 
     <div class="controls">
       <input
@@ -178,8 +146,8 @@ onMounted(async () => {
         <thead>
           <tr>
             <th>ID</th>
-            <th>買家 ID</th>
-            <th>總金額 (NT$)</th>
+            <th v-if="!salesMode">買家 ID</th>
+            <th>{{ salesMode ? '本人銷售商品金額' : '商品金額' }} (TWD)</th>
             <th>狀態</th>
             <th>下單時間</th>
             <th>操作</th>
@@ -189,24 +157,10 @@ onMounted(async () => {
           <template v-for="order in filteredOrders" :key="order.order_id">
             <tr>
               <td>{{ order.order_id }}</td>
-              <td>{{ order.user_id }}</td>
-              <td>{{ order.total }}</td>
+              <td v-if="!salesMode">{{ order.user_id }}</td>
+              <td>{{ order.total ?? order.seller_total }}</td>
               <td>
-                <template v-if="currentUserRole === 1 || currentUserRole === 2">
-                  <select 
-                    :value="order.status_label"
-                    @change="updateOrderStatus(order.order_id, $event.target.value)"
-                    class="status-select"
-                  >
-                    <option value="待付款">待付款</option>
-                    <option value="已付款">已付款</option>
-                    <option value="待出貨">待出貨</option>
-                    <option value="已出貨">已出貨</option>
-                    <option value="已完成">已完成</option>
-                    <option value="已取消">已取消</option>
-                  </select>
-                </template>
-                <span v-else class="status-badge">{{ order.status_label }}</span>
+                <span class="status-badge">{{ order.status_label }}</span>
               </td>
               <td>{{ order.created_at ? new Date(order.created_at).toLocaleDateString() : '無資料' }}</td>
               <td>
@@ -220,13 +174,7 @@ onMounted(async () => {
                   </span>
                 </button>
                 
-                <button
-                  v-if="currentUserRole === 1 || currentUserId === order.user_id"
-                  class="delete-btn"
-                  @click="deleteOrder(order.order_id)"
-                >
-                  刪除
-                </button>
+
               </td>
             </tr>
 
@@ -247,8 +195,8 @@ onMounted(async () => {
                     <tbody>
                       <tr v-for="item in expandedDetails[order.order_id]" :key="item.order_item_id">
                         <td>{{ item.order_item_id }}</td>
-                        <td>{{ item.product?.name || '未知商品' }}</td>
-                        <td>{{ item.product?.owner_email || '未知賣家' }}</td>
+                        <td>{{ item.product_name || '舊資料無名稱快照' }}</td>
+                        <td>{{ item.seller_id ?? '舊資料無賣家快照' }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>${{ item.price }}</td>
                         <td>${{ item.subtotal }}</td>
@@ -256,7 +204,7 @@ onMounted(async () => {
                     </tbody>
                   </table>
                   <div class="detail-summary">
-                    <strong>訂單總金額：</strong> ${{ order.total }}
+                    <strong>{{ salesMode ? '本人銷售商品金額：' : '模擬訂單商品金額：' }}</strong> ${{ order.total ?? order.seller_total }}
                   </div>
                 </div>
               </td>

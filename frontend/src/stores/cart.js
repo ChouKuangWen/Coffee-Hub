@@ -73,7 +73,7 @@ export const useCartStore = defineStore('cart', {
     // 3. 更新數量 (保持你的樂觀更新邏輯)
     async updateQuantity(cartItemId, newQuantity) {
       if (newQuantity < 1) return;
-      const oldItems = [...this.items];
+      const oldItems = this.items.map(item => ({ ...item }));
       const item = this.items.find(i => i.cart_item_id === cartItemId);
       if (item) item.quantity = newQuantity;
       try {
@@ -81,13 +81,13 @@ export const useCartStore = defineStore('cart', {
       } catch (err) {
         console.error('更新數量失敗', err);
         this.items = oldItems; 
-        alert("更新失敗，請檢查網路連線");
+        alert(err.response?.data?.detail || '更新失敗，請重新載入購物車');
       }
     },
 
     // 4. 刪除品項 (保持你的樂觀更新邏輯)
     async removeItem(cartItemId) {
-      const oldItems = [...this.items];
+      const oldItems = this.items.map(item => ({ ...item }));
       this.items = this.items.filter(i => i.cart_item_id !== cartItemId);
       try {
         await deleteCartItem(cartItemId);

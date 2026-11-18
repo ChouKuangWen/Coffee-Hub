@@ -38,7 +38,7 @@ async def _scenario(env, monkeypatch):
     url = make_url(os.environ["COFFEEHUB_TEST_MYSQL_URL"])
     assert url.host in ("127.0.0.1", "localhost") and url.port not in (None, 3306, 3307)
     expected_dir = os.environ["COFFEEHUB_TEST_MYSQL_DATADIR"]
-    assert Path(expected_dir).name.startswith("coffeehub-batch2-")
+    assert Path(expected_dir).name.startswith(("coffeehub-batch2-", "coffeehub-batch3-"))
     db_name = "coffeehub_batch2_" + uuid4().hex
     bootstrap = create_async_engine(url.set(database=None))
     try:

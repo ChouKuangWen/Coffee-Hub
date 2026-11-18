@@ -1,6 +1,6 @@
 # app/dependencies.py
 from typing import Optional
-from fastapi import Depends, HTTPException, Cookie, Request
+from fastapi import Depends, HTTPException, Cookie, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession  # 非同步
 from sqlalchemy.future import select           # 引入 select
