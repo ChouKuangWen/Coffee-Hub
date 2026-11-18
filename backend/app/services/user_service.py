@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import Request, BackgroundTasks, HTTPException
 from app.crud.users import (
     get_all_users, get_user_by_id,
-    create_user_db, update_user_crud, delete_user_crud
+    create_user_db, update_user_crud
 )
 from app.schemas.users import UserCreate, UserUpdate
 from app.core.security import hash_password
@@ -115,38 +115,8 @@ async def service_update_user(
 
     return await get_user_by_id(db, user_id)
 
-# 刪除使用者
-async def service_delete_user(
-    db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
-    current_user: Users, user_id: int
-):
-    if current_user.role_id != 1:
-        raise HTTPException(status_code=403, detail="只有 Admin 可以刪除使用者")
-    # 先取得刪除前的資料
-    before_data = await get_user_by_id(db, user_id)
-    if not before_data:
-        return False
-
-    # 呼叫 CRUD 刪除
-    await delete_user_crud(db, user_id)
-
-    # [交易控制] 主交易 commit
-    try:
-        await db.commit()
-    except Exception:
-        await db.rollback()
-        raise HTTPException(status_code=500, detail="刪除使用者失敗")
-
-    # [審計日誌] log_action 容錯
-    try:
-        await log_action(
-            db=db, background_tasks=background_tasks, request=request,
-            user_id=current_user.user_id, category="USER", action="DELETE",
-            target_id=str(user_id),
-            before_data={"username": before_data.username, "email": before_data.email},
-            request_id=getattr(request.state, "request_id", None)
-        )
-    except Exception as e:
-        print(f"[WARN] log_action failed: {e}")
-
-    return True
+# 舊 DELETE 入口保留相容性，但業務效果為停用，絕不硬刪。
+async def service_delete_user(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
+                              current_user: Users, user_id: int):
+    from app.services.account_service import set_user_activation
+    return await set_user_activation(db, request, current_user, user_id, False)

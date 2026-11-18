@@ -115,7 +115,7 @@ async def logout(
     result = await service_logout_user(db, request, background_tasks, current_user, access_token)
 
     # 刪除 cookie
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie("access_token", secure=True, httponly=True, samesite="none")
+    response.delete_cookie("refresh_token", secure=True, httponly=True, samesite="none")
 
     return {"message": "登出成功"}

@@ -3,6 +3,19 @@ from fastapi import BackgroundTasks, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.audit_log import AuditLogCreate
 from app.crud.audit_log import create_audit_log
+from app.models.audit_log import AuditLog
+
+
+async def record_required_action(db: AsyncSession, request: Request, *, user_id: int,
+                                 action: str, target_id: int | None, before_data=None, after_data=None,
+                                 status="SUCCESS"):
+    """必要審計與主變更同一交易；不 commit、不吞例外、不排背景任務。"""
+    db.add(AuditLog(
+        user_id=user_id, category="ACCOUNT", action=action, target_type="USER",
+        target_id=str(target_id) if target_id is not None else None, status=status, before_data=before_data,
+        after_data=after_data, request_id=getattr(request.state, "request_id", None),
+    ))
+    await db.flush()
 
 
 async def log_action(

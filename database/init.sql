@@ -40,6 +40,8 @@ CREATE TABLE users(
     phone VARCHAR(20) NOT NULL COMMENT '電話',
     address VARCHAR(255) NOT NULL COMMENT '地址',
     role_id INT NOT NULL COMMENT '角色 ID',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    token_version INT NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP  COMMENT '建立時間',
     UNIQUE KEY unique_username(username),
     UNIQUE KEY unique_email(email),
@@ -206,3 +208,22 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
     INDEX `idx_created_at` (`created_at`),
     INDEX `idx_target` (`target_type`, `target_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Batch 2: new installations only; existing databases use migration 001.
+CREATE TABLE seller_applications (
+    application_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_by INT NULL,
+    reviewed_at DATETIME NULL,
+    INDEX idx_seller_application_user (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (reviewed_by) REFERENCES users(user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version VARCHAR(100) PRIMARY KEY,
+    applied_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO schema_migrations(version) VALUES ('001_account_lifecycle');

@@ -26,11 +26,12 @@ async def _get_authenticated_user(request: Request, token: str, db: AsyncSession
 
     result = await db.execute(select(Users).where(Users.user_id == user_id))
     user = result.scalars().first()
-    if not user or user.role_id not in (1, 2, 3):
+    if not user or not user.is_active or user.role_id not in (1, 2, 3):
         raise HTTPException(status_code=401, detail="使用者不存在或角色無效")
-    if payload.get("role_id") != user.role_id:
+    if payload.get("role_id") != user.role_id or payload.get("version") != user.token_version:
         raise HTTPException(status_code=401, detail="角色已異動，請重新登入")
     request.state.user_id = user.user_id
+    request.state.auth_version = user.token_version
     return user
 
 

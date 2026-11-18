@@ -46,19 +46,19 @@ api.interceptors.response.use(
       }
       
       // 1. 取得當前的 Hash 路徑（例如 #/home）
-      const currentHash = window.location.hash;
+      const currentPath = window.location.hash.slice(1).split('?')[0] || '/';
 
       // 2. 定義不需要自動轉址的「白名單」路徑
-      const whiteList = ['#/home', '#/login', '#/register', '#/', '#/products'];
+      const whiteList = ['/home', '/login', '/register', '/', '/products'];
 
       // 3. 檢查目前路徑是否在白名單中
-      const isPublicPage = whiteList.some(path => currentHash.includes(path)) || currentHash === '';
+      const isPublicPage = whiteList.includes(currentPath) || currentPath.startsWith('/product/');
 
       if (isPublicPage) {
         console.log("偵測到 401，但目前在公開頁面，不執行自動轉址");
       } else {
         console.log("偵測到 401 且位於保護頁面，強制跳轉至登入頁");
-        window.location.href = "/login";
+        window.location.hash = '#/login';
       }
     }
     return Promise.reject(error);

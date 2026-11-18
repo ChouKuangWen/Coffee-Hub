@@ -17,6 +17,7 @@ from sqlalchemy.exc import IntegrityError
 @pytest.fixture(scope="module")
 def isolated_app():
     # 在匯入任何應用模組前隔離設定／DB／GCS，不讀 .env、不建立雲端 Client。
+    existing_modules = set(sys.modules)
     with pytest.MonkeyPatch.context() as patch:
         config = ModuleType("app.core.config")
         config.settings = SimpleNamespace(
@@ -44,12 +45,16 @@ def isolated_app():
         yield SimpleNamespace(app=main.app, auth=auth, users=users, deps=deps,
                               token=token, get_db=get_db)
         main.app.dependency_overrides.clear()
+        # 不讓隔離替身污染後續整合測試的模組匯入。
+        for name in set(sys.modules) - existing_modules:
+            if name.startswith("app."):
+                sys.modules.pop(name, None)
 
 
 @pytest.fixture
 def context(isolated_app, monkeypatch):
     env = isolated_app
-    user = SimpleNamespace(user_id=7, role_id=3, username="customer",
+    user = SimpleNamespace(user_id=7, role_id=3, username="customer", is_active=True, token_version=0,
                            email="customer@example.com", phone="0900000000",
                            address="測試地址", created_at=datetime(2026, 1, 1))
     result = Mock()
@@ -63,12 +68,14 @@ def context(isolated_app, monkeypatch):
     env.app.dependency_overrides[env.get_db] = database
     env.app.state.limiter.enabled = False
     monkeypatch.setattr(env.auth, "log_action", AsyncMock())
+    monkeypatch.setattr(env.auth, "record_required_action", AsyncMock())
     monkeypatch.setattr(env.users, "log_action", AsyncMock())
     client = TestClient(env.app, base_url="https://testserver")
-    access, _ = env.token.create_access_token({"user_id": 7, "role_id": 3})
+    access, _ = env.token.create_access_token({"user_id": 7, "role_id": 3, "session_id": "test-session"})
     client.cookies.set("access_token", access)
     # 驗證仍執行真實 JWT 簽章／期限檢查；只替換撤銷紀錄查詢。
     monkeypatch.setattr(env.token, "is_jti_blacklisted", AsyncMock(return_value=False))
+    monkeypatch.setattr(env.token, "verify_session", AsyncMock())
     yield SimpleNamespace(env=env, client=client, db=db, result=result, user=user)
     client.close()
     env.app.state.limiter.enabled = True
@@ -143,7 +150,7 @@ def test_cross_account_read_update_and_list_are_forbidden(context):
 
 def test_admin_can_update_profile_but_not_grant_roles_through_profile(context):
     context.user.role_id = 1
-    access, _ = context.env.token.create_access_token({"user_id": 7, "role_id": 1})
+    access, _ = context.env.token.create_access_token({"user_id": 7, "role_id": 1, "session_id": "test-session"})
     context.client.cookies.set("access_token", access)
     target = SimpleNamespace(**{**vars(context.user), "user_id": 8, "role_id": 3})
     target_result = Mock()
@@ -172,7 +179,7 @@ def test_missing_profile_returns_404(context, monkeypatch):
 
 
 def test_stale_cookie_bearer_and_optional_auth_never_overwrite_database_role(context):
-    old_token, _ = context.env.token.create_access_token({"user_id": 7, "role_id": 1})
+    old_token, _ = context.env.token.create_access_token({"user_id": 7, "role_id": 1, "session_id": "test-session"})
     context.client.cookies.set("access_token", old_token)
     assert context.client.get("/auth/me").status_code == 401
     assert context.user.role_id == 3
@@ -216,7 +223,7 @@ def test_expired_token_and_malformed_identity_are_unauthorized(context):
 
 def test_admin_create_is_customer_only(context):
     context.user.role_id = 1
-    access, _ = context.env.token.create_access_token({"user_id": 7, "role_id": 1})
+    access, _ = context.env.token.create_access_token({"user_id": 7, "role_id": 1, "session_id": "test-session"})
     context.client.cookies.set("access_token", access)
     assert context.client.post("/users/", json={**registration(), "role_id": 2}).status_code == 422
 
@@ -224,6 +231,8 @@ def test_admin_create_is_customer_only(context):
         saved = context.db.add.call_args.args[0]
         saved.user_id = 8
         saved.created_at = datetime(2026, 1, 1)
+        saved.is_active = True
+        saved.token_version = 0
         context.result.scalars.return_value.first.return_value = saved
 
     context.db.commit.side_effect = commit

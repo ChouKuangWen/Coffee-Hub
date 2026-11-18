@@ -21,6 +21,9 @@ const searchKeyword = ref("");
 // 用來存 /auth/me 回傳的使用者資訊
 const currentUser = ref(null); 
 const loading = ref(true);       
+const applications = ref([]);
+const accountBusy = ref(false);
+const applicationLabels = { pending: '待審核', approved: '已核准', rejected: '已拒絕' };
 const router = useRouter();
 
 // 角色對照
@@ -120,28 +123,90 @@ const saveUser = async () => {
   }
 };
 
-// 刪除使用者 (僅 Admin)
-const deleteUser = async (id) => {
-  if (!confirm("確定要刪除此使用者嗎？")) return;
+const fetchApplications = async () => {
+  if (!currentUser.value) return;
   try {
-    await api.delete(`/users/${id}`);
-    alert("使用者刪除成功！");
-    await fetchUsers();
+    const res = await api.get('/users/seller-applications');
+    applications.value = res.data;
   } catch (err) {
-    console.error("deleteUser:", err);
-    alert("刪除失敗：" + (err.response?.data?.detail || err.message));
+    alert('無法讀取 Seller 申請：' + (err.response?.data?.detail || err.message));
   }
+};
+
+const submitApplication = async () => {
+  if (accountBusy.value) return;
+  accountBusy.value = true;
+  try {
+    await api.post('/users/seller-applications');
+    await fetchApplications();
+    alert('申請已送出，審核期間仍為 Customer。');
+  } catch (err) {
+    alert('申請失敗：' + (err.response?.data?.detail || err.message));
+  } finally { accountBusy.value = false; }
+};
+
+const reviewApplication = async (application, decision) => {
+  if (accountBusy.value || !confirm(`確定${decision === 'approved' ? '核准' : '拒絕'}此申請？核准將撤銷申請人的所有會話。`)) return;
+  accountBusy.value = true;
+  try {
+    await api.patch(`/users/seller-applications/${application.application_id}`, { decision });
+    await fetchApplications();
+    await fetchUsers();
+    alert('審核已完成。');
+  } catch (err) {
+    alert('審核失敗：' + (err.response?.data?.detail || err.message));
+  } finally { accountBusy.value = false; }
+};
+
+const toggleActivation = async (user) => {
+  const action = user.is_active ? '停用' : '重新啟用';
+  if (accountBusy.value || !confirm(`確定${action}此會員？停用將撤銷所有會話並下架其商品；重新啟用不會自動上架。`)) return;
+  accountBusy.value = true;
+  try {
+    const res = await api.patch(`/users/${user.user_id}/activation`, { is_active: !user.is_active });
+    alert(res.data.message);
+    if (user.user_id === currentUser.value.user_id) {
+      router.push('/login');
+    } else {
+      await fetchUsers();
+    }
+  } catch (err) {
+    alert('狀態變更失敗：' + (err.response?.data?.detail || err.message));
+  } finally { accountBusy.value = false; }
 };
 
 onMounted(async () => {
   await fetchCurrentUser(); 
   await fetchUsers();
+  await fetchApplications();
 });
 </script>
 
 <template>
   <div class="member-page">
     <h2 class="title">會員管理</h2>
+
+    <section v-if="currentUser" class="table-card">
+      <h3>Seller 申請</h3>
+      <p v-if="currentUser.role_id === 3">待審期間維持 Customer；核准後需重新登入。拒絕後可重新申請。</p>
+      <button v-if="currentUser.role_id === 3" @click="submitApplication"
+        :disabled="accountBusy || applications.some(a => a.status === 'pending')">申請成為 Seller</button>
+      <button @click="fetchApplications" :disabled="accountBusy">重新整理申請</button>
+      <table>
+        <thead><tr><th>申請編號</th><th>會員編號</th><th>狀態</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr v-for="application in applications" :key="application.application_id">
+            <td>{{ application.application_id }}</td><td>{{ application.user_id }}</td>
+            <td>{{ applicationLabels[application.status] }}</td>
+            <td v-if="currentUser.role_id === 1 && application.status === 'pending'">
+              <button @click="reviewApplication(application, 'approved')" :disabled="accountBusy">核准</button>
+              <button @click="reviewApplication(application, 'rejected')" :disabled="accountBusy">拒絕</button>
+            </td><td v-else>—</td>
+          </tr>
+          <tr v-if="!applications.length"><td colspan="4">目前沒有申請紀錄</td></tr>
+        </tbody>
+      </table>
+    </section>
 
     <div class="controls">
       <input
@@ -163,6 +228,7 @@ onMounted(async () => {
             <th>Email</th>
             <th>電話</th>
             <th>角色</th>
+            <th>帳號狀態</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -173,6 +239,7 @@ onMounted(async () => {
             <td>{{ user.email }}</td>
             <td>{{ user.phone }}</td>
             <td>{{ roleMap[user.role_id] || user.role_id }}</td>
+            <td>{{ user.is_active ? '啟用' : '停用' }}</td>
             <td>
               <button
                 v-if="currentUser?.role_id === 1 || currentUser?.user_id === user.user_id"
@@ -184,14 +251,15 @@ onMounted(async () => {
               <button
                 v-if="currentUser?.role_id === 1"
                 class="delete-btn"
-                @click="deleteUser(user.user_id)"
+                @click="toggleActivation(user)"
+                :disabled="accountBusy"
               >
-                刪除
+                {{ user.is_active ? '停用' : '重新啟用' }}
               </button>
             </td>
           </tr>
           <tr v-if="filteredUsers.length === 0">
-            <td colspan="6" class="text-center p-4 text-gray-500">
+            <td colspan="7" class="text-center p-4 text-gray-500">
               查無資料
             </td>
           </tr>

@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Request, BackgroundTasks, HTTPException, status
 from typing import Optional
+from sqlalchemy import select
 from app.models.users import Users
 from app.schemas.products import ProductCreate, ProductUpdate
 from app.crud.products import (
@@ -12,6 +13,21 @@ from app.crud.products import (
 )
 from app.services.audit_log_service import log_action
 from app.core.sanitizer import sanitize_user_input
+
+
+async def _lock_active_actor(db, request, current_user, owner_id=None, activating=False):
+    owner_id = owner_id if owner_id is not None else current_user.user_id
+    result = await db.execute(select(Users).where(Users.user_id.in_([current_user.user_id, owner_id]))
+                              .order_by(Users.user_id).with_for_update()
+                              .execution_options(populate_existing=True))
+    users = {user.user_id: user for user in result.scalars().all()}
+    actor = users.get(current_user.user_id)
+    if (not actor or not actor.is_active or actor.role_id not in (1, 2)
+            or actor.token_version != request.state.auth_version):
+        raise HTTPException(status_code=403, detail="帳號已停用或權限已變更")
+    owner = users.get(owner_id)
+    if activating and (not owner or not owner.is_active):
+        raise HTTPException(status_code=409, detail="商品擁有者已停用，不可上架")
 
 # 前台公開查詢
 async def get_public_products_service(db: AsyncSession, page: int, limit: int,
@@ -52,6 +68,7 @@ async def get_product_service(db: AsyncSession, product_id: int, current_user: O
 # 新增商品
 async def create_product_service(db: AsyncSession, request: Request, background_tasks: BackgroundTasks,
                                  current_user: Users, product_in: ProductCreate):
+    await _lock_active_actor(db, request, current_user, activating=product_in.is_active)
     # 安全淨化處理
     if product_in.description:
         product_in.description = sanitize_user_input(product_in.description)
@@ -84,6 +101,7 @@ async def update_product_service(db: AsyncSession, request: Request, background_
     existing = await crud_get_product(db, product_id)
     if not existing:
         raise HTTPException(status_code=404, detail="商品不存在")
+    await _lock_active_actor(db, request, current_user, existing.owner_id, product_in.is_active is True)
     # 賣家權限檢查 (管理員 role_id=1 除外)
     if current_user.role_id != 1 and existing.owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="您無權編輯此商品")
@@ -122,6 +140,7 @@ async def delete_product_service(db: AsyncSession, request: Request, background_
     existing = await crud_get_product(db, product_id)
     if not existing:
         raise HTTPException(status_code=404, detail="商品不存在")
+    await _lock_active_actor(db, request, current_user, existing.owner_id)
     # 檢查權限
     if current_user.role_id != 1 and existing.owner_id != current_user.user_id:
         raise HTTPException(status_code=403, detail="您無權刪除此商品")

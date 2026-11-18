@@ -19,6 +19,7 @@ class UserCreate(UserBase):
 
 # 從資料庫讀取並回傳使用者資料時使用的 Schema
 class UserRead(UserBase):
+    is_active: bool = True
     user_id: int            # 使用者編號（資料庫主鍵）
     created_at: datetime    # 使用者註冊時間（自動生成）
     model_config = ConfigDict(from_attributes=True)
@@ -48,6 +49,26 @@ class UserUpdate(BaseModel):
 # 用來取代原本的 dict 回傳，讓 Swagger 顯示明確訊息
 class MessageResponse(BaseModel):
     message: str
+
+
+class UserActivationUpdate(BaseModel):
+    is_active: bool
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+
+class SellerApplicationReview(BaseModel):
+    decision: Literal["approved", "rejected"]
+    model_config = ConfigDict(extra="forbid")
+
+
+class SellerApplicationRead(BaseModel):
+    application_id: int
+    user_id: int
+    status: Literal["pending", "approved", "rejected"]
+    created_at: datetime
+    reviewed_by: Optional[int] = None
+    reviewed_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
 # 使用者登入或刷新 token 時，後端回傳給前端的資料格式
 class TokenResponse(BaseModel):

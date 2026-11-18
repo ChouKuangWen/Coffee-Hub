@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Date, DECIMAL, ForeignKey, DateTime, Boolean, text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base  # 從 base.py 匯入 Base，作為 ORM 基底類別
@@ -14,6 +14,8 @@ class Users(Base):
     address = Column(String(255), nullable=False, comment="地址")
     # [優化] 加上 index=True，因為權限檢查與 JOIN role 表非常頻繁
     role_id = Column(Integer, ForeignKey("roles.role_id"), nullable=False, index=True, comment="角色 ID")
+    is_active = Column(Boolean, nullable=False, default=True, server_default=text("1"))
+    token_version = Column(Integer, nullable=False, default=0, server_default=text("0"))
     """default: 設定欄位的預設值。func.now(): SQLAlchemy 提供的一個函數，它會生成一個 SQL 函數呼叫，
     通常對應到資料庫系統中的 CURRENT_TIMESTAMP 或 NOW() 函數。"""
     # [優化] 加上 index=True，方便後台按註冊時間排序

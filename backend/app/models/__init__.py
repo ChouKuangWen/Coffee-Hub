@@ -9,3 +9,4 @@ from .order_items import OrderItems
 from .jwt_blacklist import JWTBlacklist
 from .used_jwt import UsedJWT
 from .refresh_token import RefreshToken
+from .seller_application import SellerApplication
