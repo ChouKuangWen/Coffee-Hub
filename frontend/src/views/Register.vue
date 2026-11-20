@@ -43,7 +43,6 @@ const handleRegister = async () => {
     }, 2000)
 
   } catch (err) {
-    console.error('註冊失敗:', err.response)
     // 顯示後端回傳的錯誤訊息
     if (err.response && err.response.data && err.response.data.detail) {
       const detail = err.response.data.detail

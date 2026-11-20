@@ -14,7 +14,7 @@ from PIL import Image
 from sqlalchemy import select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from tests.unit.test_account_permissions import isolated_app
+from tests.unit.test_account_permissions import isolated_app, csrf_client
 
 
 class FakeGCS:
@@ -124,7 +124,7 @@ async def _scenario(env, monkeypatch):
         print('PASS image migration 004 rerun / fresh-upgrade columns, indexes and FKs')
 
         def client():
-            return httpx.AsyncClient(transport=httpx.ASGITransport(env.app),base_url='https://testserver')
+            return csrf_client(env.app)
 
         def check(response, status=200):
             assert response.status_code == status, (response.status_code,response.text)

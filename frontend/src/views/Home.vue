@@ -72,7 +72,6 @@ const fetchProducts = async (isLoadMore = false) => {
     // 判斷是否還有下一頁
     hasMore.value = products.value.length < totalProducts.value
   } catch (error) {
-    console.error("抓取產品失敗:", error.response?.data || error.message)
   } finally {
     loadingMore.value = false
   }
@@ -104,7 +103,8 @@ const handleLogout = async () => {
   try {
     await api.post("/auth/logout")
   } catch (error) {
-    console.error("登出失敗:", error)
+    alert('登出未完成，請稍後重試。');
+    return;
   }
   user.value = null
   router.push('/')

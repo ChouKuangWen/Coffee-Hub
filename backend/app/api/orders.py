@@ -30,6 +30,7 @@ from app.services.order_service import (
 
 from app.crud.orders import get_order
 from app.core.rate_limit import limiter
+from app.services.audit_log_service import record_sensitive_read
 
 router = APIRouter()
 
@@ -62,6 +63,8 @@ async def read_user_orders(
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
     orders = await get_customer_orders_service(db, user_id, current_user)
+    if current_user.role_id == 1 and user_id != current_user.user_id:
+        await record_sensitive_read(db, request, current_user, "USER_ORDERS", user_id, {"result_count":len(orders)})
     return {
         "items": [serialize_order(order) for order in orders],
         "total": len(orders)
@@ -87,6 +90,7 @@ async def read_all_orders(
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
     orders = await get_admin_orders_service(db, current_user)
+    await record_sensitive_read(db, request, current_user, "ORDER", metadata={"result_count":len(orders)})
     return {
         "items": [serialize_order(order) for order in orders],
         "total": len(orders)
@@ -102,7 +106,10 @@ async def read_order(
     db: AsyncSession = Depends(get_db),
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
-    return await get_authorized_order(db, order_id, current_user, sales)
+    order = await get_authorized_order(db, order_id, current_user, sales)
+    if current_user.role_id == 1:
+        await record_sensitive_read(db, request, current_user, "ORDER", order_id)
+    return order
 
 # 更新
 @router.patch("/{order_id}/status", response_model=OrderRead | SellerOrderRead)
@@ -147,7 +154,10 @@ async def create_cancellation(request: Request, order_id: int, data: Cancellatio
 @limiter.limit("30/minute")
 async def read_cancellations(request: Request, order_id: int, db: AsyncSession = Depends(get_db),
                              current_user: Users = Depends(get_current_user_from_cookie)):
-    return await get_cancellations(db, current_user, order_id)
+    rows = await get_cancellations(db, current_user, order_id)
+    if current_user.role_id == 1:
+        await record_sensitive_read(db, request, current_user, "ORDER_CANCELLATION", order_id, {"result_count":len(rows)})
+    return rows
 
 
 @router.patch("/cancellation-requests/{cancellation_id}", response_model=CancellationRead)

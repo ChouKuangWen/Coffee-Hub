@@ -42,12 +42,10 @@ export const useAuthStore = defineStore('auth', {
       try {
         await api.post('/auth/logout');
       } catch (err) {
-        console.error("後端登出 API 失敗", err);
-      } finally {
-        // 無論後端成功與否，前端都要清空狀態
-        this.isLoggedIn = false;
-        this.user = null;
+        throw new Error('登出未完成，請稍後重試。');
       }
+      this.isLoggedIn = false;
+      this.user = null;
     }
   }
 });

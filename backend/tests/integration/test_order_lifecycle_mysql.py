@@ -11,7 +11,7 @@ import pytest
 from sqlalchemy import select, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from tests.unit.test_account_permissions import isolated_app
+from tests.unit.test_account_permissions import isolated_app, csrf_client
 
 
 @pytest.mark.skipif(not os.getenv("COFFEEHUB_TEST_MYSQL_URL"), reason="未指定獨立測試 MySQL")
@@ -112,7 +112,7 @@ async def _scenario(env, monkeypatch):
         print('PASS migration 003 / trusted Batch 3 evidence / unknown history preserved / rerun / fresh-upgrade schema')
 
         def client():
-            return httpx.AsyncClient(transport=httpx.ASGITransport(env.app), base_url='https://testserver')
+            return csrf_client(env.app)
 
         def check(response, status=200):
             assert response.status_code == status, (response.status_code, response.text)

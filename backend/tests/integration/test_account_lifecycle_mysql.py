@@ -16,7 +16,7 @@ import pytest
 from sqlalchemy import select, text, func
 from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from tests.unit.test_account_permissions import isolated_app
+from tests.unit.test_account_permissions import isolated_app, csrf_client
 
 
 @pytest.mark.skipif(not os.getenv("COFFEEHUB_TEST_MYSQL_URL"), reason="未指定獨立測試 MySQL")
@@ -116,7 +116,7 @@ async def _scenario(env, monkeypatch):
             await session.commit()
 
         def client():
-            return httpx.AsyncClient(transport=httpx.ASGITransport(env.app), base_url="https://testserver")
+            return csrf_client(env.app)
 
         def check(response, code):
             assert response.status_code == code, (response.status_code, response.text)

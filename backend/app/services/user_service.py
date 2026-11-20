@@ -8,7 +8,7 @@ from app.crud.users import (
 )
 from app.schemas.users import UserCreate, UserUpdate
 from app.core.security import hash_password
-from app.services.audit_log_service import log_action
+from app.services.audit_log_service import log_action, record_sensitive_read
 from app.core.sanitizer import sanitize_user_input
 from app.models.users import Users
 
@@ -16,7 +16,9 @@ from app.models.users import Users
 async def service_get_all_users(db: AsyncSession, request: Request, current_user: Users):
     if current_user.role_id != 1:
         raise HTTPException(status_code=403, detail="只有 Admin 可以查看所有使用者")
-    return await get_all_users(db)
+    users = await get_all_users(db)
+    await record_sensitive_read(db, request, current_user, "USER", metadata={"result_count":len(users)})
+    return users
 
 # 取得單一使用者
 async def service_get_user(db: AsyncSession, request: Request, current_user: Users, user_id: int):
@@ -25,6 +27,8 @@ async def service_get_user(db: AsyncSession, request: Request, current_user: Use
     user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="使用者不存在")
+    if current_user.role_id == 1 and current_user.user_id != user_id:
+        await record_sensitive_read(db, request, current_user, "USER", user_id)
     return user
 
 # 建立使用者
@@ -45,6 +49,12 @@ async def service_create_user(
     # [交易控制] 主交易 commit
     try:
         new_user = await create_user_db(db, user)
+        await log_action(
+            db=db, background_tasks=background_tasks, request=request,
+            user_id=current_user.user_id, category="USER", action="CREATE",
+            target_id=str(new_user.user_id),
+            after_data={"role_id": 3},
+        )
         await db.commit()
     except IntegrityError:
         await db.rollback()
@@ -53,16 +63,6 @@ async def service_create_user(
         await db.rollback()
         raise HTTPException(status_code=500, detail="建立使用者失敗")
 
-    # [審計日誌] log_action 容錯，不影響主交易
-    try:
-        await log_action(
-            db=db, background_tasks=background_tasks, request=request,
-            user_id=current_user.user_id, category="USER", action="CREATE",
-            target_id=str(new_user.user_id),
-            after_data={"role_id": 3},
-        )
-    except Exception as e:
-        print(f"[WARN] log_action failed: {e}")
 
     return await get_user_by_id(db, new_user.user_id)
 
@@ -94,6 +94,12 @@ async def service_update_user(
     # [交易控制] 主交易 commit
     try:
         updated_user = await update_user_crud(db, user_id, user_update)
+        await log_action(
+            db=db, background_tasks=background_tasks, request=request,
+            user_id=current_user.user_id, category="ACCOUNT" if current_user.role_id == 1 else "USER", action="UPDATE",
+            target_id=str(user_id),
+            after_data={"changed_fields": sorted(changed_fields)},
+        )
         await db.commit()
     except IntegrityError:
         await db.rollback()
@@ -102,16 +108,6 @@ async def service_update_user(
         await db.rollback()
         raise HTTPException(status_code=500, detail="更新使用者失敗")
 
-    # [審計日誌] log_action 容錯
-    try:
-        await log_action(
-            db=db, background_tasks=background_tasks, request=request,
-            user_id=current_user.user_id, category="USER", action="UPDATE",
-            target_id=str(user_id),
-            after_data={"changed_fields": sorted(changed_fields)},
-        )
-    except Exception as e:
-        print(f"[WARN] log_action failed: {e}")
 
     return await get_user_by_id(db, user_id)
 

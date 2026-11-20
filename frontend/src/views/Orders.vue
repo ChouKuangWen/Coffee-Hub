@@ -32,7 +32,6 @@ const fetchCurrentUser = async () => {
     currentUserId.value = res.data.user_id;
     currentUserRole.value = res.data.role_id;
   } catch (err) {
-    console.error("fetchCurrentUser error:", err);
     router.push("/login"); // 若未登入或 token 無效，跳回登入頁
   } finally {
     loading.value = false;
@@ -62,7 +61,6 @@ const fetchOrders = async () => {
     if (version === viewVersion) orders.value = res.data.items || [];
 
   } catch (err) {
-    console.error("fetchOrders error:", err);
     alert("無法取得訂單資料：" + (err.response?.data?.detail || err.message));
   }
 };
@@ -107,7 +105,6 @@ const toggleDetails = async (orderId) => {
       if (version === viewVersion) cancellations.value[orderId] = response.data;
     }
   } catch (err) {
-    console.error(err);
   } finally {
     loadingDetailsId.value = null;
   }

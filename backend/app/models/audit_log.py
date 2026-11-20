@@ -1,5 +1,5 @@
 # app/models/audit_log.py
-from sqlalchemy import Column, Integer, BigInteger, String, DateTime, JSON, Text, func
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, JSON, Text, Boolean, func
 from app.models.base import Base
 
 
@@ -19,3 +19,6 @@ class AuditLog(Base):
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
+    retention_class = Column(String(30), nullable=False, server_default="UNCLASSIFIED")
+    expires_at = Column(DateTime, nullable=True, index=True)
+    is_held = Column(Boolean, nullable=False, server_default="0", default=False)

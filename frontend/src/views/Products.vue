@@ -68,7 +68,6 @@ const fetchCurrentUser = async () => {
     currentUserId.value = res.data.user_id;
     currentUserRole.value = res.data.role_id;
   } catch (err) {
-    console.error("fetchCurrentUser error:", err);
     // 如果未登入或 token 無效，跳轉到登入頁，因為管理頁需要權限
     router.push("/login");
   } finally {
@@ -84,7 +83,6 @@ const fetchProducts = async () => {
     products.value = res.data.items || [];
     total.value = res.data.total;
   } catch (err) {
-    console.error("fetchProducts error:", err);
     alert("無法取得商品資料：" + (err.response?.data?.detail || err.message));
   }
 };
@@ -256,7 +254,6 @@ const submitForm = async () => {
     await fetchProducts();
     closeModal();
   } catch (err) {
-    console.error("Submit error:", err);
     alert("操作失敗：" + (err.response?.data?.detail || err.message));
   }
 };
@@ -275,7 +272,6 @@ const deleteProduct = async (product) => {
     alert("商品已下架！");
     await fetchProducts(); // 刷新列表
   } catch (err) {
-    console.error("Delete error:", err);
     alert("刪除失敗：" + (err.response?.data?.detail || err.message));
   }
 };

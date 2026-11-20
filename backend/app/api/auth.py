@@ -9,6 +9,7 @@ from app.core.rate_limit import limiter
 from app.models.base import get_db
 from fastapi.security import OAuth2PasswordRequestForm, HTTPBearer, HTTPAuthorizationCredentials
 from app.core.config import settings
+from app.core.browser_security import cookie_options, new_csrf, valid_csrf
 from sqlalchemy.orm import selectinload
 from app.dependencies import get_current_user_from_cookie
 from app.services.auth_service import (
@@ -20,6 +21,17 @@ from app.services.auth_service import (
 
 router = APIRouter()
 oauth2_scheme = HTTPBearer()
+
+
+@router.get("/csrf")
+async def csrf_token(request: Request, response: Response):
+    token = request.cookies.get("csrf_token")
+    if not valid_csrf(token, token, request.cookies.get("refresh_token")):
+        token = new_csrf(request.cookies.get("refresh_token"))
+    response.set_cookie("csrf_token", token, max_age=3600, **cookie_options())
+    response.headers["Cache-Control"] = "no-store"
+    return {"csrf_token": token}
+
 
 #  取得目前登入使用者資訊
 @router.get("/me", response_model=UserRead)
@@ -62,8 +74,8 @@ async def login(request: Request,
     - 產生並回傳 access token 和 refresh token。
     """
     result = await service_login_user(db, request, background_tasks, form_data.username, form_data.password)
-    response.set_cookie(key="access_token", value=result["access_token"], httponly=True, secure=True, samesite="none")
-    response.set_cookie(key="refresh_token", value=result["refresh_token"], httponly=True, secure=True, samesite="none")
+    response.set_cookie(key="access_token", value=result["access_token"], **cookie_options())
+    response.set_cookie(key="refresh_token", value=result["refresh_token"], **cookie_options())
     return result
 
 # 使用 refresh_token 換取新的 access_token
@@ -89,9 +101,7 @@ async def refresh_token_endpoint(
     response.set_cookie(
         key="access_token",
         value=result["access_token"],
-        httponly=True,
-        secure=True,
-        samesite="none",
+        **cookie_options(),
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )
 
@@ -115,7 +125,8 @@ async def logout(
     result = await service_logout_user(db, request, background_tasks, current_user, access_token)
 
     # 刪除 cookie
-    response.delete_cookie("access_token", secure=True, httponly=True, samesite="none")
-    response.delete_cookie("refresh_token", secure=True, httponly=True, samesite="none")
+    response.delete_cookie("access_token", **cookie_options())
+    response.delete_cookie("refresh_token", **cookie_options())
+    response.delete_cookie("csrf_token", **cookie_options())
 
     return {"message": "登出成功"}

@@ -42,7 +42,6 @@ export const useCartStore = defineStore('cart', {
         if (err.response?.status === 401 || err.response?.status === 403) {
           this.$reset();
         } else {
-          console.error('載入購物車失敗', err);
           this.error = '無法載入購物車';
         }
       } finally {
@@ -62,7 +61,6 @@ export const useCartStore = defineStore('cart', {
         await this.fetchCart(true);
         return { success: true };
       } catch (err) {
-        console.error("加入購物車失敗:", err.response?.data);
         return {
           success: false,
           message: err.response?.data?.detail?.[0]?.msg || '加入失敗，請稍後再試' 
@@ -79,7 +77,6 @@ export const useCartStore = defineStore('cart', {
       try {
         await updateCartItem(cartItemId, newQuantity);
       } catch (err) {
-        console.error('更新數量失敗', err);
         this.items = oldItems; 
         alert(err.response?.data?.detail || '更新失敗，請重新載入購物車');
       }
@@ -92,7 +89,6 @@ export const useCartStore = defineStore('cart', {
       try {
         await deleteCartItem(cartItemId);
       } catch (err) {
-        console.error('刪除品項失敗', err);
         this.items = oldItems; 
         this.error = '刪除失敗';
       }

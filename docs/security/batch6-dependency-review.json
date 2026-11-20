@@ -1,0 +1,1966 @@
+{
+  "review_date": "2026-11-20",
+  "branch": "feature/audit-security-batch6",
+  "base_commit": "511883698bee639f01138930cbebfa7877cc5368",
+  "scope": "Version matches are not proof of Coffee Hub exploitability. Deferred findings are not an approved production-risk waiver.",
+  "npm": {
+    "before": {
+      "info": 0,
+      "low": 0,
+      "moderate": 2,
+      "high": 10,
+      "critical": 0,
+      "total": 12
+    },
+    "after": {
+      "info": 0,
+      "low": 0,
+      "moderate": 2,
+      "high": 5,
+      "critical": 0,
+      "total": 7
+    },
+    "packages": [
+      {
+        "package": "@vue/server-renderer",
+        "before": "3.5.21",
+        "current": "3.5.21",
+        "severity_before": "high",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "3.5.46",
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "vue",
+              "@vue/server-renderer"
+            ]
+          }
+        ],
+        "usage_assessment": "Installed through vue but no SSR entrypoint is used. Keep the package finding; absence of SSR is a reachability observation, not a blanket waiver.",
+        "exploitation_confirmed": false,
+        "propagated_via": [
+          "vue"
+        ],
+        "advisories": [
+          {
+            "id": "GHSA-g2v6-rqmx-r4w6",
+            "severity": "high",
+            "affected_range": "<3.5.42",
+            "url": "https://github.com/advisories/GHSA-g2v6-rqmx-r4w6"
+          }
+        ]
+      },
+      {
+        "package": "axios",
+        "before": "1.12.2",
+        "current": "1.12.2",
+        "severity_before": "high",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "1.21.1",
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "axios"
+            ]
+          }
+        ],
+        "usage_assessment": "Browser HTTP client; request configs are constructed by application code. Node proxy/redirect findings are not automatically browser exploits. Prototype-pollution preconditions have not been demonstrated in this app.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-3p68-rc4w-qgx5",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.0",
+            "url": "https://github.com/advisories/GHSA-3p68-rc4w-qgx5"
+          },
+          {
+            "id": "GHSA-w9j2-pvgh-6h63",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-w9j2-pvgh-6h63"
+          },
+          {
+            "id": "GHSA-pmwg-cvhr-8vh7",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-pmwg-cvhr-8vh7"
+          },
+          {
+            "id": "GHSA-3w6x-2g7m-8v23",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.2",
+            "url": "https://github.com/advisories/GHSA-3w6x-2g7m-8v23"
+          },
+          {
+            "id": "GHSA-xhjh-pmcv-23jw",
+            "severity": "low",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-xhjh-pmcv-23jw"
+          },
+          {
+            "id": "GHSA-445q-vr5w-6q77",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-445q-vr5w-6q77"
+          },
+          {
+            "id": "GHSA-m7pr-hjqh-92cm",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
+          },
+          {
+            "id": "GHSA-5c9x-8gcm-mpgx",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-5c9x-8gcm-mpgx"
+          },
+          {
+            "id": "GHSA-vf2m-468p-8v99",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-vf2m-468p-8v99"
+          },
+          {
+            "id": "GHSA-pf86-5x62-jrwf",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-pf86-5x62-jrwf"
+          },
+          {
+            "id": "GHSA-6chq-wfr3-2hj9",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-6chq-wfr3-2hj9"
+          },
+          {
+            "id": "GHSA-xx6v-rp6x-q39c",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-xx6v-rp6x-q39c"
+          },
+          {
+            "id": "GHSA-43fc-jf86-j433",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <=1.13.4",
+            "url": "https://github.com/advisories/GHSA-43fc-jf86-j433"
+          },
+          {
+            "id": "GHSA-q8qp-cvcw-x6jj",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.15.2",
+            "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
+          },
+          {
+            "id": "GHSA-fvcv-3m26-pcqx",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.0",
+            "url": "https://github.com/advisories/GHSA-fvcv-3m26-pcqx"
+          },
+          {
+            "id": "GHSA-62hf-57xw-28j9",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.15.1",
+            "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
+          },
+          {
+            "id": "GHSA-hfxv-24rg-xrqf",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.16.0",
+            "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf"
+          },
+          {
+            "id": "GHSA-777c-7fjr-54vf",
+            "severity": "high",
+            "affected_range": ">=1.7.0 <1.16.0",
+            "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf"
+          },
+          {
+            "id": "GHSA-p92q-9vqr-4j8v",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.16.0",
+            "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v"
+          },
+          {
+            "id": "GHSA-j5f8-grm9-p9fc",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.16.0",
+            "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
+          },
+          {
+            "id": "GHSA-3g43-6gmg-66jw",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.15.2",
+            "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
+          },
+          {
+            "id": "GHSA-35jp-ww65-95wh",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.16.0",
+            "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
+          },
+          {
+            "id": "GHSA-898c-q2cr-xwhg",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.16.0",
+            "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
+          },
+          {
+            "id": "GHSA-mmx7-hfxf-jppx",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.18.0",
+            "url": "https://github.com/advisories/GHSA-mmx7-hfxf-jppx"
+          },
+          {
+            "id": "GHSA-pmv8-rq9r-6j72",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.18.0",
+            "url": "https://github.com/advisories/GHSA-pmv8-rq9r-6j72"
+          },
+          {
+            "id": "GHSA-7q8q-rj6j-mhjq",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.18.0",
+            "url": "https://github.com/advisories/GHSA-7q8q-rj6j-mhjq"
+          },
+          {
+            "id": "GHSA-jqh4-m9w3-8hp9",
+            "severity": "moderate",
+            "affected_range": ">=1.7.0 <1.18.0",
+            "url": "https://github.com/advisories/GHSA-jqh4-m9w3-8hp9"
+          },
+          {
+            "id": "GHSA-42h9-826w-cgv3",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.18.0",
+            "url": "https://github.com/advisories/GHSA-42h9-826w-cgv3"
+          },
+          {
+            "id": "GHSA-vh66-26gq-q6x8",
+            "severity": "moderate",
+            "affected_range": ">=1.7.0 <1.20.0",
+            "url": "https://github.com/advisories/GHSA-vh66-26gq-q6x8"
+          },
+          {
+            "id": "GHSA-9fr6-4gfg-395g",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.20.0",
+            "url": "https://github.com/advisories/GHSA-9fr6-4gfg-395g"
+          },
+          {
+            "id": "GHSA-j8rh-479h-cp32",
+            "severity": "moderate",
+            "affected_range": ">=1.0.0 <1.20.0",
+            "url": "https://github.com/advisories/GHSA-j8rh-479h-cp32"
+          },
+          {
+            "id": "GHSA-4hqw-qxg8-jxx2",
+            "severity": "moderate",
+            "affected_range": ">=1.12.0 <1.20.0",
+            "url": "https://github.com/advisories/GHSA-4hqw-qxg8-jxx2"
+          }
+        ]
+      },
+      {
+        "package": "follow-redirects",
+        "before": "1.15.11",
+        "current": "1.15.11",
+        "severity_before": "moderate",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "1.16.3",
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "axios",
+              "follow-redirects"
+            ]
+          }
+        ],
+        "usage_assessment": "Axios Node adapter dependency; browser SPA does not execute the Node redirect adapter.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-r4q5-vmmm-2653",
+            "severity": "moderate",
+            "affected_range": "<=1.15.11",
+            "url": "https://github.com/advisories/GHSA-r4q5-vmmm-2653"
+          }
+        ]
+      },
+      {
+        "package": "form-data",
+        "before": "4.0.4",
+        "current": "4.0.6",
+        "severity_before": "high",
+        "classification": "patched_same_patch_line",
+        "candidate_if_deferred": null,
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "axios",
+              "form-data"
+            ]
+          }
+        ],
+        "usage_assessment": "Axios Node adapter dependency; browser uploads use native FormData.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-hmw2-7cc7-3qxx",
+            "severity": "high",
+            "affected_range": ">=4.0.0 <4.0.6",
+            "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
+          }
+        ]
+      },
+      {
+        "package": "nanoid",
+        "before": "3.3.11",
+        "current": "3.3.20",
+        "severity_before": "high",
+        "classification": "patched_same_patch_line",
+        "candidate_if_deferred": null,
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "vue",
+              "@vue/compiler-sfc",
+              "postcss",
+              "nanoid"
+            ]
+          },
+          {
+            "root_type": "devDependencies",
+            "path": [
+              "vite",
+              "postcss",
+              "nanoid"
+            ]
+          }
+        ],
+        "usage_assessment": "PostCSS build chain; scanner-prod graph also enters through vue/compiler-sfc. No direct application generator use found.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-28wg-ghj8-5hjv",
+            "severity": "high",
+            "affected_range": "<3.3.16",
+            "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+          },
+          {
+            "id": "GHSA-2v37-7h3g-55p8",
+            "severity": "high",
+            "affected_range": "<3.3.18",
+            "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+          },
+          {
+            "id": "GHSA-xwg4-73v4-xw9w",
+            "severity": "high",
+            "affected_range": "<3.3.12",
+            "url": "https://github.com/advisories/GHSA-xwg4-73v4-xw9w"
+          }
+        ]
+      },
+      {
+        "package": "picomatch",
+        "before": "4.0.3",
+        "current": "4.0.7",
+        "severity_before": "high",
+        "classification": "patched_same_patch_line",
+        "candidate_if_deferred": null,
+        "dependency_paths": [
+          {
+            "root_type": "devDependencies",
+            "path": [
+              "vite",
+              "picomatch"
+            ]
+          }
+        ],
+        "usage_assessment": "Vite development/build glob matching.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-3v7f-55p6-f55p",
+            "severity": "moderate",
+            "affected_range": ">=4.0.0 <4.0.4",
+            "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+          },
+          {
+            "id": "GHSA-c2c7-rcm5-vvqj",
+            "severity": "high",
+            "affected_range": ">=4.0.0 <4.0.4",
+            "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+          }
+        ]
+      },
+      {
+        "package": "postcss",
+        "before": "8.5.6",
+        "current": "8.5.33",
+        "severity_before": "high",
+        "classification": "patched_same_patch_line",
+        "candidate_if_deferred": null,
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "vue",
+              "@vue/compiler-sfc",
+              "postcss"
+            ]
+          },
+          {
+            "root_type": "devDependencies",
+            "path": [
+              "vite",
+              "postcss"
+            ]
+          }
+        ],
+        "usage_assessment": "CSS build chain from Vite and vue/compiler-sfc; no user-supplied CSS/source maps processed by an application API.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-qx2v-qp2m-jg93",
+            "severity": "moderate",
+            "affected_range": "<8.5.10",
+            "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93"
+          },
+          {
+            "id": "GHSA-6g55-p6wh-862q",
+            "severity": "high",
+            "affected_range": "<=8.5.11",
+            "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q"
+          },
+          {
+            "id": "GHSA-fxqj-rqcc-2cmp",
+            "severity": "moderate",
+            "affected_range": "<=8.5.22",
+            "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+          },
+          {
+            "id": "GHSA-r28c-9q8g-f849",
+            "severity": "high",
+            "affected_range": "<=8.5.17",
+            "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
+          }
+        ]
+      },
+      {
+        "package": "qs",
+        "before": "6.14.0",
+        "current": "6.14.0",
+        "severity_before": "moderate",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "6.17.1",
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "qs"
+            ]
+          }
+        ],
+        "usage_assessment": "Browser login serializes a fixed object of username/password strings. No server-side qs.parse path found.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-w7fw-mjwx-w883",
+            "severity": "low",
+            "affected_range": ">=6.7.0 <=6.14.1",
+            "url": "https://github.com/advisories/GHSA-w7fw-mjwx-w883"
+          },
+          {
+            "id": "GHSA-6rw7-vpxm-498p",
+            "severity": "moderate",
+            "affected_range": "<6.14.1",
+            "url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
+          },
+          {
+            "id": "GHSA-q8mj-m7cp-5q26",
+            "severity": "moderate",
+            "affected_range": ">=6.11.1 <=6.15.1",
+            "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
+          },
+          {
+            "id": "GHSA-4mjr-xmp4-gh2g",
+            "severity": "moderate",
+            "affected_range": ">=2.2.5 <6.16.0",
+            "url": "https://github.com/advisories/GHSA-4mjr-xmp4-gh2g"
+          },
+          {
+            "id": "GHSA-6pq8-jhm2-2vcw",
+            "severity": "moderate",
+            "affected_range": ">=6.7.0 <=6.16.0",
+            "url": "https://github.com/advisories/GHSA-6pq8-jhm2-2vcw"
+          }
+        ]
+      },
+      {
+        "package": "rollup",
+        "before": "4.50.2",
+        "current": "4.50.2",
+        "severity_before": "high",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "4.68.7",
+        "dependency_paths": [
+          {
+            "root_type": "devDependencies",
+            "path": [
+              "vite",
+              "rollup"
+            ]
+          }
+        ],
+        "usage_assessment": "Vite build tool; build inputs and output paths are repository-controlled. Untrusted plugins or builds require separate assessment.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-mw96-cpmx-2vgc",
+            "severity": "high",
+            "affected_range": ">=4.0.0 <4.59.0",
+            "url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
+          }
+        ]
+      },
+      {
+        "package": "source-map-js",
+        "before": "1.2.1",
+        "current": "1.2.4",
+        "severity_before": "high",
+        "classification": "patched_same_patch_line",
+        "candidate_if_deferred": null,
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "vue",
+              "@vue/compiler-sfc",
+              "source-map-js"
+            ]
+          },
+          {
+            "root_type": "devDependencies",
+            "path": [
+              "vite",
+              "postcss",
+              "source-map-js"
+            ]
+          }
+        ],
+        "usage_assessment": "Compiler/PostCSS source-map build chain; not an application input endpoint.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-68fv-2mgg-jv7q",
+            "severity": "high",
+            "affected_range": ">=1.0.0 <1.2.2",
+            "url": "https://github.com/advisories/GHSA-68fv-2mgg-jv7q"
+          }
+        ]
+      },
+      {
+        "package": "vite",
+        "before": "7.1.5",
+        "current": "7.1.5",
+        "severity_before": "high",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "7.3.8",
+        "dependency_paths": [
+          {
+            "root_type": "devDependencies",
+            "path": [
+              "vite"
+            ]
+          }
+        ],
+        "usage_assessment": "Development/build dependency. Do not expose the development server to untrusted networks; production serves built static assets.",
+        "exploitation_confirmed": false,
+        "propagated_via": [],
+        "advisories": [
+          {
+            "id": "GHSA-93m4-6634-74q7",
+            "severity": "moderate",
+            "affected_range": ">=7.1.0 <=7.1.10",
+            "url": "https://github.com/advisories/GHSA-93m4-6634-74q7"
+          },
+          {
+            "id": "GHSA-4w7w-66w2-5vf9",
+            "severity": "moderate",
+            "affected_range": ">=7.0.0 <=7.3.1",
+            "url": "https://github.com/advisories/GHSA-4w7w-66w2-5vf9"
+          },
+          {
+            "id": "GHSA-v2wj-q39q-566r",
+            "severity": "high",
+            "affected_range": ">=7.1.0 <=7.3.1",
+            "url": "https://github.com/advisories/GHSA-v2wj-q39q-566r"
+          },
+          {
+            "id": "GHSA-p9ff-h696-f583",
+            "severity": "high",
+            "affected_range": ">=7.0.0 <=7.3.1",
+            "url": "https://github.com/advisories/GHSA-p9ff-h696-f583"
+          },
+          {
+            "id": "GHSA-v6wh-96g9-6wx3",
+            "severity": "moderate",
+            "affected_range": ">=7.0.0 <=7.3.4",
+            "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+          },
+          {
+            "id": "GHSA-698v-4r3x-3vcv",
+            "severity": "moderate",
+            "affected_range": ">=7.0.0 <=7.3.6",
+            "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv"
+          },
+          {
+            "id": "GHSA-r825-w8mm-5pxw",
+            "severity": "moderate",
+            "affected_range": ">=7.0.0 <=7.3.6",
+            "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw"
+          },
+          {
+            "id": "GHSA-587h-7wmj-h5pm",
+            "severity": "high",
+            "affected_range": ">=7.0.0 <=7.3.6",
+            "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm"
+          },
+          {
+            "id": "GHSA-9jrq-w75r-8gcw",
+            "severity": "low",
+            "affected_range": ">=7.0.0 <=7.3.6",
+            "url": "https://github.com/advisories/GHSA-9jrq-w75r-8gcw"
+          },
+          {
+            "id": "GHSA-rq7h-c2jc-7f22",
+            "severity": "moderate",
+            "affected_range": ">=7.0.0 <=7.3.6",
+            "url": "https://github.com/advisories/GHSA-rq7h-c2jc-7f22"
+          },
+          {
+            "id": "GHSA-fx2h-pf6j-xcff",
+            "severity": "moderate",
+            "affected_range": ">=7.0.0 <=7.3.4",
+            "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
+          }
+        ]
+      },
+      {
+        "package": "vue",
+        "before": "3.5.21",
+        "current": "3.5.21",
+        "severity_before": "high",
+        "classification": "compatible_upgrade_deferred",
+        "candidate_if_deferred": "3.5.46",
+        "dependency_paths": [
+          {
+            "root_type": "dependencies",
+            "path": [
+              "vue"
+            ]
+          }
+        ],
+        "usage_assessment": "Browser SPA runtime; no SSR entrypoint. Server-renderer finding propagates to vue in npm audit.",
+        "exploitation_confirmed": false,
+        "propagated_via": [
+          "@vue/server-renderer"
+        ],
+        "advisories": []
+      }
+    ],
+    "change_scope": "Only five transitive patch lines plus required hasown 2.0.2->2.0.4 changed. package.json and Axios/Vue/Vite direct versions did not change. No force, overrides or major upgrade."
+  },
+  "python": {
+    "pins_scanned": 148,
+    "matched_package_count_before": 33,
+    "matched_package_count_after_targeted_patches": 31,
+    "critical_high_before": {
+      "CRITICAL": 11,
+      "HIGH": 86
+    },
+    "critical_high_after_targeted_patches": {
+      "CRITICAL": 10,
+      "HIGH": 83
+    },
+    "count_basis": "Deduplicated non-withdrawn GHSA records from OSV batch version matches; PYSEC aliases not counted again. Counts are version matches, not confirmed exploitable paths.",
+    "targeted_patches_osv_matches": {
+      "asyncmy==0.2.12": [],
+      "python-multipart==0.0.31": []
+    },
+    "reviewed_primary_packages": [
+      {
+        "package": "asyncmy",
+        "before": "0.2.10",
+        "current": "0.2.12",
+        "id": "GHSA-qhqw-rrw9-25rm",
+        "classification": "patched_verified_official_release",
+        "assessment": "Original 0.2.10 is affected. No user-controlled dictionary keys were found entering raw SQL or nested driver parameter values in mounted API paths; original exploitability was not proven and risk was not ruled out. The installed 0.2.12 release removes unsafe escape_dict and passes the driver canary and isolated MySQL regressions.",
+        "evidence": [
+          "backend/app/crud/users.py:update_user_crud fixed field allowlist",
+          "backend/app/crud/products.py:update_product_information Pydantic fields",
+          "backend/app/services/audit_log_service.py:query_audit fixed SQLAlchemy column names",
+          "backend/app/services/image_service.py:JSON_CONTAINS uses bound JSON string",
+          "backend/tests/unit/test_audit_security.py:test_asyncmy_nested_mapping_is_escaped_as_a_value"
+        ],
+        "sources": [
+          "https://github.com/long2ice/asyncmy/pull/135",
+          "https://pypi.org/pypi/asyncmy/0.2.12/json"
+        ],
+        "source_verification": "PyPI 0.2.12 sdist lacks escape_dict and provides cp312-win_amd64 wheel; SQLAlchemy driver is unchanged. OSV patched-version metadata is stale."
+      },
+      {
+        "package": "python-multipart",
+        "before": "0.0.20",
+        "current": "0.0.31",
+        "classification": "patched_minimum_osv_clean_candidate",
+        "assessment": "Login form and upload parsing are reachable. Patched known querystring/header/preamble parser findings without changing FastAPI/Starlette. Python >=3.10 is compatible with project Docker 3.11 and venv 3.12."
+      },
+      {
+        "package": "Pillow",
+        "current": "11.3.0",
+        "candidate": "13.0.0",
+        "classification": "major_upgrade_required_deployment_blocker",
+        "ids": [
+          "GHSA-g4qv-2jxx-769h",
+          "GHSA-8g5g-8vmr-9782"
+        ],
+        "assessment": "PNG EXIF parsing via ImageOps.exif_transpose is reachable and remains unresolved. JPEG scaling draft/thumbnail precondition is not used by the current normalizer; no memory-corruption proof was executed. Format/size limits do not eliminate all Pillow findings. Keep image storage disabled for untrusted/production uploads until remediation.",
+        "source": "https://github.com/advisories/GHSA-g4qv-2jxx-769h"
+      },
+      {
+        "package": "starlette",
+        "current": "0.48.0",
+        "candidate_for_all_reviewed_high_findings": "1.3.1",
+        "classification": "coupled_fastapi_upgrade_required_deployment_blocker",
+        "ids": [
+          "GHSA-82w8-qh3p-5jfq",
+          "GHSA-7f5h-v6xp-fcq8",
+          "GHSA-wqp7-x3pw-xc5r"
+        ],
+        "assessment": "Login uses request form parsing, so unbounded urlencoded parser risk remains independently of multipart patch. FileResponse/StaticFiles routes were not found in the mounted backend. FastAPI 0.119.0 constrains Starlette <0.49.0; do not force an incompatible standalone Starlette upgrade."
+      },
+      {
+        "package": "python-jose",
+        "current": "3.5.0",
+        "classification": "no_published_patch_conditional_risk",
+        "ids": [
+          "GHSA-3qf3-8w2g-rqmx"
+        ],
+        "assessment": "JWT decoder explicitly uses algorithms=[ALGORITHM], not a header-derived algorithm or mixed allowlist. Test keys are random HMAC secrets. Production key material and configuration were not read; DER/public-key misuse is not ruled out for deployment. No blanket safe claim."
+      },
+      {
+        "package": "anyio",
+        "current": "4.11.0",
+        "candidate": "4.14.2",
+        "classification": "compatible_upgrade_deferred",
+        "ids": [
+          "GHSA-82r6-8w77-94w6"
+        ],
+        "assessment": "TLSStream/IDNA certificate-spoofing preconditions require outbound TLS review; no direct TLSStream call in mounted application modules. Indirect SDK exposure remains unverified."
+      },
+      {
+        "package": "cryptography",
+        "current": "45.0.5",
+        "classification": "major_upgrade_and_usage_review_required",
+        "ids": [
+          "GHSA-537c-gmf6-5ccf",
+          "GHSA-g6cj-pr64-35w5",
+          "GHSA-jwv3-5hgf-82ww",
+          "GHSA-r6ph-v2qm-q3c2"
+        ],
+        "assessment": "Advisory fixes span 46.0.5/48.0.1/49.0.0/50.0.0. No direct PKCS7, certificate-verification or SECT curve API use in application code; transitive/bundled OpenSSL deployment exposure not ruled out."
+      },
+      {
+        "package": "ecdsa",
+        "current": "0.19.1",
+        "classification": "no_published_patch_conditional_risk",
+        "ids": [
+          "GHSA-wj6h-64fc-37mp"
+        ],
+        "assessment": "No direct P-256 signing call found. Production JWT algorithm is not inspected. Review before enabling ECDSA signing."
+      }
+    ],
+    "major_advisory_index_before_patches": [
+      {
+        "id": "GHSA-22hg-r758-rrw9",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-24c4-3p7v-29cm",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-27h8-gf7j-v5hc",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-27vj-qcqg-25rc",
+        "severity": "HIGH",
+        "matched_packages": [
+          "fsspec"
+        ],
+        "fixed_versions_in_advisory": {
+          "fsspec": [
+            "2026.6.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-28qf-cpwq-vmc2",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-2g87-pp6c-29x5",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-2qm8-x737-gmw5",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.5"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-2wm9-hf6c-p5cr",
+        "severity": "HIGH",
+        "matched_packages": [
+          "chromadb"
+        ],
+        "fixed_versions_in_advisory": {
+          "chromadb": []
+        }
+      },
+      {
+        "id": "GHSA-332p-7hrc-92wf",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-3644-q5cj-c5c7",
+        "severity": "HIGH",
+        "matched_packages": [
+          "langchain-classic",
+          "langsmith"
+        ],
+        "fixed_versions_in_advisory": {
+          "langsmith": [
+            "0.6.0"
+          ],
+          "langchain-classic": [
+            "1.0.7"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-36p7-vc44-83pf",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "chromadb"
+        ],
+        "fixed_versions_in_advisory": {
+          "chromadb": []
+        }
+      },
+      {
+        "id": "GHSA-3j72-p6qg-6xp7",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-3jp2-3mrg-2vxc",
+        "severity": "HIGH",
+        "matched_packages": [
+          "oauthlib"
+        ],
+        "fixed_versions_in_advisory": {
+          "oauthlib": [
+            "4.0.1"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-3qf3-8w2g-rqmx",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "python-jose"
+        ],
+        "fixed_versions_in_advisory": {
+          "python-jose": []
+        }
+      },
+      {
+        "id": "GHSA-3rp8-rxj8-mvjw",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-45c3-73f7-pv4m",
+        "severity": "HIGH",
+        "matched_packages": [
+          "dnspython"
+        ],
+        "fixed_versions_in_advisory": {
+          "dnspython": [
+            "2.9.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-45hq-cxwh-f6vc",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-537c-gmf6-5ccf",
+        "severity": "HIGH",
+        "matched_packages": [
+          "cryptography"
+        ],
+        "fixed_versions_in_advisory": {
+          "cryptography": [
+            "48.0.1"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-58r4-6rv3-gfh8",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-5rmc-48h2-hvcm",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-5rvq-cxj2-64vf",
+        "severity": "HIGH",
+        "matched_packages": [
+          "python-multipart"
+        ],
+        "fixed_versions_in_advisory": {
+          "python-multipart": [
+            "0.0.30"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-5wr8-gcqf-gqf3",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-5x8w-8jj5-q52h",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-5x94-69rx-g8h2",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-5xm2-6676-qcp9",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-62p4-gmf7-7g93",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-63vm-454h-vhhq",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.2"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-65qm-jvmh-6pqg",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-6q48-6c7w-9gw2",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "certifi"
+        ],
+        "fixed_versions_in_advisory": {
+          "certifi": [
+            "2026.10.18"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-6r8x-57c9-28j4",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-78g4-xqwv-q3g8",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-7984-qgvg-3j9c",
+        "severity": "HIGH",
+        "matched_packages": [
+          "oauthlib"
+        ],
+        "fixed_versions_in_advisory": {
+          "oauthlib": [
+            "4.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-7f5h-v6xp-fcq8",
+        "severity": "HIGH",
+        "matched_packages": [
+          "starlette"
+        ],
+        "fixed_versions_in_advisory": {
+          "starlette": [
+            "0.49.1"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-7gcm-g887-7qv7",
+        "severity": "HIGH",
+        "matched_packages": [
+          "protobuf"
+        ],
+        "fixed_versions_in_advisory": {
+          "protobuf": [
+            "5.29.6"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-7mwm-ghpf-9vrm",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-82r6-8w77-94w6",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "anyio"
+        ],
+        "fixed_versions_in_advisory": {
+          "anyio": [
+            "4.14.2"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-82w8-qh3p-5jfq",
+        "severity": "HIGH",
+        "matched_packages": [
+          "starlette"
+        ],
+        "fixed_versions_in_advisory": {
+          "starlette": [
+            "1.3.1"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-8988-9cw3-xx77",
+        "severity": "HIGH",
+        "matched_packages": [
+          "urllib3"
+        ],
+        "fixed_versions_in_advisory": {
+          "urllib3": [
+            "2.8.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-8g5g-8vmr-9782",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-8ppf-4f7h-5ppj",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-8v84-f9pq-wr9x",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-9hw9-ch79-4vh6",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-9m75-vc3g-4x39",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.5"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-9v9v-9qvf-h2hj",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-9xw5-w5jj-pvcg",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-c6hw-5grf-ff96",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-cfh3-3jmp-rvhc",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.1.1"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-cq5v-8q36-5273",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.3"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-f2g6-542v-9j58",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-f4j7-r4q5-qw2c",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "chromadb"
+        ],
+        "fixed_versions_in_advisory": {
+          "chromadb": []
+        }
+      },
+      {
+        "id": "GHSA-f4xh-w4cj-qxq8",
+        "severity": "HIGH",
+        "matched_packages": [
+          "langsmith"
+        ],
+        "fixed_versions_in_advisory": {
+          "langsmith": [
+            "0.8.18"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-fm9c-5rcf-2q5p",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.5"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-fvww-7h3r-vfhp",
+        "severity": "HIGH",
+        "matched_packages": [
+          "langgraph-sdk"
+        ],
+        "fixed_versions_in_advisory": {
+          "langgraph-sdk": [
+            "0.4.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-g4qv-2jxx-769h",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-g6cj-pr64-35w5",
+        "severity": "HIGH",
+        "matched_packages": [
+          "cryptography"
+        ],
+        "fixed_versions_in_advisory": {
+          "cryptography": [
+            "50.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-g7cr-3p24-7wf7",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-g842-9rc4-69pw",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-gg2r-wvfm-q9rx",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-h4cc-hm5h-fmm9",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-hm4w-wwcw-mr6r",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-j4m9-6w36-pw47",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-jg86-v3jv-hrpm",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-jjj6-mw9f-p565",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-jm3w-gw2p-xjfj",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-jr27-m4p2-rc6r",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.3"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-jwv3-5hgf-82ww",
+        "severity": "HIGH",
+        "matched_packages": [
+          "cryptography"
+        ],
+        "fixed_versions_in_advisory": {
+          "cryptography": [
+            "49.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-m4p7-r5rc-7g4j",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-mf9v-mfxr-j63j",
+        "severity": "HIGH",
+        "matched_packages": [
+          "urllib3"
+        ],
+        "fixed_versions_in_advisory": {
+          "urllib3": [
+            "2.7.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-mm57-4v3p-rchx",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pyasn1"
+        ],
+        "fixed_versions_in_advisory": {
+          "pyasn1": [
+            "0.6.5"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-mrfp-p49p-3hf2",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-p4wg-p73j-c528",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-pchr-8j38-3x4p",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-phj9-mv4w-65pm",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-pjwx-r37v-7724",
+        "severity": "HIGH",
+        "matched_packages": [
+          "langchain-core"
+        ],
+        "fixed_versions_in_advisory": {
+          "langchain-core": [
+            "0.3.85"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-pp6c-gr5w-3c5g",
+        "severity": "HIGH",
+        "matched_packages": [
+          "python-multipart"
+        ],
+        "fixed_versions_in_advisory": {
+          "python-multipart": [
+            "0.0.27"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-pw86-h8fm-j323",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-pwv6-vv43-88gr",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.2.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-q45j-58j2-45rg",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-qccp-gfcp-xxvc",
+        "severity": "HIGH",
+        "matched_packages": [
+          "urllib3"
+        ],
+        "fixed_versions_in_advisory": {
+          "urllib3": [
+            "2.7.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-qh6h-p6c9-ff54",
+        "severity": "HIGH",
+        "matched_packages": [
+          "langchain-core"
+        ],
+        "fixed_versions_in_advisory": {
+          "langchain-core": [
+            "1.2.22"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-qhqw-rrw9-25rm",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "asyncmy"
+        ],
+        "fixed_versions_in_advisory": {
+          "asyncmy": []
+        }
+      },
+      {
+        "id": "GHSA-r6ph-v2qm-q3c2",
+        "severity": "HIGH",
+        "matched_packages": [
+          "cryptography"
+        ],
+        "fixed_versions_in_advisory": {
+          "cryptography": [
+            "46.0.5"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-v4x8-3wr5-3wq8",
+        "severity": "HIGH",
+        "matched_packages": [
+          "filelock"
+        ],
+        "fixed_versions_in_advisory": {
+          "filelock": [
+            "4.2.1"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-v9pv-5gc8-w2m6",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-vjc4-5qp5-m44j",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-vvf4-9x63-8xvv",
+        "severity": "HIGH",
+        "matched_packages": [
+          "dnspython"
+        ],
+        "fixed_versions_in_advisory": {
+          "dnspython": [
+            "2.9.2"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-vxq7-64xx-v4gw",
+        "severity": "HIGH",
+        "matched_packages": [
+          "urllib3"
+        ],
+        "fixed_versions_in_advisory": {
+          "urllib3": [
+            "2.8.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-w889-685w-c8fh",
+        "severity": "CRITICAL",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-whj4-6x5x-4v2j",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.2.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-wj6h-64fc-37mp",
+        "severity": "HIGH",
+        "matched_packages": [
+          "ecdsa"
+        ],
+        "fixed_versions_in_advisory": {
+          "ecdsa": []
+        }
+      },
+      {
+        "id": "GHSA-wp53-j4wj-2cfg",
+        "severity": "HIGH",
+        "matched_packages": [
+          "python-multipart"
+        ],
+        "fixed_versions_in_advisory": {
+          "python-multipart": [
+            "0.0.22"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-wqp7-x3pw-xc5r",
+        "severity": "HIGH",
+        "matched_packages": [
+          "starlette"
+        ],
+        "fixed_versions_in_advisory": {
+          "starlette": [
+            "1.1.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-xcvg-w56q-r89m",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-xgw8-8ccx-rmqh",
+        "severity": "HIGH",
+        "matched_packages": [
+          "aiohttp"
+        ],
+        "fixed_versions_in_advisory": {
+          "aiohttp": [
+            "3.14.4"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-xj96-63gp-2gmr",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "12.3.0"
+          ]
+        }
+      },
+      {
+        "id": "GHSA-xph7-9rjv-w5fr",
+        "severity": "HIGH",
+        "matched_packages": [
+          "chromadb"
+        ],
+        "fixed_versions_in_advisory": {
+          "chromadb": []
+        }
+      },
+      {
+        "id": "GHSA-xvh5-g6gv-559v",
+        "severity": "HIGH",
+        "matched_packages": [
+          "pillow"
+        ],
+        "fixed_versions_in_advisory": {
+          "pillow": [
+            "13.0.0"
+          ]
+        }
+      }
+    ],
+    "remaining_scope": "Other direct and transitive packages, including optional AI/RAG dependencies, still need individual reachability and remediation review. RAG is not mounted as a first-version API."
+  },
+  "verification": {
+    "previous_suite": "47 PASS, reused; not rerun wholesale",
+    "current_targeted_suite": "9 PASS: 4 audit/security unit tests and 5 isolated MySQL integration scenarios",
+    "frontend_build": "PASS after patch updates",
+    "production_database_or_gcs": "NOT RUN; no production connections",
+    "browser_e2e": "NOT RUN"
+  },
+  "commit_assessment": "Local reviewed commit can retain the explicitly recorded residual risks; this is not production-security approval.",
+  "deployment_assessment": "BLOCKED pending Pillow/form-parser remediation and disposition of remaining Critical/High runtime and dependency findings. Do not expose Vite development server. No formal risk acceptance is implied."
+}

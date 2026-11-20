@@ -212,6 +212,10 @@ CREATE TABLE IF NOT EXISTS `audit_logs` (
     
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     
+    retention_class VARCHAR(30) NOT NULL DEFAULT 'UNCLASSIFIED',
+    expires_at DATETIME NULL,
+    is_held BOOLEAN NOT NULL DEFAULT FALSE,
+    INDEX ix_audit_logs_expires_at(expires_at),
     INDEX `idx_user_id` (`user_id`),
     INDEX `idx_category_action` (`category`, `action`),
     INDEX `idx_created_at` (`created_at`),
@@ -285,3 +289,5 @@ CREATE TABLE IF NOT EXISTS image_assets (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT IGNORE INTO schema_migrations(version) VALUES ('004_image_assets');
+
+INSERT IGNORE INTO schema_migrations(version) VALUES ('005_audit_security');

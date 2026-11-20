@@ -15,9 +15,7 @@ onMounted(async () => {
   try {
     const res = await api.get("/auth/me")
     user.value = res.data
-    console.log("Dashboard 已登入使用者:", res.data)
   } catch (err) {
-    console.log("尚未登入或 token 無效", err)
     router.push('/login') // 無法驗證就跳登入頁
   } finally {
     loading.value = false

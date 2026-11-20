@@ -34,6 +34,13 @@ async def service_register_user(db: AsyncSession, request: Request, background_t
     db.add(new_user)
 
     try:
+        await db.flush()
+        await log_action(
+            db=db, background_tasks=background_tasks, request=request,
+            user_id=new_user.user_id, category="AUTH", action="REGISTER",
+            target_id=str(new_user.user_id),
+            after_data={"role_id": 3},
+        )
         await db.commit()
     except IntegrityError:
         await db.rollback()
@@ -42,15 +49,6 @@ async def service_register_user(db: AsyncSession, request: Request, background_t
         await db.rollback()
         raise HTTPException(status_code=500, detail="註冊失敗")
 
-    try:
-        await log_action(
-            db=db, background_tasks=background_tasks, request=request,
-            user_id=new_user.user_id, category="AUTH", action="REGISTER",
-            target_id=str(new_user.user_id),
-            after_data={"role_id": 3},
-        )
-    except Exception as e:
-        print(f"[WARN] log_action failed: {e}")
 
     return {"message": "註冊成功"}
 

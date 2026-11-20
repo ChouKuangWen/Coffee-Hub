@@ -70,7 +70,11 @@ def context(isolated_app, monkeypatch):
     monkeypatch.setattr(env.auth, "log_action", AsyncMock())
     monkeypatch.setattr(env.auth, "record_required_action", AsyncMock())
     monkeypatch.setattr(env.users, "log_action", AsyncMock())
+    import app.core.browser_security as browser
+    monkeypatch.setattr(browser, "persist_denial", AsyncMock())
     client = TestClient(env.app, base_url="https://testserver")
+    client.headers["X-CSRF-Token"] = client.get("/auth/csrf").json()["csrf_token"]
+    client.event_hooks["request"] = [add_csrf_credentials]
     access, _ = env.token.create_access_token({"user_id": 7, "role_id": 3, "session_id": "test-session"})
     client.cookies.set("access_token", access)
     # 驗證仍執行真實 JWT 簽章／期限檢查；只替換撤銷紀錄查詢。
@@ -99,7 +103,7 @@ def test_registration_defaults_to_customer_and_hashes_password(context):
     async def commit():
         context.db.add.call_args.args[0].user_id = 8
 
-    context.db.commit.side_effect = commit
+    context.db.flush.side_effect = commit
     response = context.client.post("/auth/register", json=registration())
     assert response.status_code == 200
     saved = context.db.add.call_args.args[0]
@@ -245,3 +249,27 @@ def test_admin_create_is_customer_only(context):
 def test_application_health_in_isolated_environment(context):
     assert context.client.get("/health").json() == {"status": "ok"}
     context.db.execute.assert_not_awaited()
+
+
+def csrf_client(app):
+    """Existing integration regression clients send signed CSRF credentials on writes."""
+    import httpx
+    from app.core.browser_security import new_csrf
+
+    async def credentials(request):
+        add_csrf_credentials(request)
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="https://testserver",
+                              event_hooks={"request":[credentials]})
+
+
+def add_csrf_credentials(request):
+    from http.cookies import SimpleCookie
+    from app.core.browser_security import new_csrf
+    if request.method not in {"GET", "HEAD", "OPTIONS"}:
+        cookies = SimpleCookie()
+        cookies.load(request.headers.get("cookie", ""))
+        refresh = cookies.get("refresh_token")
+        token = new_csrf(refresh.value if refresh else None)
+        cookies["csrf_token"] = token
+        request.headers["X-CSRF-Token"] = token
+        request.headers["cookie"] = "; ".join(f"{k}={v.value}" for k,v in cookies.items())

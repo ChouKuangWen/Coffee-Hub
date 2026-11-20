@@ -17,6 +17,7 @@ from app.services.order_items_service import (
 from app.crud.order_items import get_order_item
 from app.dependencies import get_current_user_from_cookie
 from app.core.rate_limit import limiter
+from app.services.audit_log_service import record_sensitive_read
 
 router = APIRouter()
 
@@ -38,6 +39,7 @@ async def read_all_order_items(
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
     items = await get_all_order_items_service(db, current_user)
+    await record_sensitive_read(db, request, current_user, "ORDER_ITEM", metadata={"result_count":len(items)})
     return [serialize_item_detail(i) for i in items]
 
 
@@ -51,6 +53,8 @@ async def read_order_item(
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
     item = await get_authorized_order_item(db, order_item_id, current_user)
+    if current_user.role_id == 1:
+        await record_sensitive_read(db, request, current_user, "ORDER_ITEM", order_item_id)
     return serialize_item_detail(item)
 
 # 新增訂單項目
@@ -108,6 +112,8 @@ async def read_order_items_by_order(
     current_user: Users = Depends(get_current_user_from_cookie)
 ):
     filtered_items = await get_order_items_by_order_service(db, current_user, order_id, sales)
+    if current_user.role_id == 1:
+        await record_sensitive_read(db, request, current_user, "ORDER", order_id, {"result_count":len(filtered_items)})
     return OrderItemListResponse(
         items=[serialize_item_detail(item) for item in filtered_items],
         total=len(filtered_items)

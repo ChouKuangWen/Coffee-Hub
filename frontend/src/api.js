@@ -1,14 +1,31 @@
 // src/api.js
 import axios from 'axios'
+const apiBaseURL = import.meta.env.VITE_API_BASE_URL || '';
 
 // 建立 axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // 你的 FastAPI 後端
+  baseURL: apiBaseURL, // 你的 FastAPI 後端
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true, // 讓瀏覽器自動帶 Cookie
 })
+
+// CSRF token is fetched from the API response; its HttpOnly cookie stays browser-managed.
+let csrfPending;
+async function csrfToken() {
+  if (!csrfPending) {
+    csrfPending = axios.get(`${apiBaseURL}/auth/csrf`, { withCredentials: true })
+      .then(res => res.data.csrf_token).finally(() => { csrfPending = null; });
+  }
+  return csrfPending;
+}
+api.interceptors.request.use(async config => {
+  if (!['get', 'head', 'options'].includes((config.method || 'get').toLowerCase())) {
+    config.headers['X-CSRF-Token'] = await csrfToken();
+  }
+  return config;
+});
 
 api.interceptors.response.use(
   response => response,
@@ -20,7 +37,7 @@ api.interceptors.response.use(
       alert(message); // 或者使用 UI 組件如 el-message, toast 等
       return Promise.reject(error);
     }
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !['/auth/login', '/auth/refresh-token', '/auth/logout'].some(path => originalRequest?.url?.endsWith(path))) {
       // 檢查是否已經嘗試過刷新（避免無窮迴圈）
       if (!originalRequest._retry) {
         originalRequest._retry = true;
@@ -31,9 +48,9 @@ api.interceptors.response.use(
           // 呼叫後端刷新端點
           // 注意：因為有 withCredentials，瀏覽器會自動帶上 refresh_token cookie
           await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/auth/refresh-token`, 
+            `${apiBaseURL}/auth/refresh-token`,
             {}, 
-            { withCredentials: true }
+            { withCredentials: true, headers: { 'X-CSRF-Token': await csrfToken() } }
           );
 
           console.log("刷新成功，重新發送原請求");

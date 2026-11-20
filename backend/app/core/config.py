@@ -3,6 +3,11 @@ from pydantic import Field
 
 class Settings(BaseSettings):
     APP_ENV: str = "development"
+    # 跨來源部署須明確提供 HTTPS 前端來源；不允許共用 GCS 網域或萬用字元。
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:3000"]
+    COOKIE_SECURE: bool = True
+    COOKIE_SAMESITE: str = "lax"
+    AUDIT_DELETE_ENABLED: bool = False
     ENABLE_SIMULATED_CHECKOUT: bool = False
     # 圖片使用獨立、顯式設定的 bucket，不回退到舊 GCP_BUCKET_NAME。
     IMAGE_STORAGE_ENABLED: bool = False

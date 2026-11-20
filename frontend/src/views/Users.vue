@@ -35,7 +35,6 @@ const fetchCurrentUser = async () => {
     const res = await api.get("/auth/me"); 
     currentUser.value = res.data;
   } catch (err) {
-    console.error("fetchCurrentUser error:", err);
     router.push("/login"); // 若未登入或 token 無效，跳回登入頁
   } finally {
     loading.value = false;
@@ -54,7 +53,6 @@ const fetchUsers = async () => {
       users.value = [res.data];
     }
   } catch (err) {
-    console.error("fetchUsers error:", err);
     alert("無法取得使用者資料：" + (err.response?.data?.detail || err.message));
   }
 };
@@ -117,7 +115,6 @@ const saveUser = async () => {
     await fetchUsers();
     closeModal();
   } catch (err) {
-    console.error("saveUser error:", err);
     const detail = err.response?.data?.detail;
     alert("操作失敗：" + (Array.isArray(detail) ? detail.map(item => item.msg).join('；') : detail || err.message));
   }

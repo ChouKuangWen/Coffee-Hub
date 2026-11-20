@@ -34,7 +34,7 @@ const handleLogout = async () => {
     router.push('/login');
   } catch (err) {
     console.error("登出失敗");
-    router.push('/login');
+    alert('登出未完成，請稍後重試。');
   }
 };
 </script>
@@ -47,6 +47,7 @@ const handleLogout = async () => {
       <div class="nav-links">
 
         <template v-if="isLoggedIn">
+          <router-link v-if="authStore.user?.role_id === 1" to="/audit-logs">Audit Log</router-link>
           <template v-if="isSeller">
             <router-link to="/products" class="seller-link">我的商品</router-link>
             <router-link to="/orders">訂單管理</router-link>

@@ -19,7 +19,7 @@ cloud_sql_conn_name = os.getenv("DB_CONNECTION_NAME")
 # 雲端/本地 環境判斷
 if cloud_sql_conn_name:
     # 模式 1: Cloud Run 開發
-    print(f"INFO: Using Cloud SQL Proxy via Unix Socket: {cloud_sql_conn_name}")
+    # Avoid logging infrastructure identifiers or SQL parameters.
     # 正確的 asyncmy Unix Socket 連線格式
     # mysql+asyncmy://<user>:<password>@/<dbname>?unix_socket=/cloudsql/<CONNECTION_NAME>&charset=utf8mb4
     db_url = (
@@ -29,7 +29,7 @@ if cloud_sql_conn_name:
         )
 else:
     # 模式 2: 本地開發
-    print("INFO: Local development")
+    # Avoid logging infrastructure identifiers or SQL parameters.
     db_url = f"mysql+asyncmy://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?charset=utf8mb4"
 
 # 建立資料庫連線引擎，建立session 宣告ORM
@@ -40,7 +40,7 @@ expire_on_commit 設定為 False 時，提交後，ORM 物件不會自動過期�
 可以繼續存取這些物件的屬性，而無需再次觸發資料庫查詢來重新載入它們的值。
 """
 async_engine = create_async_engine(db_url,
-                    echo=True,
+                    echo=False,
                     # 這裡才是將超時參數傳遞給 SQLAlchemy 和底層驅動程式的標準方式：
                     pool_recycle=db_pool_recycle,
                     connect_args={"connect_timeout": db_connect_timeout})  #正式環境中，為減少日誌輸出量將echo設定為False

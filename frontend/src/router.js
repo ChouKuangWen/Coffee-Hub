@@ -10,6 +10,7 @@ import Products from './views/Products.vue'
 import ProductDetail from './views/ProductDetail.vue'
 import Cart from './views/Cart.vue'
 import api from './api'
+import AuditLogs from './views/AuditLogs.vue'
 
 const routes = [
   { path: '/', redirect: () => '/home'  },      // 預設導向Home首頁
@@ -24,6 +25,7 @@ const routes = [
   { path: '/orders', component: Orders },  // 訂單查詢
   { path: '/products', component: Products },  // 訂單查詢
   { path: '/cart', component: Cart },
+  { path: '/audit-logs', component: AuditLogs },
 ]
 
 const router = createRouter({
@@ -47,7 +49,8 @@ router.beforeEach(async (to, from, next) => {
   // 3. 針對需要登入的頁面（如 /cart, /dashboard, /orders）進行檢查
   try {
     // 這裡使用封裝好的 api，它已經有 interceptor 了
-    await api.get('/auth/me');
+    const { data: user } = await api.get('/auth/me');
+    if (to.path === '/audit-logs' && user.role_id !== 1) return next('/dashboard');
     next();
   } catch (err) {
     console.log("驗證失敗，導回登入頁");
