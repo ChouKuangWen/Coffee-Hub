@@ -5,11 +5,13 @@ from fastapi import HTTPException, Request
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
+from app.core.security import validate_jwt_configuration
 from app.models.jwt_blacklist import JWTBlacklist
 from app.models.refresh_token import RefreshToken
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
+validate_jwt_configuration(ALGORITHM, SECRET_KEY)
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 

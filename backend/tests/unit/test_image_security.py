@@ -56,6 +56,34 @@ def test_reject_fake_content_size_dimensions_animation(isolated_app, monkeypatch
     assert exc.value.status_code == 415
 
 
+def test_exif_orientation_and_adversarial_png_metadata(isolated_app):
+    import warnings
+    from PIL.PngImagePlugin import PngInfo
+    from app.services.image_service import normalize_image
+    source = BytesIO()
+    exif = Image.Exif()
+    exif[274] = 6
+    Image.new('RGB', (12, 9), 'red').save(source, format='JPEG', exif=exif)
+    normalized, _, _, width, height = normalize_image(source.getvalue(), 'image/jpeg')
+    assert (width, height) == (9, 12)
+    with Image.open(BytesIO(normalized)) as clean:
+        assert not clean.getexif()
+
+    source = BytesIO()
+    metadata = PngInfo()
+    metadata.add(b'eXIf', b'Exif\x00\x00' * 50_000)
+    Image.new('RGB', (1, 1)).save(source, format='PNG', pnginfo=metadata)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', UserWarning)
+        try:
+            normalized, _, _, _, _ = normalize_image(source.getvalue(), 'image/png')
+        except HTTPException as exc:
+            assert exc.status_code == 415
+        else:
+            with Image.open(BytesIO(normalized)) as clean:
+                assert not clean.getexif()
+
+
 def test_gcs_adapter_is_lazy_and_uses_generation_conditions(monkeypatch):
     spec = importlib.util.spec_from_file_location('image_gcs_adapter_test',
         Path(__file__).parents[2] / 'app/core/gcp_storage.py')
