@@ -1,222 +1,21 @@
 {
   "review_date": "2026-11-21",
-  "branch": "fix/dependency-security",
-  "base_commit": "e17026f6af6e7f01e17d7acee652e4a37688aff6",
+  "branch": "fix/security-risk-remediation",
+  "base_commit": "4dc7edb084de678eaf1dda669a8820cf99724d62",
   "scope": "Current remediation results below supersede historical assessments. Version matches are not proof of exploitability. Unresolved findings are not waived; Git commit approval is not deployment or security acceptance.",
   "python": {
-    "pins_scanned": 148,
-    "matched_packages_before": 31,
-    "matched_packages_after": 17,
-    "unique_remaining_ghsa": 37,
+    "pins_scanned": 128,
+    "matched_packages_before": 17,
+    "matched_packages_after": 7,
+    "unique_remaining_ghsa": 9,
     "remaining_severity": {
-      "HIGH": 11,
-      "CRITICAL": 3,
-      "LOW": 4,
-      "MODERATE": 19
+      "CRITICAL": 1,
+      "LOW": 2,
+      "MODERATE": 5,
+      "HIGH": 1
     },
-    "version_changes": [
-      {
-        "package": "aiohttp",
-        "before": "3.13.3",
-        "after": "3.14.4"
-      },
-      {
-        "package": "anyio",
-        "before": "4.11.0",
-        "after": "4.14.2"
-      },
-      {
-        "package": "certifi",
-        "before": "2025.10.5",
-        "after": "2026.10.18"
-      },
-      {
-        "package": "cryptography",
-        "before": "45.0.5",
-        "after": "50.0.0"
-      },
-      {
-        "package": "dnspython",
-        "before": "2.8.0",
-        "after": "2.9.2"
-      },
-      {
-        "package": "ecdsa",
-        "before": "0.19.1",
-        "after": "0.19.2"
-      },
-      {
-        "package": "fastapi",
-        "before": "0.119.0",
-        "after": "0.133.0"
-      },
-      {
-        "package": "fsspec",
-        "before": "2026.2.0",
-        "after": "2026.6.0"
-      },
-      {
-        "package": "idna",
-        "before": "3.10",
-        "after": "3.15"
-      },
-      {
-        "package": "pillow",
-        "before": "11.3.0",
-        "after": "13.0.0"
-      },
-      {
-        "package": "protobuf",
-        "before": "6.33.4",
-        "after": "6.33.5"
-      },
-      {
-        "package": "pyasn1",
-        "before": "0.6.1",
-        "after": "0.6.5"
-      },
-      {
-        "package": "python-dotenv",
-        "before": "1.2.1",
-        "after": "1.2.2"
-      },
-      {
-        "package": "requests",
-        "before": "2.32.5",
-        "after": "2.33.0"
-      },
-      {
-        "package": "starlette",
-        "before": "0.48.0",
-        "after": "1.3.1"
-      },
-      {
-        "package": "urllib3",
-        "before": "2.6.3",
-        "after": "2.8.0"
-      },
-      {
-        "package": "yarl",
-        "before": "1.23.0",
-        "after": "1.25.1"
-      }
-    ],
+    "version_changes": [],
     "remaining_findings": [
-      {
-        "id": "GHSA-2wm9-hf6c-p5cr",
-        "severity": "HIGH",
-        "summary": "ChromaDB allows any authenticated users to arbitrarily read, write, update, or delete data in any tenant's collection",
-        "affected": [
-          {
-            "package": "chromadb",
-            "installed_version": "1.5.2",
-            "published_fixed_versions": []
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-2wm9-hf6c-p5cr",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-45830",
-          "https://github.com/chroma-core/chroma"
-        ],
-        "upstream_modified": "2026-09-10T12:25:31.394776670Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-3644-q5cj-c5c7",
-        "severity": "HIGH",
-        "summary": "LangSmith SDK: Public prompt pull deserializes untrusted manifests without trust boundary warning",
-        "affected": [
-          {
-            "package": "langsmith",
-            "installed_version": "0.7.14",
-            "published_fixed_versions": [
-              "0.8.0"
-            ]
-          },
-          {
-            "package": "langsmith",
-            "installed_version": "0.7.14",
-            "published_fixed_versions": [
-              "0.6.0"
-            ]
-          },
-          {
-            "package": "langchain-classic",
-            "installed_version": "1.0.2",
-            "published_fixed_versions": [
-              "1.0.7"
-            ]
-          },
-          {
-            "package": "langchain",
-            "installed_version": "1.2.10",
-            "published_fixed_versions": [
-              "0.3.30"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-3644-q5cj-c5c7",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-45134",
-          "https://github.com/langchain-ai/langsmith-sdk"
-        ],
-        "upstream_modified": "2026-09-10T03:51:04.416695616Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-36p7-vc44-83pf",
-        "severity": "CRITICAL",
-        "summary": "ChromaDB has a code injection vulnerability",
-        "affected": [
-          {
-            "package": "chromadb",
-            "installed_version": "1.5.2",
-            "published_fixed_versions": []
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-36p7-vc44-83pf",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-45833",
-          "https://github.com/chroma-core/chroma"
-        ],
-        "upstream_modified": "2026-09-10T12:25:44.502926958Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-3jp2-3mrg-2vxc",
-        "severity": "HIGH",
-        "summary": "OAuthLib: Bearer token can be retrieved as long as client knows a valid client ID for device workflow",
-        "affected": [
-          {
-            "package": "oauthlib",
-            "installed_version": "3.3.1",
-            "published_fixed_versions": [
-              "4.0.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-3jp2-3mrg-2vxc",
-        "references": [
-          "https://github.com/oauthlib/oauthlib"
-        ],
-        "upstream_modified": "2026-11-05T21:15:09.240948711Z",
-        "assessment": [
-          "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
-        ]
-      },
       {
         "id": "GHSA-3qf3-8w2g-rqmx",
         "severity": "CRITICAL",
@@ -246,7 +45,7 @@
         "summary": "Pygments has Regular Expression Denial of Service (ReDoS) due to Inefficient Regex for GUID Matching",
         "affected": [
           {
-            "package": "pygments",
+            "package": "Pygments",
             "installed_version": "2.19.2",
             "published_fixed_versions": [
               "2.20.0"
@@ -289,53 +88,6 @@
         ]
       },
       {
-        "id": "GHSA-567q-5qvw-pf92",
-        "severity": "LOW",
-        "summary": "filelock: On Windows an oplock on a soft lock's marker holds SoftFileLock.acquire() past its timeout and blocks the stale break",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-567q-5qvw-pf92",
-        "references": [
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-23T22:45:03.452878321Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
-        "id": "GHSA-69hj-f68j-2879",
-        "severity": "MODERATE",
-        "summary": "filelock: UnixFileLock truncates and chmods any regular file another user renames or hard-links onto the lock path",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-69hj-f68j-2879",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-112909",
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-28T21:15:04.974667790Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
         "id": "GHSA-6w46-j5rx-g56g",
         "severity": "MODERATE",
         "summary": "pytest has vulnerable tmpdir handling",
@@ -357,53 +109,6 @@
         "upstream_modified": "2026-09-10T03:50:32.768043789Z",
         "assessment": [
           "Development/test dependency. 9.x major framework upgrade deferred; not deployed as an application API feature."
-        ]
-      },
-      {
-        "id": "GHSA-7984-qgvg-3j9c",
-        "severity": "HIGH",
-        "summary": "OAuthLib: Token grants can use attacker-supplied client_id for authorization after authenticating a different client",
-        "affected": [
-          {
-            "package": "oauthlib",
-            "installed_version": "3.3.1",
-            "published_fixed_versions": [
-              "4.0.0"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-7984-qgvg-3j9c",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-118669",
-          "https://github.com/oauthlib/oauthlib"
-        ],
-        "upstream_modified": "2026-10-30T23:15:08.286894189Z",
-        "assessment": [
-          "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
-        ]
-      },
-      {
-        "id": "GHSA-8mx5-7m5m-r77g",
-        "severity": "MODERATE",
-        "summary": "filelock: WindowsFileLock ignores mode: a 0o600 lock file and the ReadWriteLock database inherit the directory ACL",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-8mx5-7m5m-r77g",
-        "references": [
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-28T21:15:05.688436299Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
         ]
       },
       {
@@ -430,227 +135,6 @@
         ]
       },
       {
-        "id": "GHSA-926x-3r5x-gfhw",
-        "severity": "MODERATE",
-        "summary": "LangChain has incomplete f-string validation in prompt templates",
-        "affected": [
-          {
-            "package": "langchain-core",
-            "installed_version": "1.2.17",
-            "published_fixed_versions": [
-              "0.3.84"
-            ]
-          },
-          {
-            "package": "langchain-core",
-            "installed_version": "1.2.17",
-            "published_fixed_versions": [
-              "1.2.28"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-926x-3r5x-gfhw",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-40087",
-          "https://github.com/langchain-ai/langchain"
-        ],
-        "upstream_modified": "2026-09-10T03:51:01.352737245Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-9vhv-jxww-xfm5",
-        "severity": "LOW",
-        "summary": "filelock: ReadWriteLock on Windows acts on SQLite side files another local user places beside its database",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-9vhv-jxww-xfm5",
-        "references": [
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-23T22:45:03.439584635Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
-        "id": "GHSA-cwqr-hh33-gh44",
-        "severity": "MODERATE",
-        "summary": "filelock ReadWriteLock: a crafted lock database makes every acquire stall or hang regardless of timeout",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-cwqr-hh33-gh44",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-112915",
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-28T21:15:04.923553251Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
-        "id": "GHSA-f4j7-r4q5-qw2c",
-        "severity": "CRITICAL",
-        "summary": "ChromaDB Python project has a pre-authentication code injection vulnerability",
-        "affected": [
-          {
-            "package": "chromadb",
-            "installed_version": "1.5.2",
-            "published_fixed_versions": []
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-f4j7-r4q5-qw2c",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-45829",
-          "https://github.com/advisories/GHSA-f4j7-r4q5-qw2c",
-          "https://github.com/chroma-core/chroma"
-        ],
-        "upstream_modified": "2026-10-05T21:45:03.620198036Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-f4xh-w4cj-qxq8",
-        "severity": "HIGH",
-        "summary": "LangSmith SDK TracingMiddleware: Arbitrary server-side file read",
-        "affected": [
-          {
-            "package": "langsmith",
-            "installed_version": "0.7.14",
-            "published_fixed_versions": [
-              "0.8.18"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-f4xh-w4cj-qxq8",
-        "references": [
-          "https://github.com/langchain-ai/langsmith-sdk"
-        ],
-        "upstream_modified": "2026-09-10T03:50:49.251222821Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-fjqc-hq36-qh5p",
-        "severity": "MODERATE",
-        "summary": "LangGraph Checkpoint: Unsafe JSON deserialization in checkpoint loading",
-        "affected": [
-          {
-            "package": "langgraph-checkpoint",
-            "installed_version": "4.0.1",
-            "published_fixed_versions": [
-              "4.1.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-fjqc-hq36-qh5p",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-48775",
-          "https://github.com/langchain-ai/langgraph"
-        ],
-        "upstream_modified": "2026-07-13T16:42:57.455268050Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-fq56-3cx3-fjxp",
-        "severity": "MODERATE",
-        "summary": "filelock: SoftFileLock stale-lock break removes a live lock file on a reused inode number and admits two holders",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-fq56-3cx3-fjxp",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-112935",
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-28T21:15:04.933315565Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
-        "id": "GHSA-fv5p-p927-qmxr",
-        "severity": "MODERATE",
-        "summary": "LangChain Text Splitters: HTMLHeaderTextSplitter.split_text_from_url SSRF Redirect Bypass",
-        "affected": [
-          {
-            "package": "langchain-text-splitters",
-            "installed_version": "1.1.1",
-            "published_fixed_versions": [
-              "1.1.2"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-fv5p-p927-qmxr",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-41481",
-          "https://github.com/langchain-ai/langchain"
-        ],
-        "upstream_modified": "2026-09-10T03:50:44.294835049Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-fvww-7h3r-vfhp",
-        "severity": "HIGH",
-        "summary": "LangGraph SDK custom auth silently ignores actions= on resource decorators",
-        "affected": [
-          {
-            "package": "langgraph-sdk",
-            "installed_version": "0.3.9",
-            "published_fixed_versions": [
-              "0.4.4"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-fvww-7h3r-vfhp",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-104873",
-          "https://github.com/langchain-ai/langgraph"
-        ],
-        "upstream_modified": "2026-10-15T14:55:53.373586904Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
         "id": "GHSA-gj48-438w-jh9v",
         "severity": "MODERATE",
         "summary": "Bleach clean() / Cleaner() fails to sanitize dangerous URI schemes in allowed formaction attributes",
@@ -671,78 +155,6 @@
         "upstream_modified": "2026-09-10T03:50:49.646625202Z",
         "assessment": [
           "Application sanitization uses empty tag/attribute allowlists; affected URI-attribute path not found. Findings remain open; any future rich HTML allowance requires patch and tests."
-        ]
-      },
-      {
-        "id": "GHSA-gr75-jv2w-4656",
-        "severity": "MODERATE",
-        "summary": "LangChain: Path traversal and sandbox escape in LangChain file-search middleware and loaders",
-        "affected": [
-          {
-            "package": "langchain",
-            "installed_version": "1.2.10",
-            "published_fixed_versions": [
-              "1.3.9"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-gr75-jv2w-4656",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-55443",
-          "https://github.com/langchain-ai/langchain"
-        ],
-        "upstream_modified": "2026-09-10T03:51:08.737829576Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-hj66-6f7g-4r5v",
-        "severity": "MODERATE",
-        "summary": "Oauthlib : Unsafe JSONP callback injection in RevocationEndpoint allows arbitrary JavaScript response generation",
-        "affected": [
-          {
-            "package": "oauthlib",
-            "installed_version": "3.3.1",
-            "published_fixed_versions": [
-              "4.0.0"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-hj66-6f7g-4r5v",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-49264",
-          "https://github.com/oauthlib/oauthlib"
-        ],
-        "upstream_modified": "2026-10-13T16:00:32.098776410Z",
-        "assessment": [
-          "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
-        ]
-      },
-      {
-        "id": "GHSA-j8f7-rjxc-mr56",
-        "severity": "MODERATE",
-        "summary": "filelock: ReadWriteLock follows a symlink at the lock path into SQLite",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.0.9"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-j8f7-rjxc-mr56",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-112936",
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-28T21:15:04.169983430Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
         ]
       },
       {
@@ -767,167 +179,6 @@
         "upstream_modified": "2026-11-13T17:00:03.925479166Z",
         "assessment": [
           "Tracing middleware/exporters not enabled in current app. Coupled API/SDK/instrumentation upgrade deferred; findings remain open."
-        ]
-      },
-      {
-        "id": "GHSA-pjwx-r37v-7724",
-        "severity": "HIGH",
-        "summary": "LangChain vulnerable to unsafe deserialization of attacker-controlled objects through overly broad `load()` allowlists",
-        "affected": [
-          {
-            "package": "langchain-core",
-            "installed_version": "1.2.17",
-            "published_fixed_versions": [
-              "1.3.3"
-            ]
-          },
-          {
-            "package": "langchain-core",
-            "installed_version": "1.2.17",
-            "published_fixed_versions": [
-              "0.3.85"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-pjwx-r37v-7724",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-44843",
-          "https://github.com/langchain-ai/langchain"
-        ],
-        "upstream_modified": "2026-09-10T03:51:06.718716596Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-qh6h-p6c9-ff54",
-        "severity": "HIGH",
-        "summary": "LangChain Core has Path Traversal vulnerabilites in legacy `load_prompt` functions",
-        "affected": [
-          {
-            "package": "langchain-core",
-            "installed_version": "1.2.17",
-            "published_fixed_versions": [
-              "1.2.22"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-qh6h-p6c9-ff54",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-34070",
-          "https://github.com/langchain-ai/langchain"
-        ],
-        "upstream_modified": "2026-09-10T03:50:40.646863770Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-rfpc-qcw5-3pc4",
-        "severity": "MODERATE",
-        "summary": "filelock: SoftFileLock removes a live holder's marker when another user forges the PID in a writable marker",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-rfpc-qcw5-3pc4",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-112939",
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-28T21:15:05.584943666Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
-        "id": "GHSA-rr7j-v2q5-chgv",
-        "severity": "MODERATE",
-        "summary": "LangSmith SDK: Streaming token events bypass output redaction",
-        "affected": [
-          {
-            "package": "langsmith",
-            "installed_version": "0.7.14",
-            "published_fixed_versions": [
-              "0.5.19"
-            ]
-          },
-          {
-            "package": "langsmith",
-            "installed_version": "0.7.14",
-            "published_fixed_versions": [
-              "0.7.31"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-rr7j-v2q5-chgv",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-41182",
-          "https://github.com/langchain-ai/langsmith-sdk"
-        ],
-        "upstream_modified": "2026-09-10T03:51:03.075090864Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-v4x8-3wr5-3wq8",
-        "severity": "HIGH",
-        "summary": "filelock ReadWriteLock: SQLite reopens the lock database by name, so a planted symlink or journal file makes the lock user's process overwrite or unlink its own files",
-        "affected": [
-          {
-            "package": "filelock",
-            "installed_version": "3.25.0",
-            "published_fixed_versions": [
-              "4.2.1"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-v4x8-3wr5-3wq8",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-112940",
-          "https://github.com/tox-dev/filelock"
-        ],
-        "upstream_modified": "2026-10-23T22:15:04.432475030Z",
-        "assessment": [
-          "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
-        ]
-      },
-      {
-        "id": "GHSA-w39p-vh2g-g8g5",
-        "severity": "MODERATE",
-        "summary": "LangGraph SDK has unsafe URL path construction",
-        "affected": [
-          {
-            "package": "langgraph-sdk",
-            "installed_version": "0.3.9",
-            "published_fixed_versions": [
-              "0.3.15"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-w39p-vh2g-g8g5",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-48776",
-          "https://github.com/advisories/GHSA-w39p-vh2g-g8g5",
-          "https://github.com/langchain-ai/langgraph"
-        ],
-        "upstream_modified": "2026-07-21T15:15:50.659527533Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
         ]
       },
       {
@@ -974,59 +225,13 @@
         "assessment": [
           "Tracing middleware/exporters not enabled in current app. Coupled API/SDK/instrumentation upgrade deferred; findings remain open."
         ]
-      },
-      {
-        "id": "GHSA-xph7-9rjv-w5fr",
-        "severity": "HIGH",
-        "summary": "ChromaDB's SimpleRBACAuthorizationProvider doesn't check which tenant, database, or collection a permission applies to",
-        "affected": [
-          {
-            "package": "chromadb",
-            "installed_version": "1.5.2",
-            "published_fixed_versions": []
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-xph7-9rjv-w5fr",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-45831",
-          "https://github.com/chroma-core/chroma"
-        ],
-        "upstream_modified": "2026-09-10T12:25:45.510140945Z",
-        "assessment": [
-          "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
-        ]
-      },
-      {
-        "id": "GHSA-xpv3-w29h-x7cv",
-        "severity": "MODERATE",
-        "summary": "Oauthlib: Timing Attack Vulnerability in PKCE code_verifier Comparison (CWE-208)",
-        "affected": [
-          {
-            "package": "oauthlib",
-            "installed_version": "3.3.1",
-            "published_fixed_versions": [
-              "4.0.0"
-            ]
-          }
-        ],
-        "status": "UNRESOLVED",
-        "source": "https://osv.dev/vulnerability/GHSA-xpv3-w29h-x7cv",
-        "references": [
-          "https://nvd.nist.gov/vuln/detail/CVE-2026-49265",
-          "https://github.com/oauthlib/oauthlib"
-        ],
-        "upstream_modified": "2026-10-13T16:00:32.097492414Z",
-        "assessment": [
-          "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
-        ]
       }
     ],
     "compatibility": {
       "pillow": "13.0.0 requires Python >=3.11; Docker 3.11 and venv 3.12 satisfy. Removed APIs not used; EXIF and image normalization regressions passed.",
       "fastapi_starlette": "FastAPI 0.133.0 is the minimum compatible release supporting Starlette 1.x. Starlette 1.3.1 selected to address current form/file advisories. Existing Pydantic retained.",
       "cryptography": "50.0.0 selected to address current matched advisories. Removed certificate/legacy APIs not used; JWT tests passed.",
-      "resolver": "Explicit binary-wheel updates validated by pip dry-run and pip check. yarl 1.25.1 included to satisfy aiohttp 3.14.4.",
+      "resolver": "Fresh isolated venv installed all 128 frozen pins using binary wheels; pip check passed. Original project venv synchronized by removing the same 20 packages; pip check passed. No retained package version changes.",
       "warning": "Starlette TestClient warns that httpx 0.28.1 integration is deprecated; tests pass. HTTP client major migration deferred."
     }
   },
@@ -1093,24 +298,25 @@
     "notes": "Compatible scoped npm update; no force/overrides. Vue compiler/runtime and required bundler transitive dependencies updated together. Earlier Batch 6 fixes retained."
   },
   "verification": {
-    "regression": "PASS: 53 tests across unit and isolated MySQL account, checkout, lifecycle, image and audit suites. Actual application imports/startup/health, login/forms, JWT/refresh/logout/CSRF, authorization, EXIF/upload with fake GCS and core transactions covered.",
-    "jwt_followup": "PASS: 4 existing new dependency-security tests rerun after adding real ES256 cryptography sign/verify assertion; not 57 unique tests.",
-    "pip_check": "PASS: no broken requirements",
-    "vue_build": "PASS: Vite 7.3.8 production build",
-    "npm_ci": "PASS: dry-run with ignore-scripts; actual clean npm ci NOT RUN",
-    "npm_audit": "PASS: zero reported vulnerabilities at scan time",
-    "python_osv": "COMPLETED: remaining findings preserved above; scan is not security acceptance",
+    "regression": "PASS: 54 tests in fresh venv, covering unit and isolated native MySQL account, checkout, order lifecycle, image and audit integration suites. Includes JWT/login/refresh/logout/CSRF, stock consistency, fake-GCS upload and EXIF processing.",
+    "new_security_case": "PASS: valid RS256 accepted, same DER public-key HS256 forgery rejected with 401. Existing key-encoding guards and cryptography-only ECDSA checks passed.",
+    "fresh_install": "PASS: all 128 requirements installed in clean venv from binary wheels; 20 removed packages absent; pip check passed.",
+    "project_venv": "PASS: same 20 packages removed; pip check passed; remaining 128 pinned versions unchanged.",
+    "initial_install_failure": "First binary-only clean installation failed on unused backend==0.2.4.1; removed after confirming no imports. Final installation passed.",
+    "osv_scan": "COMPLETED: 128 pins, 7 matched packages, 9 unique GHSA (1 Critical, 1 High, 5 Moderate, 2 Low). No risk waiver.",
+    "warning": "Existing Starlette TestClient/httpx deprecation warning; no test failure.",
     "not_run": [
-      "Production configuration startup",
-      "Real GCS integration or deletion",
-      "Browser E2E",
+      "Vue build: frontend and npm dependencies unchanged",
+      "Real GCS integration/deletion",
+      "Production deployment/configuration validation",
       "Linux Docker build",
-      "Formal deployment/security acceptance"
+      "Formal security acceptance"
     ],
-    "database": "Only isolated native MySQL integration environment; no production DB, no application schema changes in this patch."
+    "schema": "No application schema changes; existing integration migrations applied only to newly created isolated test schemas.",
+    "database": "Isolated native test MySQL shut down after tests; data retained, production MySQL/GCS untouched."
   },
-  "commit_assessment": "Ready for review, not committed. Residual risks must remain tracked.",
-  "deployment_assessment": "BLOCKED pending explicit disposition/remediation of remaining Critical/High findings, especially python-jose, ecdsa and optional AI/RAG dependencies. Do not enable unreviewed AI services or claim security acceptance.",
+  "commit_assessment": "Ready for review only; no commit, merge or push. Removal is verified only for default runtime; remaining risks are not accepted.",
+  "deployment_assessment": "BLOCKED: python-jose Critical and ecdsa High remain installed without complete upstream patches. Tested mitigations do not constitute a risk waiver. Approval required before JWT-library replacement or formal risk acceptance; all remaining lower-severity findings also need disposition.",
   "primary_sources": [
     "https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html",
     "https://fastapi.tiangolo.com/release-notes/#01330",
@@ -3083,5 +2289,1606 @@
     },
     "commit_assessment": "Local reviewed commit can retain the explicitly recorded residual risks; this is not production-security approval.",
     "deployment_assessment": "BLOCKED pending Pillow/form-parser remediation and disposition of remaining Critical/High runtime and dependency findings. Do not expose Vite development server. No formal risk acceptance is implied."
+  },
+  "historical_dependency_remediation": {
+    "review_date": "2026-11-21",
+    "branch": "fix/dependency-security",
+    "base_commit": "e17026f6af6e7f01e17d7acee652e4a37688aff6",
+    "python": {
+      "pins_scanned": 148,
+      "matched_packages_before": 31,
+      "matched_packages_after": 17,
+      "unique_remaining_ghsa": 37,
+      "remaining_severity": {
+        "HIGH": 11,
+        "CRITICAL": 3,
+        "LOW": 4,
+        "MODERATE": 19
+      },
+      "version_changes": [
+        {
+          "package": "aiohttp",
+          "before": "3.13.3",
+          "after": "3.14.4"
+        },
+        {
+          "package": "anyio",
+          "before": "4.11.0",
+          "after": "4.14.2"
+        },
+        {
+          "package": "certifi",
+          "before": "2025.10.5",
+          "after": "2026.10.18"
+        },
+        {
+          "package": "cryptography",
+          "before": "45.0.5",
+          "after": "50.0.0"
+        },
+        {
+          "package": "dnspython",
+          "before": "2.8.0",
+          "after": "2.9.2"
+        },
+        {
+          "package": "ecdsa",
+          "before": "0.19.1",
+          "after": "0.19.2"
+        },
+        {
+          "package": "fastapi",
+          "before": "0.119.0",
+          "after": "0.133.0"
+        },
+        {
+          "package": "fsspec",
+          "before": "2026.2.0",
+          "after": "2026.6.0"
+        },
+        {
+          "package": "idna",
+          "before": "3.10",
+          "after": "3.15"
+        },
+        {
+          "package": "pillow",
+          "before": "11.3.0",
+          "after": "13.0.0"
+        },
+        {
+          "package": "protobuf",
+          "before": "6.33.4",
+          "after": "6.33.5"
+        },
+        {
+          "package": "pyasn1",
+          "before": "0.6.1",
+          "after": "0.6.5"
+        },
+        {
+          "package": "python-dotenv",
+          "before": "1.2.1",
+          "after": "1.2.2"
+        },
+        {
+          "package": "requests",
+          "before": "2.32.5",
+          "after": "2.33.0"
+        },
+        {
+          "package": "starlette",
+          "before": "0.48.0",
+          "after": "1.3.1"
+        },
+        {
+          "package": "urllib3",
+          "before": "2.6.3",
+          "after": "2.8.0"
+        },
+        {
+          "package": "yarl",
+          "before": "1.23.0",
+          "after": "1.25.1"
+        }
+      ],
+      "remaining_findings": [
+        {
+          "id": "GHSA-2wm9-hf6c-p5cr",
+          "severity": "HIGH",
+          "summary": "ChromaDB allows any authenticated users to arbitrarily read, write, update, or delete data in any tenant's collection",
+          "affected": [
+            {
+              "package": "chromadb",
+              "installed_version": "1.5.2",
+              "published_fixed_versions": []
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-2wm9-hf6c-p5cr",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-45830",
+            "https://github.com/chroma-core/chroma"
+          ],
+          "upstream_modified": "2026-09-10T12:25:31.394776670Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-3644-q5cj-c5c7",
+          "severity": "HIGH",
+          "summary": "LangSmith SDK: Public prompt pull deserializes untrusted manifests without trust boundary warning",
+          "affected": [
+            {
+              "package": "langsmith",
+              "installed_version": "0.7.14",
+              "published_fixed_versions": [
+                "0.8.0"
+              ]
+            },
+            {
+              "package": "langsmith",
+              "installed_version": "0.7.14",
+              "published_fixed_versions": [
+                "0.6.0"
+              ]
+            },
+            {
+              "package": "langchain-classic",
+              "installed_version": "1.0.2",
+              "published_fixed_versions": [
+                "1.0.7"
+              ]
+            },
+            {
+              "package": "langchain",
+              "installed_version": "1.2.10",
+              "published_fixed_versions": [
+                "0.3.30"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-3644-q5cj-c5c7",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-45134",
+            "https://github.com/langchain-ai/langsmith-sdk"
+          ],
+          "upstream_modified": "2026-09-10T03:51:04.416695616Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-36p7-vc44-83pf",
+          "severity": "CRITICAL",
+          "summary": "ChromaDB has a code injection vulnerability",
+          "affected": [
+            {
+              "package": "chromadb",
+              "installed_version": "1.5.2",
+              "published_fixed_versions": []
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-36p7-vc44-83pf",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-45833",
+            "https://github.com/chroma-core/chroma"
+          ],
+          "upstream_modified": "2026-09-10T12:25:44.502926958Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-3jp2-3mrg-2vxc",
+          "severity": "HIGH",
+          "summary": "OAuthLib: Bearer token can be retrieved as long as client knows a valid client ID for device workflow",
+          "affected": [
+            {
+              "package": "oauthlib",
+              "installed_version": "3.3.1",
+              "published_fixed_versions": [
+                "4.0.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-3jp2-3mrg-2vxc",
+          "references": [
+            "https://github.com/oauthlib/oauthlib"
+          ],
+          "upstream_modified": "2026-11-05T21:15:09.240948711Z",
+          "assessment": [
+            "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
+          ]
+        },
+        {
+          "id": "GHSA-3qf3-8w2g-rqmx",
+          "severity": "CRITICAL",
+          "summary": "python-jose algorithm confusion guard bypassed by DER-encoded public keys",
+          "affected": [
+            {
+              "package": "python-jose",
+              "installed_version": "3.5.0",
+              "published_fixed_versions": []
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-3qf3-8w2g-rqmx",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-85394",
+            "https://github.com/advisories/GHSA-6c5p-j8vq-pqhj",
+            "https://github.com/mpdavis/python-jose"
+          ],
+          "upstream_modified": "2026-10-15T14:56:01.261338787Z",
+          "assessment": [
+            "Unpatched Critical remains open. Explicit single-algorithm decoding retained; startup now rejects PEM/DER/base64-DER public keys as HMAC secrets. No claim of exhaustive mitigation or production risk acceptance."
+          ]
+        },
+        {
+          "id": "GHSA-5239-wwwm-4pmq",
+          "severity": "LOW",
+          "summary": "Pygments has Regular Expression Denial of Service (ReDoS) due to Inefficient Regex for GUID Matching",
+          "affected": [
+            {
+              "package": "pygments",
+              "installed_version": "2.19.2",
+              "published_fixed_versions": [
+                "2.20.0"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-5239-wwwm-4pmq",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-4539",
+            "https://github.com/pygments/pygments"
+          ],
+          "upstream_modified": "2026-09-10T03:50:59.780634752Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-54p9-h82j-f925",
+          "severity": "MODERATE",
+          "summary": "Multidict: Reference leak in CIMultiDict/MultiDict items-view union and subtraction",
+          "affected": [
+            {
+              "package": "multidict",
+              "installed_version": "6.7.1",
+              "published_fixed_versions": [
+                "6.9.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-54p9-h82j-f925",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-104874",
+            "https://github.com/aio-libs/multidict"
+          ],
+          "upstream_modified": "2026-10-15T14:56:05.601333622Z",
+          "assessment": [
+            "Transitive aiohttp dependency; affected items-view set operations not found in application. Compatible fix still requires follow-up; not an accepted production waiver."
+          ]
+        },
+        {
+          "id": "GHSA-567q-5qvw-pf92",
+          "severity": "LOW",
+          "summary": "filelock: On Windows an oplock on a soft lock's marker holds SoftFileLock.acquire() past its timeout and blocks the stale break",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-567q-5qvw-pf92",
+          "references": [
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-23T22:45:03.452878321Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-69hj-f68j-2879",
+          "severity": "MODERATE",
+          "summary": "filelock: UnixFileLock truncates and chmods any regular file another user renames or hard-links onto the lock path",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-69hj-f68j-2879",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-112909",
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-28T21:15:04.974667790Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-6w46-j5rx-g56g",
+          "severity": "MODERATE",
+          "summary": "pytest has vulnerable tmpdir handling",
+          "affected": [
+            {
+              "package": "pytest",
+              "installed_version": "8.4.1",
+              "published_fixed_versions": [
+                "9.0.3"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-6w46-j5rx-g56g",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2025-71176",
+            "https://github.com/pytest-dev/pytes"
+          ],
+          "upstream_modified": "2026-09-10T03:50:32.768043789Z",
+          "assessment": [
+            "Development/test dependency. 9.x major framework upgrade deferred; not deployed as an application API feature."
+          ]
+        },
+        {
+          "id": "GHSA-7984-qgvg-3j9c",
+          "severity": "HIGH",
+          "summary": "OAuthLib: Token grants can use attacker-supplied client_id for authorization after authenticating a different client",
+          "affected": [
+            {
+              "package": "oauthlib",
+              "installed_version": "3.3.1",
+              "published_fixed_versions": [
+                "4.0.0"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-7984-qgvg-3j9c",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-118669",
+            "https://github.com/oauthlib/oauthlib"
+          ],
+          "upstream_modified": "2026-10-30T23:15:08.286894189Z",
+          "assessment": [
+            "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
+          ]
+        },
+        {
+          "id": "GHSA-8mx5-7m5m-r77g",
+          "severity": "MODERATE",
+          "summary": "filelock: WindowsFileLock ignores mode: a 0o600 lock file and the ReadWriteLock database inherit the directory ACL",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-8mx5-7m5m-r77g",
+          "references": [
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-28T21:15:05.688436299Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-8rfp-98v4-mmr6",
+          "severity": "LOW",
+          "summary": "Bleach: URI sanitization allows disallowed URI schemes with Unicode > U+00A0 in output",
+          "affected": [
+            {
+              "package": "bleach",
+              "installed_version": "6.2.0",
+              "published_fixed_versions": [
+                "6.4.0"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-8rfp-98v4-mmr6",
+          "references": [
+            "https://github.com/mozilla/bleach"
+          ],
+          "upstream_modified": "2026-09-10T03:50:49.026722271Z",
+          "assessment": [
+            "Application sanitization uses empty tag/attribute allowlists; affected URI-attribute path not found. Findings remain open; any future rich HTML allowance requires patch and tests."
+          ]
+        },
+        {
+          "id": "GHSA-926x-3r5x-gfhw",
+          "severity": "MODERATE",
+          "summary": "LangChain has incomplete f-string validation in prompt templates",
+          "affected": [
+            {
+              "package": "langchain-core",
+              "installed_version": "1.2.17",
+              "published_fixed_versions": [
+                "0.3.84"
+              ]
+            },
+            {
+              "package": "langchain-core",
+              "installed_version": "1.2.17",
+              "published_fixed_versions": [
+                "1.2.28"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-926x-3r5x-gfhw",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-40087",
+            "https://github.com/langchain-ai/langchain"
+          ],
+          "upstream_modified": "2026-09-10T03:51:01.352737245Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-9vhv-jxww-xfm5",
+          "severity": "LOW",
+          "summary": "filelock: ReadWriteLock on Windows acts on SQLite side files another local user places beside its database",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-9vhv-jxww-xfm5",
+          "references": [
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-23T22:45:03.439584635Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-cwqr-hh33-gh44",
+          "severity": "MODERATE",
+          "summary": "filelock ReadWriteLock: a crafted lock database makes every acquire stall or hang regardless of timeout",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-cwqr-hh33-gh44",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-112915",
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-28T21:15:04.923553251Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-f4j7-r4q5-qw2c",
+          "severity": "CRITICAL",
+          "summary": "ChromaDB Python project has a pre-authentication code injection vulnerability",
+          "affected": [
+            {
+              "package": "chromadb",
+              "installed_version": "1.5.2",
+              "published_fixed_versions": []
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-f4j7-r4q5-qw2c",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-45829",
+            "https://github.com/advisories/GHSA-f4j7-r4q5-qw2c",
+            "https://github.com/chroma-core/chroma"
+          ],
+          "upstream_modified": "2026-10-05T21:45:03.620198036Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-f4xh-w4cj-qxq8",
+          "severity": "HIGH",
+          "summary": "LangSmith SDK TracingMiddleware: Arbitrary server-side file read",
+          "affected": [
+            {
+              "package": "langsmith",
+              "installed_version": "0.7.14",
+              "published_fixed_versions": [
+                "0.8.18"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-f4xh-w4cj-qxq8",
+          "references": [
+            "https://github.com/langchain-ai/langsmith-sdk"
+          ],
+          "upstream_modified": "2026-09-10T03:50:49.251222821Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-fjqc-hq36-qh5p",
+          "severity": "MODERATE",
+          "summary": "LangGraph Checkpoint: Unsafe JSON deserialization in checkpoint loading",
+          "affected": [
+            {
+              "package": "langgraph-checkpoint",
+              "installed_version": "4.0.1",
+              "published_fixed_versions": [
+                "4.1.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-fjqc-hq36-qh5p",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-48775",
+            "https://github.com/langchain-ai/langgraph"
+          ],
+          "upstream_modified": "2026-07-13T16:42:57.455268050Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-fq56-3cx3-fjxp",
+          "severity": "MODERATE",
+          "summary": "filelock: SoftFileLock stale-lock break removes a live lock file on a reused inode number and admits two holders",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-fq56-3cx3-fjxp",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-112935",
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-28T21:15:04.933315565Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-fv5p-p927-qmxr",
+          "severity": "MODERATE",
+          "summary": "LangChain Text Splitters: HTMLHeaderTextSplitter.split_text_from_url SSRF Redirect Bypass",
+          "affected": [
+            {
+              "package": "langchain-text-splitters",
+              "installed_version": "1.1.1",
+              "published_fixed_versions": [
+                "1.1.2"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-fv5p-p927-qmxr",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-41481",
+            "https://github.com/langchain-ai/langchain"
+          ],
+          "upstream_modified": "2026-09-10T03:50:44.294835049Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-fvww-7h3r-vfhp",
+          "severity": "HIGH",
+          "summary": "LangGraph SDK custom auth silently ignores actions= on resource decorators",
+          "affected": [
+            {
+              "package": "langgraph-sdk",
+              "installed_version": "0.3.9",
+              "published_fixed_versions": [
+                "0.4.4"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-fvww-7h3r-vfhp",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-104873",
+            "https://github.com/langchain-ai/langgraph"
+          ],
+          "upstream_modified": "2026-10-15T14:55:53.373586904Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-gj48-438w-jh9v",
+          "severity": "MODERATE",
+          "summary": "Bleach clean() / Cleaner() fails to sanitize dangerous URI schemes in allowed formaction attributes",
+          "affected": [
+            {
+              "package": "bleach",
+              "installed_version": "6.2.0",
+              "published_fixed_versions": [
+                "6.4.0"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-gj48-438w-jh9v",
+          "references": [
+            "https://github.com/mozilla/bleach"
+          ],
+          "upstream_modified": "2026-09-10T03:50:49.646625202Z",
+          "assessment": [
+            "Application sanitization uses empty tag/attribute allowlists; affected URI-attribute path not found. Findings remain open; any future rich HTML allowance requires patch and tests."
+          ]
+        },
+        {
+          "id": "GHSA-gr75-jv2w-4656",
+          "severity": "MODERATE",
+          "summary": "LangChain: Path traversal and sandbox escape in LangChain file-search middleware and loaders",
+          "affected": [
+            {
+              "package": "langchain",
+              "installed_version": "1.2.10",
+              "published_fixed_versions": [
+                "1.3.9"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-gr75-jv2w-4656",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-55443",
+            "https://github.com/langchain-ai/langchain"
+          ],
+          "upstream_modified": "2026-09-10T03:51:08.737829576Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-hj66-6f7g-4r5v",
+          "severity": "MODERATE",
+          "summary": "Oauthlib : Unsafe JSONP callback injection in RevocationEndpoint allows arbitrary JavaScript response generation",
+          "affected": [
+            {
+              "package": "oauthlib",
+              "installed_version": "3.3.1",
+              "published_fixed_versions": [
+                "4.0.0"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-hj66-6f7g-4r5v",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-49264",
+            "https://github.com/oauthlib/oauthlib"
+          ],
+          "upstream_modified": "2026-10-13T16:00:32.098776410Z",
+          "assessment": [
+            "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
+          ]
+        },
+        {
+          "id": "GHSA-j8f7-rjxc-mr56",
+          "severity": "MODERATE",
+          "summary": "filelock: ReadWriteLock follows a symlink at the lock path into SQLite",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.0.9"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-j8f7-rjxc-mr56",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-112936",
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-28T21:15:04.169983430Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-mf5v-w3w3-f6cg",
+          "severity": "MODERATE",
+          "summary": "OpenTelemetry Python API: Denial of service through quadratic-time traceparent parsing",
+          "affected": [
+            {
+              "package": "opentelemetry-api",
+              "installed_version": "1.40.0",
+              "published_fixed_versions": [
+                "1.45.2"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-mf5v-w3w3-f6cg",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-126360",
+            "https://github.com/open-telemetry/opentelemetry-python"
+          ],
+          "upstream_modified": "2026-11-13T17:00:03.925479166Z",
+          "assessment": [
+            "Tracing middleware/exporters not enabled in current app. Coupled API/SDK/instrumentation upgrade deferred; findings remain open."
+          ]
+        },
+        {
+          "id": "GHSA-pjwx-r37v-7724",
+          "severity": "HIGH",
+          "summary": "LangChain vulnerable to unsafe deserialization of attacker-controlled objects through overly broad `load()` allowlists",
+          "affected": [
+            {
+              "package": "langchain-core",
+              "installed_version": "1.2.17",
+              "published_fixed_versions": [
+                "1.3.3"
+              ]
+            },
+            {
+              "package": "langchain-core",
+              "installed_version": "1.2.17",
+              "published_fixed_versions": [
+                "0.3.85"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-pjwx-r37v-7724",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-44843",
+            "https://github.com/langchain-ai/langchain"
+          ],
+          "upstream_modified": "2026-09-10T03:51:06.718716596Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-qh6h-p6c9-ff54",
+          "severity": "HIGH",
+          "summary": "LangChain Core has Path Traversal vulnerabilites in legacy `load_prompt` functions",
+          "affected": [
+            {
+              "package": "langchain-core",
+              "installed_version": "1.2.17",
+              "published_fixed_versions": [
+                "1.2.22"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-qh6h-p6c9-ff54",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-34070",
+            "https://github.com/langchain-ai/langchain"
+          ],
+          "upstream_modified": "2026-09-10T03:50:40.646863770Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-rfpc-qcw5-3pc4",
+          "severity": "MODERATE",
+          "summary": "filelock: SoftFileLock removes a live holder's marker when another user forges the PID in a writable marker",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-rfpc-qcw5-3pc4",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-112939",
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-28T21:15:05.584943666Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-rr7j-v2q5-chgv",
+          "severity": "MODERATE",
+          "summary": "LangSmith SDK: Streaming token events bypass output redaction",
+          "affected": [
+            {
+              "package": "langsmith",
+              "installed_version": "0.7.14",
+              "published_fixed_versions": [
+                "0.5.19"
+              ]
+            },
+            {
+              "package": "langsmith",
+              "installed_version": "0.7.14",
+              "published_fixed_versions": [
+                "0.7.31"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-rr7j-v2q5-chgv",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-41182",
+            "https://github.com/langchain-ai/langsmith-sdk"
+          ],
+          "upstream_modified": "2026-09-10T03:51:03.075090864Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver.",
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-v4x8-3wr5-3wq8",
+          "severity": "HIGH",
+          "summary": "filelock ReadWriteLock: SQLite reopens the lock database by name, so a planted symlink or journal file makes the lock user's process overwrite or unlink its own files",
+          "affected": [
+            {
+              "package": "filelock",
+              "installed_version": "3.25.0",
+              "published_fixed_versions": [
+                "4.2.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-v4x8-3wr5-3wq8",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-112940",
+            "https://github.com/tox-dev/filelock"
+          ],
+          "upstream_modified": "2026-10-23T22:15:04.432475030Z",
+          "assessment": [
+            "Upgrade to 4.2.1+ paused: major 4 changes SoftReadWriteLock on-disk protocol; mixed v3/v4 participants do not mutually exclude. Requires coordinated shutdown and cache-consumer migration review."
+          ]
+        },
+        {
+          "id": "GHSA-w39p-vh2g-g8g5",
+          "severity": "MODERATE",
+          "summary": "LangGraph SDK has unsafe URL path construction",
+          "affected": [
+            {
+              "package": "langgraph-sdk",
+              "installed_version": "0.3.9",
+              "published_fixed_versions": [
+                "0.3.15"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-w39p-vh2g-g8g5",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-48776",
+            "https://github.com/advisories/GHSA-w39p-vh2g-g8g5",
+            "https://github.com/langchain-ai/langgraph"
+          ],
+          "upstream_modified": "2026-07-21T15:15:50.659527533Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-wj6h-64fc-37mp",
+          "severity": "HIGH",
+          "summary": "Minerva timing attack on P-256 in python-ecdsa",
+          "affected": [
+            {
+              "package": "ecdsa",
+              "installed_version": "0.19.2",
+              "published_fixed_versions": []
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-wj6h-64fc-37mp",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2024-23342",
+            "https://github.com/tlsfuzzer/python-ecdsa"
+          ],
+          "upstream_modified": "2026-09-10T03:50:09.447249599Z",
+          "assessment": [
+            "No constant-time upstream fix. JWT ES algorithms require cryptography EC backend, with sign/verify and fallback rejection tests. Native ecdsa signing/key generation/ECDH must not be introduced; package finding remains open."
+          ]
+        },
+        {
+          "id": "GHSA-xcq7-p3pf-p88h",
+          "severity": "MODERATE",
+          "summary": "OpenTelemetry Python: Unbounded tracestate parsing in opentelemetry-api",
+          "affected": [
+            {
+              "package": "opentelemetry-api",
+              "installed_version": "1.40.0",
+              "published_fixed_versions": [
+                "1.45.1"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-xcq7-p3pf-p88h",
+          "references": [
+            "https://github.com/open-telemetry/opentelemetry-python"
+          ],
+          "upstream_modified": "2026-10-22T16:30:40.999595074Z",
+          "assessment": [
+            "Tracing middleware/exporters not enabled in current app. Coupled API/SDK/instrumentation upgrade deferred; findings remain open."
+          ]
+        },
+        {
+          "id": "GHSA-xph7-9rjv-w5fr",
+          "severity": "HIGH",
+          "summary": "ChromaDB's SimpleRBACAuthorizationProvider doesn't check which tenant, database, or collection a permission applies to",
+          "affected": [
+            {
+              "package": "chromadb",
+              "installed_version": "1.5.2",
+              "published_fixed_versions": []
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-xph7-9rjv-w5fr",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-45831",
+            "https://github.com/chroma-core/chroma"
+          ],
+          "upstream_modified": "2026-09-10T12:25:45.510140945Z",
+          "assessment": [
+            "Optional AI/RAG dependency: no corresponding service mounted in current API. Coupled dependency changes and untrusted data paths require separate validation before enabling AI/RAG; not a production risk waiver."
+          ]
+        },
+        {
+          "id": "GHSA-xpv3-w29h-x7cv",
+          "severity": "MODERATE",
+          "summary": "Oauthlib: Timing Attack Vulnerability in PKCE code_verifier Comparison (CWE-208)",
+          "affected": [
+            {
+              "package": "oauthlib",
+              "installed_version": "3.3.1",
+              "published_fixed_versions": [
+                "4.0.0"
+              ]
+            }
+          ],
+          "status": "UNRESOLVED",
+          "source": "https://osv.dev/vulnerability/GHSA-xpv3-w29h-x7cv",
+          "references": [
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-49265",
+            "https://github.com/oauthlib/oauthlib"
+          ],
+          "upstream_modified": "2026-10-13T16:00:32.097492414Z",
+          "assessment": [
+            "4.x fixes require separate authorization/client compatibility review. No application OAuthlib grant-server calls found; FastAPI password-form parsing is separate. Exposure not categorically ruled out."
+          ]
+        }
+      ],
+      "compatibility": {
+        "pillow": "13.0.0 requires Python >=3.11; Docker 3.11 and venv 3.12 satisfy. Removed APIs not used; EXIF and image normalization regressions passed.",
+        "fastapi_starlette": "FastAPI 0.133.0 is the minimum compatible release supporting Starlette 1.x. Starlette 1.3.1 selected to address current form/file advisories. Existing Pydantic retained.",
+        "cryptography": "50.0.0 selected to address current matched advisories. Removed certificate/legacy APIs not used; JWT tests passed.",
+        "resolver": "Explicit binary-wheel updates validated by pip dry-run and pip check. yarl 1.25.1 included to satisfy aiohttp 3.14.4.",
+        "warning": "Starlette TestClient warns that httpx 0.28.1 integration is deprecated; tests pass. HTTP client major migration deferred."
+      }
+    },
+    "verification": {
+      "regression": "PASS: 53 tests across unit and isolated MySQL account, checkout, lifecycle, image and audit suites. Actual application imports/startup/health, login/forms, JWT/refresh/logout/CSRF, authorization, EXIF/upload with fake GCS and core transactions covered.",
+      "jwt_followup": "PASS: 4 existing new dependency-security tests rerun after adding real ES256 cryptography sign/verify assertion; not 57 unique tests.",
+      "pip_check": "PASS: no broken requirements",
+      "vue_build": "PASS: Vite 7.3.8 production build",
+      "npm_ci": "PASS: dry-run with ignore-scripts; actual clean npm ci NOT RUN",
+      "npm_audit": "PASS: zero reported vulnerabilities at scan time",
+      "python_osv": "COMPLETED: remaining findings preserved above; scan is not security acceptance",
+      "not_run": [
+        "Production configuration startup",
+        "Real GCS integration or deletion",
+        "Browser E2E",
+        "Linux Docker build",
+        "Formal deployment/security acceptance"
+      ],
+      "database": "Only isolated native MySQL integration environment; no production DB, no application schema changes in this patch."
+    },
+    "commit_assessment": "Ready for review, not committed. Residual risks must remain tracked.",
+    "deployment_assessment": "BLOCKED pending explicit disposition/remediation of remaining Critical/High findings, especially python-jose, ecdsa and optional AI/RAG dependencies. Do not enable unreviewed AI services or claim security acceptance."
+  },
+  "risk_remediation": {
+    "scope": "Default runtime dependency removal, not upstream vulnerability repair or a risk waiver. Original 37 findings preserved in historical_dependency_remediation.python.remaining_findings. Existing environments must remove excluded packages or recreate venv; pip install -r alone does not uninstall extras.",
+    "major_advisory_dispositions": [
+      {
+        "id": "GHSA-2wm9-hf6c-p5cr",
+        "severity": "HIGH",
+        "summary": "ChromaDB allows any authenticated users to arbitrarily read, write, update, or delete data in any tenant's collection",
+        "baseline_affected_versions": [
+          {
+            "package": "chromadb",
+            "version": "1.5.2"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "RAGService.__init__ uses local Chroma only in an unmounted prototype; main registers no Chroma server/API. No mounted HTTP path to model repositories, trust_remote_code, Chroma tenant APIs or SimpleRBAC provider found.",
+        "evidence": "app/services/rag_service.py:RAGService.__init__; app/main.py:app.include_router; scripts/vector_sync.py:VectorSyncManager",
+        "upstream_patches": [
+          {
+            "package": "chromadb",
+            "fixed_versions_by_upstream_branch": []
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T12:25:31.394776670Z",
+        "source": "https://osv.dev/vulnerability/GHSA-2wm9-hf6c-p5cr",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-3644-q5cj-c5c7",
+        "severity": "HIGH",
+        "summary": "LangSmith SDK: Public prompt pull deserializes untrusted manifests without trust boundary warning",
+        "baseline_affected_versions": [
+          {
+            "package": "langchain-classic",
+            "version": "1.0.2"
+          },
+          {
+            "package": "langsmith",
+            "version": "0.7.14"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "No pull_prompt/pull_prompt_commit or TracingMiddleware usage in app; installed only through excluded AI stack. No mounted public-prompt or tracing-header-to-file-read path found.",
+        "evidence": "app/main.py; app/services/rag_service.py; installed LangChain package metadata",
+        "upstream_patches": [
+          {
+            "package": "langsmith",
+            "fixed_versions_by_upstream_branch": [
+              "0.8.0"
+            ]
+          },
+          {
+            "package": "langsmith",
+            "fixed_versions_by_upstream_branch": [
+              "0.6.0"
+            ]
+          },
+          {
+            "package": "langchain-classic",
+            "fixed_versions_by_upstream_branch": [
+              "1.0.7"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T03:51:04.416695616Z",
+        "source": "https://osv.dev/vulnerability/GHSA-3644-q5cj-c5c7",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-36p7-vc44-83pf",
+        "severity": "CRITICAL",
+        "summary": "ChromaDB has a code injection vulnerability",
+        "baseline_affected_versions": [
+          {
+            "package": "chromadb",
+            "version": "1.5.2"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "RAGService.__init__ uses local Chroma only in an unmounted prototype; main registers no Chroma server/API. No mounted HTTP path to model repositories, trust_remote_code, Chroma tenant APIs or SimpleRBAC provider found.",
+        "evidence": "app/services/rag_service.py:RAGService.__init__; app/main.py:app.include_router; scripts/vector_sync.py:VectorSyncManager",
+        "upstream_patches": [
+          {
+            "package": "chromadb",
+            "fixed_versions_by_upstream_branch": []
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T12:25:44.502926958Z",
+        "source": "https://osv.dev/vulnerability/GHSA-36p7-vc44-83pf",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-3jp2-3mrg-2vxc",
+        "severity": "HIGH",
+        "summary": "OAuthLib: Bearer token can be retrieved as long as client knows a valid client ID for device workflow",
+        "baseline_affected_versions": [
+          {
+            "package": "oauthlib",
+            "version": "3.3.1"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "Introduced through chromadb -> kubernetes -> requests-oauthlib -> oauthlib. No DeviceCodeGrant or OAuthlib provider token-grant endpoints in app. FastAPI OAuth2PasswordRequestForm is separate.",
+        "evidence": "app/api/auth.py:login; app/main.py; installed dependency metadata",
+        "upstream_patches": [
+          {
+            "package": "oauthlib",
+            "fixed_versions_by_upstream_branch": [
+              "4.0.1"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-11-05T21:15:09.240948711Z",
+        "source": "https://osv.dev/vulnerability/GHSA-3jp2-3mrg-2vxc",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "No OAuthlib 4.x upgrade performed; unused Kubernetes/client dependency chain removed. Reintroduction requires >=4.0.1 and grant compatibility review."
+      },
+      {
+        "id": "GHSA-3qf3-8w2g-rqmx",
+        "severity": "CRITICAL",
+        "summary": "python-jose algorithm confusion guard bypassed by DER-encoded public keys",
+        "baseline_affected_versions": [
+          {
+            "package": "python-jose",
+            "version": "3.5.0"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": true,
+        "application_usage_and_trigger_assessment": "Used by live auth routes. Decode explicitly permits only configured algorithm; startup rejects known HMAC asymmetric-key encodings. Clients cannot choose allowed algorithms or verification key. Added direct DER-HMAC-forgery versus RSA test. Residual library/configuration risk is not accepted.",
+        "evidence": "app/core/jwt.py:decode_token; app/core/security.py:validate_jwt_configuration; tests/unit/test_dependency_security.py:test_rsa_verifier_rejects_hmac_public_key_forgery",
+        "upstream_patches": [
+          {
+            "package": "python-jose",
+            "fixed_versions_by_upstream_branch": []
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-10-15T14:56:01.261338787Z",
+        "source": "https://osv.dev/vulnerability/GHSA-3qf3-8w2g-rqmx",
+        "decision": "UNRESOLVED_WITH_TESTED_MITIGATIONS",
+        "risk_accepted": false,
+        "resolution": "No published complete patch. Do not replace authentication library without approval. Keep open pending upstream fix or separately approved JWT-library migration and regression review."
+      },
+      {
+        "id": "GHSA-7984-qgvg-3j9c",
+        "severity": "HIGH",
+        "summary": "OAuthLib: Token grants can use attacker-supplied client_id for authorization after authenticating a different client",
+        "baseline_affected_versions": [
+          {
+            "package": "oauthlib",
+            "version": "3.3.1"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "Introduced through chromadb -> kubernetes -> requests-oauthlib -> oauthlib. No DeviceCodeGrant or OAuthlib provider token-grant endpoints in app. FastAPI OAuth2PasswordRequestForm is separate.",
+        "evidence": "app/api/auth.py:login; app/main.py; installed dependency metadata",
+        "upstream_patches": [
+          {
+            "package": "oauthlib",
+            "fixed_versions_by_upstream_branch": [
+              "4.0.0"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-10-30T23:15:08.286894189Z",
+        "source": "https://osv.dev/vulnerability/GHSA-7984-qgvg-3j9c",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "No OAuthlib 4.x upgrade performed; unused Kubernetes/client dependency chain removed. Reintroduction requires >=4.0.1 and grant compatibility review."
+      },
+      {
+        "id": "GHSA-f4j7-r4q5-qw2c",
+        "severity": "CRITICAL",
+        "summary": "ChromaDB Python project has a pre-authentication code injection vulnerability",
+        "baseline_affected_versions": [
+          {
+            "package": "chromadb",
+            "version": "1.5.2"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "RAGService.__init__ uses local Chroma only in an unmounted prototype; main registers no Chroma server/API. No mounted HTTP path to model repositories, trust_remote_code, Chroma tenant APIs or SimpleRBAC provider found.",
+        "evidence": "app/services/rag_service.py:RAGService.__init__; app/main.py:app.include_router; scripts/vector_sync.py:VectorSyncManager",
+        "upstream_patches": [
+          {
+            "package": "chromadb",
+            "fixed_versions_by_upstream_branch": []
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-10-05T21:45:03.620198036Z",
+        "source": "https://osv.dev/vulnerability/GHSA-f4j7-r4q5-qw2c",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-f4xh-w4cj-qxq8",
+        "severity": "HIGH",
+        "summary": "LangSmith SDK TracingMiddleware: Arbitrary server-side file read",
+        "baseline_affected_versions": [
+          {
+            "package": "langsmith",
+            "version": "0.7.14"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "No pull_prompt/pull_prompt_commit or TracingMiddleware usage in app; installed only through excluded AI stack. No mounted public-prompt or tracing-header-to-file-read path found.",
+        "evidence": "app/main.py; app/services/rag_service.py; installed LangChain package metadata",
+        "upstream_patches": [
+          {
+            "package": "langsmith",
+            "fixed_versions_by_upstream_branch": [
+              "0.8.18"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T03:50:49.251222821Z",
+        "source": "https://osv.dev/vulnerability/GHSA-f4xh-w4cj-qxq8",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-fvww-7h3r-vfhp",
+        "severity": "HIGH",
+        "summary": "LangGraph SDK custom auth silently ignores actions= on resource decorators",
+        "baseline_affected_versions": [
+          {
+            "package": "langgraph-sdk",
+            "version": "0.3.9"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "No custom auth resource decorators or LangGraph server mounted; dependency of excluded experimental LangGraph stack.",
+        "evidence": "app/main.py; installed langgraph/langgraph-sdk package metadata",
+        "upstream_patches": [
+          {
+            "package": "langgraph-sdk",
+            "fixed_versions_by_upstream_branch": [
+              "0.4.4"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-10-15T14:55:53.373586904Z",
+        "source": "https://osv.dev/vulnerability/GHSA-fvww-7h3r-vfhp",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-pjwx-r37v-7724",
+        "severity": "HIGH",
+        "summary": "LangChain vulnerable to unsafe deserialization of attacker-controlled objects through overly broad `load()` allowlists",
+        "baseline_affected_versions": [
+          {
+            "package": "langchain-core",
+            "version": "1.2.17"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "Only prototype/vector-sync imports use LangChain. No mounted load_prompt/load_prompt_from_config, broad deserialization allowlist or stream-log structured-input path found.",
+        "evidence": "app/services/rag_service.py; scripts/vector_sync.py; app/main.py",
+        "upstream_patches": [
+          {
+            "package": "langchain-core",
+            "fixed_versions_by_upstream_branch": [
+              "1.3.3"
+            ]
+          },
+          {
+            "package": "langchain-core",
+            "fixed_versions_by_upstream_branch": [
+              "0.3.85"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T03:51:06.718716596Z",
+        "source": "https://osv.dev/vulnerability/GHSA-pjwx-r37v-7724",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-qh6h-p6c9-ff54",
+        "severity": "HIGH",
+        "summary": "LangChain Core has Path Traversal vulnerabilites in legacy `load_prompt` functions",
+        "baseline_affected_versions": [
+          {
+            "package": "langchain-core",
+            "version": "1.2.17"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "Only prototype/vector-sync imports use LangChain. No mounted load_prompt/load_prompt_from_config, broad deserialization allowlist or stream-log structured-input path found.",
+        "evidence": "app/services/rag_service.py; scripts/vector_sync.py; app/main.py",
+        "upstream_patches": [
+          {
+            "package": "langchain-core",
+            "fixed_versions_by_upstream_branch": [
+              "1.2.22"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T03:50:40.646863770Z",
+        "source": "https://osv.dev/vulnerability/GHSA-qh6h-p6c9-ff54",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      },
+      {
+        "id": "GHSA-v4x8-3wr5-3wq8",
+        "severity": "HIGH",
+        "summary": "filelock ReadWriteLock: SQLite reopens the lock database by name, so a planted symlink or journal file makes the lock user's process overwrite or unlink its own files",
+        "baseline_affected_versions": [
+          {
+            "package": "filelock",
+            "version": "3.25.0"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "Introduced through chromadb -> tokenizers -> huggingface-hub -> filelock. App does not call ReadWriteLock/AsyncReadWriteLock; vulnerable local writable-directory path not exposed through app HTTP routes.",
+        "evidence": "app/main.py; installed tokenizers/huggingface-hub metadata",
+        "upstream_patches": [
+          {
+            "package": "filelock",
+            "fixed_versions_by_upstream_branch": [
+              "4.2.1"
+            ]
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-10-23T22:15:04.432475030Z",
+        "source": "https://osv.dev/vulnerability/GHSA-v4x8-3wr5-3wq8",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "No major upgrade performed. Fixed >=4.2.1 exists, but v4 locking protocol migration requires separate coordination if reintroduced. Removed unused introducing dependency chain instead."
+      },
+      {
+        "id": "GHSA-wj6h-64fc-37mp",
+        "severity": "HIGH",
+        "summary": "Minerva timing attack on P-256 in python-ecdsa",
+        "baseline_affected_versions": [
+          {
+            "package": "ecdsa",
+            "version": "0.19.2"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": true,
+        "application_usage_and_trigger_assessment": "Transitive required python-jose dependency. App has no native ecdsa signing/keygen/ECDH calls; ES JWT setup requires cryptography backend and rejects native fallback. Actual ES256 roundtrip tested. Package remains installed and upstream finding remains open.",
+        "evidence": "app/core/security.py:validate_jwt_configuration; tests/unit/test_dependency_security.py:test_ecdsa_cannot_fall_back_to_python_ecdsa",
+        "upstream_patches": [
+          {
+            "package": "ecdsa",
+            "fixed_versions_by_upstream_branch": []
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T03:50:09.447249599Z",
+        "source": "https://osv.dev/vulnerability/GHSA-wj6h-64fc-37mp",
+        "decision": "UNRESOLVED_WITH_TESTED_MITIGATIONS",
+        "risk_accepted": false,
+        "resolution": "No published complete patch. Do not replace authentication library without approval. Keep open pending upstream fix or separately approved JWT-library migration and regression review."
+      },
+      {
+        "id": "GHSA-xph7-9rjv-w5fr",
+        "severity": "HIGH",
+        "summary": "ChromaDB's SimpleRBACAuthorizationProvider doesn't check which tenant, database, or collection a permission applies to",
+        "baseline_affected_versions": [
+          {
+            "package": "chromadb",
+            "version": "1.5.2"
+          }
+        ],
+        "installed_by_default_before": true,
+        "installed_by_default_after": false,
+        "application_usage_and_trigger_assessment": "RAGService.__init__ uses local Chroma only in an unmounted prototype; main registers no Chroma server/API. No mounted HTTP path to model repositories, trust_remote_code, Chroma tenant APIs or SimpleRBAC provider found.",
+        "evidence": "app/services/rag_service.py:RAGService.__init__; app/main.py:app.include_router; scripts/vector_sync.py:VectorSyncManager",
+        "upstream_patches": [
+          {
+            "package": "chromadb",
+            "fixed_versions_by_upstream_branch": []
+          }
+        ],
+        "upstream_checked_date": "2026-11-21",
+        "upstream_modified": "2026-09-10T12:25:45.510140945Z",
+        "source": "https://osv.dev/vulnerability/GHSA-xph7-9rjv-w5fr",
+        "decision": "REMOVED_FROM_DEFAULT_RUNTIME",
+        "risk_accepted": false,
+        "resolution": "Remove unused component and necessary reverse dependencies from default requirements; no AI architecture or business code changes. Prototype scripts preserved but unavailable in this runtime. Reintroduction requires patched versions, fresh scan and functional review."
+      }
+    ],
+    "removed_packages": [
+      {
+        "package": "backend",
+        "previous_version": "0.2.4.1",
+        "reason": "Unused external Backend Utility Tools package, no application import; no wheel available in clean-install attempt."
+      },
+      {
+        "package": "chromadb",
+        "previous_version": "1.5.2",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "filelock",
+        "previous_version": "3.25.0",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "google-genai",
+        "previous_version": "1.68.0",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "huggingface-hub",
+        "previous_version": "1.6.0",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "kubernetes",
+        "previous_version": "35.0.0",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langchain",
+        "previous_version": "1.2.10",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langchain-classic",
+        "previous_version": "1.0.2",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langchain-community",
+        "previous_version": "0.4.1",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langchain-core",
+        "previous_version": "1.2.17",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langchain-google-genai",
+        "previous_version": "4.2.1",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langchain-text-splitters",
+        "previous_version": "1.1.1",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langgraph",
+        "previous_version": "1.0.10",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langgraph-checkpoint",
+        "previous_version": "4.0.1",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langgraph-prebuilt",
+        "previous_version": "1.0.8",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langgraph-sdk",
+        "previous_version": "0.3.9",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "langsmith",
+        "previous_version": "0.7.14",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "oauthlib",
+        "previous_version": "3.3.1",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "requests-oauthlib",
+        "previous_version": "2.0.0",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      },
+      {
+        "package": "tokenizers",
+        "previous_version": "0.22.2",
+        "reason": "Unused excluded AI/RAG component or dependency that otherwise reintroduces a removed vulnerable component."
+      }
+    ],
+    "retained_versions_changed": false,
+    "requirement_counts": {
+      "before": 148,
+      "after": 128
+    },
+    "evidence": {
+      "dependency_paths": [
+        "chromadb -> kubernetes -> requests-oauthlib -> oauthlib",
+        "chromadb -> tokenizers -> huggingface-hub -> filelock",
+        "langchain-community -> langchain-classic/langchain-core/langsmith",
+        "langchain -> langgraph -> langgraph-sdk"
+      ],
+      "source_review": [
+        "backend/app/main.py: registered routes exclude AI/RAG",
+        "backend/app/services/rag_service.py: unmounted prototype",
+        "backend/scripts/vector_sync.py: experimental script",
+        "backend/scripts/test_rag_query.py: experimental script",
+        "backend/Dockerfile: installs requirements.txt"
+      ],
+      "environment_checks": "All 20 excluded distributions absent from both clean and project venv; all 128 retained versions match requirements; no production configuration or credentials inspected."
+    },
+    "limitations": [
+      "Existing experimental RAG/vector scripts cannot run in default environment after removals; they are excluded from SRS first release, not deleted or claimed production-ready.",
+      "Other non-major orphan AI transitive packages intentionally retained to limit scope; their remaining findings are still tracked.",
+      "Original 37 announcements are historical evidence; 28 absent from current default manifest are not labeled upstream-fixed.",
+      "Linux Docker build and production configuration startup not executed."
+    ]
   }
 }

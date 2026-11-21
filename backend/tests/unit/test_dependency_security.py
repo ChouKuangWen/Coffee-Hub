@@ -39,6 +39,31 @@ def test_ecdsa_cannot_fall_back_to_python_ecdsa(monkeypatch):
         validate_jwt_configuration("ES256", "test")
 
 
+def test_rsa_verifier_rejects_hmac_public_key_forgery(isolated_app, monkeypatch):
+    """重現公告中的 DER 公鑰當作 HMAC 密鑰；固定 RSA 驗證必須拒絕。"""
+    from jose import jwt
+
+    private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public = private.public_key()
+    der = public.public_bytes(serialization.Encoding.DER,
+                              serialization.PublicFormat.SubjectPublicKeyInfo)
+    pem = public.public_bytes(serialization.Encoding.PEM,
+                              serialization.PublicFormat.SubjectPublicKeyInfo)
+    signing_key = private.private_bytes(serialization.Encoding.PEM,
+                                        serialization.PrivateFormat.PKCS8,
+                                        serialization.NoEncryption())
+    payload = {"sub": "1", "jti": "test", "token_type": "access", "sid": "test",
+               "version": 0, "exp": 4102444800}
+    monkeypatch.setattr(isolated_app.token, "ALGORITHM", "RS256")
+    monkeypatch.setattr(isolated_app.token, "SECRET_KEY", pem)
+    legitimate = jwt.encode(payload, signing_key, algorithm="RS256")
+    assert isolated_app.token.decode_token(legitimate, "access")["sub"] == "1"
+    forged = jwt.encode(payload, der, algorithm="HS256")
+    with pytest.raises(HTTPException) as exc:
+        isolated_app.token.decode_token(forged, "access")
+    assert exc.value.status_code == 401
+
+
 def test_fixed_algorithm_and_cookie_csrf_cannot_be_bypassed(isolated_app, monkeypatch):
     from jose import jwt
     from app.core import browser_security
