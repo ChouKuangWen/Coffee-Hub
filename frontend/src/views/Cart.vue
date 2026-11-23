@@ -3,11 +3,14 @@ import { onMounted, ref } from 'vue'; // 引入 ref
 import { useCartStore } from '@/stores/cart';
 import { useRouter } from 'vue-router';
 import api from '@/api';
+import { productImageSource } from '@/utils/productImage';
 
 const cartStore = useCartStore();
 const router = useRouter();
 const checkoutAttempt = ref(null);
 const selectedIds = ref([]);
+const failedImages = ref(new Set());
+const cartImage = item => item.product?.is_active ? productImageSource(item.product) : '';
 const isProcessing = ref(false); // 新增：全域處理鎖定，防止連點卡頓
 
 onMounted(async () => {
@@ -86,13 +89,17 @@ const proceedToCheckout = async () => {
         <div v-for="item in cartStore.items" :key="item.cart_item_id" class="cart-item">
           <input type="checkbox" v-model="selectedIds" :value="item.cart_item_id" :disabled="!item.product?.is_active || isProcessing" aria-label="選取轉單品項">
           <div class="item-image">
-            <img :src="item.product?.main_image || '/images/default-coffee.jpg'" :alt="item.product?.name">
+            <img v-if="cartImage(item) && !failedImages.has(cartImage(item))"
+              :src="cartImage(item)" :alt="item.product?.name" @error="failedImages.add(cartImage(item))">
+            <div v-else class="image-placeholder" role="img" :aria-label="`${item.product?.name || '商品'}：暫無圖片`">暫無圖片</div>
           </div>
 
           <div class="item-details">
             <div class="item-title">
               <h3>{{ item.product?.name || '讀取中...' }} {{ item.product?.is_active ? '' : '（已下架，請移除）' }}</h3>
-              <p class="item-spec">{{ item.product?.process_method }} | {{ item.product?.roast_level }}</p>
+              <p v-if="item.product?.process_method || item.product?.roast_level" class="item-spec">
+                {{ [item.product?.process_method, item.product?.roast_level].filter(Boolean).join(' | ') }}
+              </p>
             </div>
             <p class="item-price">NT$ {{ item.product?.price }}</p>
           </div>
@@ -188,6 +195,17 @@ const proceedToCheckout = async () => {
   height: 100px;
   object-fit: cover;
   border-radius: 8px;
+}
+
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  background: #eee;
+  color: #666;
 }
 
 .item-details { flex: 2; }
@@ -325,5 +343,22 @@ const proceedToCheckout = async () => {
 
 @media (max-width: 900px) {
   .cart-container { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .cart-page { padding: 30px 0; min-width: 0; }
+  .cart-items, .cart-summary { min-width: 0; }
+  .cart-item {
+    display: grid;
+    grid-template-columns: 24px 80px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+  .item-image img, .image-placeholder { width: 80px; height: 80px; }
+  .item-details { min-width: 0; overflow-wrap: anywhere; }
+  .item-actions { grid-column: 1 / 3; align-items: flex-start; }
+  .item-subtotal { grid-column: 3; overflow-wrap: anywhere; }
+  .summary-card { padding: 20px; position: static; }
+  .summary-total { flex-wrap: wrap; gap: 8px; font-size: 1.1rem; }
 }
 </style>

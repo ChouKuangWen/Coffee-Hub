@@ -1,272 +1,85 @@
-#  Coffee Hub - 職人咖啡交易平台 (Coffee Hub Trading Platform)
-基於 **FastAPI + Vue 3 + MySQL（Async）** 建構的全端系統，
-專注於 **後端架構設計、系統穩定性與可觀測性（Observability）**。
- **三層架構重構 (API / Service / CRUD)**，並強化了 **交易安全性、審計追蹤、非同步併發處理**。 
-目標是打造一個 **可擴展、可維護、具備安全防護** 的全端平台。
----
+# Coffee Hub — v1.0 本機 Docker 作品集
 
-##  專案簡介
-Coffee Hub 是一個支援多角色的應用系統，包含：
+以 FastAPI、SQLAlchemy Async、MySQL 8 與 Vue 3 建立的多角色咖啡交易系統。本版本以 **本機 Docker** 為展示及驗收目標，不使用付費雲端。
 
-- 商品管理（Product）
-- 訂單管理（Order）
-- 購物車（Cart）
-- 權限控管（RBAC）
+## 功能與架構
 
-本專案重點不在於功能數量，而在於：
+- **Customer／Seller 買家**：登入、會員資料、購物車、模擬建單及取消申請。
+- **Seller**：經 Admin 核准後使用原帳號管理本人商品、圖片及本人訂單品項出貨。
+- **Admin**：Seller 申請審核、會員停用／啟用、取消審核與退庫存、完成訂單、Audit Log 查詢。
+- **資料一致性**：依資料庫價格成交，訂單／明細／扣庫存／清車共用交易，防重送、避免超賣；取消核准最多退庫存一次。
 
-- 系統架構設計（Layered Architecture）
-- 非同步處理（Async）
-- 錯誤處理與資料一致性（Transaction Control）
-- 系統可觀測性（Logging / Audit Log）
+| 層次 | 技術 |
+|---|---|
+| 網頁與入口 | Vue 3、Pinia、Vue Router、Nginx |
+| API 與業務處理 | Python FastAPI、Pydantic、Service／CRUD |
+| 資料庫 | MySQL 8、SQLAlchemy Async、asyncmy |
+| 驗證與安全 | PyJWT HS256、bcrypt、HttpOnly Cookie、CSRF、資料歸屬檢查、必要審計 |
+| 圖片 | 專案本機圖片；上傳流程使用 fake-gcs-server，保留 GCS SDK 架構 |
 
----
+## 本機啟動（Windows PowerShell）
 
-## 專案價值
+需要 Git、Docker Desktop 的 Linux containers 及 PowerShell；不需要本機 Python、Node、GCP 帳號或金鑰。請在專案根目錄執行：
 
-本專案以「後端工程實務」為核心，著重：
-- **架構設計**：設計並落實 API / Service / CRUD 三層分離，提升維護性與測試性。
-- **交易安全**：統一由 Service 層管理 commit/rollback，確保資料一致性。
-- **可觀測性**：導入 request_id middleware、system log、audit log，提升問題追蹤能力。
-- **安全防護**：實作 CSP、Rate Limiting、JWT + HttpOnly Cookie，符合企業級安全需求。
-- **雲端部署**：使用 GCP Cloud Run + Cloud SQL，支援容器化與水平擴展
-
----
-
-## 系統架構
-
-<div align="center">
-  <a href="docs/architecture.svg" target="_blank">
-    <img src="docs/architecture.svg" alt="Coffee Hub System Architecture" width="850">
-  </a>
-  <p align="center">
-    <em>Coffee Hub 系統架構圖：展示從入口防護、FastAPI 三層架構到 RAG AI 服務的完整流量與事務控管。</em>
-  </p>
-</div>
-
-
----
-
-## 核心設計（Engineering Design）
-
-### 1.分層架構（Layered Architecture）
-
-- API：處理 request / response
-- Service：商業邏輯與流程控制
-- CRUD：資料庫操作
-
-提升可維護性與測試性
-
----
-
-### 2.Transaction 控制
-
-- commit / rollback 統一由 Service 層管理
-- CRUD 不直接 commit
-
-確保資料一致性與錯誤復原能力
-
----
-
-### 3.非同步架構（Async）
-
-- 使用 async / await
-- FastAPI + SQLAlchemy Async
-
-提升併發處理能力
-
----
-
-### 4️.可觀測性（Observability）
-
-- request_id middleware（請求追蹤）
-- system log（API 層）
-- audit log（非同步紀錄使用者行為）
-
-可追蹤系統行為與錯誤來源
-
----
-
-### 錯誤處理策略
-- DB error → rollback
-- 記錄 log，不影響主流程
-
----
-
-
-## 核心技術棧 (Technology Stack)
-
-| 類別 | 技術 |
-|------|------|
-| Backend | FastAPI（Python, async） |
-| Database | MySQL |
-| ORM | SQLAlchemy Async |
-| Frontend | Vue 3 |
-| Auth | JWT（HttpOnly Cookie） |
-| Security | CSP / Rate Limit / Bcrypt |
-| Cloud | GCP Cloud Run + Cloud SQL |
-| Container | Docker |
-
----
-
-## 安全設計（Security）
-
-- CSP（Content Security Policy）防止 XSS
-- Rate Limiting（SlowAPI）防止濫用
-- JWT + HttpOnly Cookie
-- 密碼雜湊（bcrypt）
-
----
-
-## 核心功能（Core Features）
-
-- RBAC 多角色權限控管（Admin / Seller / Customer）
-- 訂單管理（建立 / 更新 / 刪除）
-- 購物車狀態管理（Pinia）
-
----
-
-### Service Layer 架構
-- 商業邏輯與資料庫解耦
-- 集中 transaction 控制
-
----
-
-### 錯誤處理策略
-- DB error → rollback
-- 記錄 log，但不影響主流程
-
----
-
-### Logging 系統
-- System Log（middleware）
-- Audit Log（BackgroundTasks 非同步寫入）
-
----
-
-## 金流設計（簡述）
-
-> 目前尚未串接第三方金流，僅預留設計
-
-- 訂單狀態支援付款流程（PENDING / PAID）
-- 預留第三方支付整合（如 Webhook 回調）
-- 設計考量：冪等性 / 狀態一致性
-
----
-
-
-##  專案結構與檔案說明
-```
-Member-order-management-system/
-├── backend/                          # 後端主程式
-│   ├── app/
-│   │   ├── api/                      # API 路由
-│   │   ├── core/                     # 核心設定模組 middleware / logging / security
-│   │   ├── crud/                     # 資料庫操作層
-│   │   ├── models/                   # ORM 模型
-│   │   ├── schemas/                  # Pydantic定義驗證API請求與回傳的資料結構
-│   │   ├── services/                 # 商業邏輯層（Transaction / Business rules）
-│   │   ├── dependencies.py           # 依賴與權限判斷
-│   │   └── main.py                   # FastAPI 進入點
-│   │
-│   ├── scripts/                      # 開發輔助腳本（資料同步 / RAG / 實驗用）
-│   │
-│   ├── tests/                        # 單元測試
-│   │
-│   ├── Dockerfile                    # 後端 Docker 設定
-│   └── requirements.txt              # 依賴套件列表
-│
-├── database/                         # 資料庫初始化 SQL
-│
-├── frontend/                         # 前端專案
-│   ├── public/                       # 靜態資源
-│   │
-│   ├── src/
-│   │   ├── assets/                   # 靜態資源（CSS / 圖片模組化）
-│   │   ├── components/               # 可重用元件
-│   │   ├── stores/                   # Pinia 狀態管理（auth / cart）
-│   │   ├── views/                    # 頁面
-│   │   ├── App.vue                   # 根元件
-│   │   ├── api.js                    # 後端 API 串接設定
-│   │   ├── main.js                   # Vue 入口
-│   │   ├── router.js                 # Vue Router 設定
-│   │   └── style.css                 # 全域樣式
-│   │
-│   ├── .dockerignor
-│   ├── .gitignore
-│   ├── Dockerfile                    # 前端 Docker 設定
-│   ├── index.html
-│   ├── nginx.conf
-│   ├── package-lock.json
-│   ├── package.json
-│   └── vite.config.js
-├── docker-compose.yml
-├── README.md
-└── .gitignore
-```
----
-
-## 測試（Testing）
-
-- pytest（基礎功能測試）
-- 持續補強中（API / transaction / service）
-
----
-
-## 安裝與使用方式
-
-1. 環境安裝
-```
-git clone https://github.com/ChouKuangWen/Coffee-Hub.git
-cd Coffee-Hub
-```
-```
-pip install -r requirements.txt
+```powershell
+.\scripts\Start-LocalDemo.ps1
+# 若 18881 已被使用，可另選本機連接埠：
+# .\scripts\Start-LocalDemo.ps1 -Port 18882
 ```
 
-2. 環境變數設定
-```
-# Database 設定
-DB_USER=root
-DB_PASSWORD=your_password
-DB_HOST=mysql
-DB_PORT=3306
-DB_NAME=coffee_hub_db
+腳本沿用三份 Compose，建立唯一專案、全新 MySQL／模擬圖片 Volume，僅將 Nginx 綁定 `127.0.0.1`。它從 Git 已追蹤檔案建立來源快照，產生本機測試憑證；確認空庫後才載入一次原始 `init.sql`、`seed.sql`。失敗時保留資源，不清空重試。
 
-# MySQL 初始化設定
-MYSQL_ROOT_PASSWORD=your_password
-MYSQL_DATABASE=coffee_hub_db
+成功後輸出網址與 `state.json` 路徑。設定、測試憑證與來源快照位於專案外的暫存目錄，請保留並妥善保存；不要提交其 `demo.env`。**再次執行腳本會建立另一套環境，不是更新既有環境。**
 
-# JWT 設定
-SECRET_KEY=使用_openssl_rand_hex_32_生成的隨機字串
-ALGORITHM=HS256
+既有環境重啟／停止，使用啟動時輸出的狀態檔；不再執行 SQL：
 
-# GCP 雲端相關 (選填)
-GCP_BUCKET_NAME=your-gcs-bucket-name
+```powershell
+$s = Get-Content '啟動時輸出的 state.json 完整路徑' -Raw | ConvertFrom-Json
+$composeArgs = @('compose', '-p', $s.project, '--env-file', $s.env_file,
+  '-f', 'docker-compose.integration.yml', '-f', 'docker-compose.local.yml',
+  '-f', 'docker-compose.demo.yml')
+docker @composeArgs up -d
+# 按需停止，保留資料：
+# docker @composeArgs stop
 ```
 
-3. 啟動
-```
-docker-compose up --build
-```
+原本的 `docker-compose.yml` 保留為歷史開發設定，不是本機作品集的啟動入口。
 
-4. 訪問網址
-啟動成功後，您可以透過以下網址存取服務：
-```
-http://localhost:3000
-```
----
+## 展示站與測試站
 
-## 專案未來規劃 (Roadmap)
+| 既有本機環境 | 用途 |
+|---|---|
+| `http://localhost:18881` | 原始 seed 展示；保留會員、商品與歷史訂單 |
+| `http://localhost:18880` | 獨立測試資料；可驗證購物車、模擬結帳、出貨及取消等寫入流程 |
 
-本專案持續優化性能與擴展功能，目前已規劃以下三大核心迭代目標：
+兩者使用不同 Compose Project／Volume；同名資料庫不表示共用資料。上述連接埠是本次驗收配置，其他電腦以實際啟動輸出為準。模擬交易必須同時設定 `APP_ENV=test`、`ENABLE_SIMULATED_CHECKOUT=true`，不包含付款或物流。
 
----
-### 1.  AI 智能助手整合 (RAG 檢索增強生成)
-* **技術路徑**：導入大語言模型 (LLM) 並結合向量資料庫。
-* **功能目標**：實作「咖啡職人 AI 助手」，能根據平台現有商品資訊回答用戶提問，並根據用戶口味偏好提供精準的咖啡豆推薦。
+## 原始資料與商品圖片
 
-### 2.  進階防禦機制 (CSRF Token 實作)
-* **技術路徑**：在現有 `SameSite` Cookie 防護基礎上，新增 **Double Submit Cookie** 驗證機制。
-* **功能目標**：針對金流結帳、修改權限等高敏感操作提供銀行級防禦，確保請求 100% 來自合法授權前端。
----
+`database/init.sql` 已包含 001～005 的必要 Schema 與版本紀錄；舊資料庫升級使用 `database/migrations/`，不要對既有資料庫執行 init 或 seed：兩者含重建／清空指令。
+
+原始 `database/seed.sql` 提供 3 角色、6 權限、11 角色權限關聯、30 會員、20 商品、30 訂單、**32 筆明細**。Admin 是 user1～user2、Seller 是 user3～user10、Customer 是 user11～user30；登入使用 Email，測試密碼見原檔註解。這些帳號僅供本機展示。
+
+商品圖片位於 `frontend/public/images/products/`，命名為 `product-商品ID.png`（亦支援 WebP／JPG／JPEG，每個 ID 建議只放一種格式）。商品 1～19 已有圖片，20 保持下架。展示 Compose 唯讀掛載資料夾，放入／替換圖片後整頁重新整理即可，不修改資料庫。圖片由專案作者確認具備展示使用權。
+
+`VITE_LOCAL_PRODUCT_IMAGES=true` 僅由展示 Compose 啟用：舊外部網址對應本機檔案，缺圖顯示佔位；同站模擬器的新上傳圖片仍使用登記網址。Nginx 限制外部圖片來源，不主動連線真實 GCS。
+
+## 安全、驗收及限制
+
+- 授權使用資料庫最新角色及帳號狀態；角色異動／停用透過 Token Version 撤銷所有裝置會話，登出只撤銷當前會話。
+- Cookie 寫入請求需要 CSRF；高風險操作與必要 Audit Log 共同成功或回滾。圖片上傳驗證內容、大小、數量及所有權；清理預設 dry-run，實際刪除開關關閉。
+- 舊訂單沒有可信商品／Seller 快照與扣庫存證據，維持 NULL／false；不能直接出貨或核准退庫存。新模擬訂單由購物車建立，不偽造歷史資料。
+- 不實作正式金流、物流、退款金流或 RAG／AI 推薦。GCP 設定與既有經驗保留於歷史資料，本版本不宣稱已部署至 Cloud Run／Cloud SQL 或完成真實 GCS 驗收。
+
+| 驗收項目 | 狀態 |
+|---|---|
+| Windows Chrome、三角色登入／登出、商品與主要管理畫面 | PASS（無頭瀏覽器操作） |
+| 手機尺寸買家頁面 | SIMULATED（Chrome viewport，非手機真機） |
+| 隔離 MySQL 備份還原、模擬交易與短時間 API 查詢 | PASS；範圍及數據見 Phase 3 紀錄 |
+| 圖片上傳儲存與清理安全測試 | SIMULATED／Mock；沿用 Phase 2 證據 |
+| 真實 GCS IAM／Generation、Android／iPhone 真機、完整瀏覽器矩陣 | NOT RUN |
+| SRS 的 100 帳號／1,000 商品／20 並行效能標準 | NOT RUN；小樣本不等同容量驗收 |
+
+驗收證據：[Phase 1](docs/acceptance/phase1-docker-mysql.json)、[Phase 2](docs/acceptance/phase2-local.json)、[Phase 3](docs/acceptance/phase3-local.json)。未在本階段重跑所有歷史測試。
+
+[弱點追蹤](docs/security/batch6-dependency-review.json) 仍保留 **7 個未解公告（5 Moderate、2 Low）**，涉及 Pygments、multidict、pytest、Bleach、OpenTelemetry。本機核心流程通過不代表漏洞已修補、風險已接受或正式安全驗收通過；公開服務前仍需完成後續安全處置。
