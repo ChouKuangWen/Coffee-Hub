@@ -1,0 +1,65 @@
+# Phase 1 only. Supply a unique project (-p) and an explicit temporary --env-file.
+# Never combine with the development docker-compose.yml or reuse existing volumes.
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PHASE1_MYSQL_PASSWORD:?test password required}
+      MYSQL_DATABASE: coffeehub_phase1
+    command: ["--port=33381", "--datadir=/var/lib/mysql/coffeehub-batch3-phase1", "--mysqlx=0", "--skip-log-bin", "--character-set-server=utf8mb4"]
+    volumes:
+      - phase1_mysql:/var/lib/mysql
+    networks: [phase1]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "--silent", "--port=33381", "--host=127.0.0.1"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?unique run id required}
+  backend:
+    build:
+      context: ${PHASE1_BUILD_CONTEXT:?curated source snapshot required}
+    # Share ONLY this project's MySQL network namespace. Existing tests require
+    # loopback + a non-development port and verify the physical datadir.
+    network_mode: service:mysql
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PHASE1_RUN_ID: ${PHASE1_RUN_ID:?}
+      APP_ENV: test
+      ALGORITHM: HS256
+      SECRET_KEY: ${PHASE1_JWT_KEY:?generated test key required}
+      ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+      REFRESH_TOKEN_EXPIRE_DAYS: "7"
+      COOKIE_SECURE: "false"
+      COOKIE_SAMESITE: lax
+      ENABLE_SIMULATED_CHECKOUT: "true"
+      IMAGE_STORAGE_ENABLED: "false"
+      IMAGE_DELETE_ENABLED: "false"
+      AUDIT_DELETE_ENABLED: "false"
+      DB_USER: root
+      DB_PASSWORD: ${PHASE1_MYSQL_PASSWORD:?test password required}
+      DB_HOST: 127.0.0.1
+      DB_PORT: "33381"
+      DB_NAME: member_order_management_backend_system
+      COFFEEHUB_TEST_MYSQL_URL: mysql+asyncmy://root:${PHASE1_MYSQL_PASSWORD:?}@127.0.0.1:33381/
+      COFFEEHUB_TEST_MYSQL_DATADIR: /var/lib/mysql/coffeehub-batch3-phase1
+      COFFEEHUB_LEGACY_JWT_CORPUS: /acceptance/legacy-hs256.json
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ${PHASE1_SQL_DIR:?isolated SQL snapshot required}:/database:ro
+      - ${PHASE1_FIXTURE_DIR:?test fixtures required}:/acceptance:ro
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}
+volumes:
+  phase1_mysql:
+    name: ${PHASE1_RUN_ID:?}_phase1_mysql_${PHASE1_ATTEMPT:?unique attempt required}
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}
+networks:
+  phase1:
+    internal: true
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}

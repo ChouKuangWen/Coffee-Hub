@@ -51,7 +51,9 @@ WHERE o.stock_deducted=FALSE AND o.stock_returned_at IS NULL
   AND o.status IN ('待付款','已付款','待出貨')
   AND NOT EXISTS (SELECT 1 FROM schema_migrations WHERE version='003_order_lifecycle')
   AND EXISTS (SELECT 1 FROM audit_logs a WHERE a.category='ORDER' AND a.action='SIMULATED_CREATE'
-              AND a.target_type='ORDER' AND a.target_id=CAST(o.order_id AS CHAR) AND a.status='SUCCESS')
+              AND a.target_type='ORDER'
+              AND a.target_id=CAST(o.order_id AS CHAR CHARACTER SET utf8mb4) COLLATE utf8mb4_unicode_ci
+              AND a.status='SUCCESS')
   AND EXISTS (SELECT 1 FROM order_items i WHERE i.order_id=o.order_id)
   AND NOT EXISTS (SELECT 1 FROM order_items i WHERE i.order_id=o.order_id
                   AND (i.product_id IS NULL OR i.product_name IS NULL OR i.seller_id IS NULL

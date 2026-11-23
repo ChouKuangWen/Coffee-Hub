@@ -1,0 +1,340 @@
+{
+  "report_date": "2026-11-23",
+  "phase": "Coffee Hub integration acceptance phase 1: Docker/MySQL/backend",
+  "status": "PASS_WITH_REMAINING_ACCEPTANCE_SCOPE",
+  "formal_deployment_approved": false,
+  "human_acceptance_review": "PENDING",
+  "executor": "Codex automated checks; user review pending",
+  "branch": "test/integration-phase1-docker-mysql",
+  "base_commit": "7561133ff57d08d62738ea7e0b85de944b39ef5d",
+  "tested_worktree_changes": [
+    "database/migrations/003_order_lifecycle.sql",
+    "docker-compose.integration.yml",
+    "backend/tests/integration/phase1_acceptance.py"
+  ],
+  "docker": {
+    "desktop": "4.44.3",
+    "engine": "28.3.2",
+    "compose": "2.39.1",
+    "os": "Linux",
+    "architecture": "amd64",
+    "python": "3.11.18",
+    "mysql": "8.0.46",
+    "pyjwt": "2.15.1",
+    "pillow": "13.0.0",
+    "asyncmy": "0.2.12",
+    "images": {
+      "mysql": {
+        "id": "sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b",
+        "os": "linux",
+        "architecture": "amd64",
+        "repo_digests": [
+          "mysql@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b"
+        ]
+      },
+      "backend": {
+        "id": "sha256:bcf5ee62a4dfb7eb869f7fc3adad389d2e8081420b0f1ded33dddcf764a629da",
+        "os": "linux",
+        "architecture": "amd64",
+        "repo_digests": [
+          "coffeehub-phase1-525431436442-backend@sha256:bcf5ee62a4dfb7eb869f7fc3adad389d2e8081420b0f1ded33dddcf764a629da"
+        ]
+      }
+    },
+    "source_snapshot": "Curated tracked backend app/tests Python files plus Dockerfile/requirements/dockerignore copied to dedicated TEMP build context. New acceptance helper executed from test-only read-only mount. Repository .env/GCS credentials/venv not read or mounted.",
+    "base_image": "python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535"
+  },
+  "isolation": {
+    "project": "coffeehub-phase1-525431436442",
+    "network": "coffeehub-phase1-525431436442_phase1",
+    "internal": true,
+    "published_ports": [],
+    "mysql_datadir": "/var/lib/mysql/coffeehub-batch3-phase1",
+    "test_secrets": "Ephemeral random database password and 64-character hex-string JWT secret generated outside repository; values intentionally omitted. No production .env read.",
+    "settings": {
+      "APP_ENV": "test",
+      "ALGORITHM": "HS256",
+      "ENABLE_SIMULATED_CHECKOUT": true,
+      "COOKIE_SECURE": false,
+      "COOKIE_SAMESITE": "lax",
+      "IMAGE_STORAGE_ENABLED": false,
+      "IMAGE_DELETE_ENABLED": false,
+      "AUDIT_DELETE_ENABLED": false
+    },
+    "cookie_limit": "HTTP only inside isolated namespace. insecure COOKIE_SECURE=false in production is rejected; this is not a production TLS setup.",
+    "resource_end_state": "Own mysql/backend containers stopped. Internal network and two owned named volumes retained for review. Only our unused anonymous volume was removed; no pre-existing volumes deleted.",
+    "retained_named_volumes": [
+      "coffeehub-phase1-525431436442_phase1_mysql",
+      "coffeehub-phase1-525431436442_phase1_mysql_2"
+    ]
+  },
+  "checks": [
+    {
+      "case_id": "ENV-BUILD",
+      "requirement": "SYS-NFR-009",
+      "status": "PASS",
+      "evidence": "Linux backend image built using repository Dockerfile/requirements; no host venv/config/credentials in source snapshot"
+    },
+    {
+      "case_id": "ENV-ISOLATION",
+      "requirement": "DEC-045/046",
+      "status": "PASS",
+      "evidence": "Unique project, internal network, no published ports, same test-only MySQL namespace, owned volume and temporary read-only bind mounts verified before data writes"
+    },
+    {
+      "case_id": "DB-FRESH",
+      "requirement": "SYS-NFR-009",
+      "status": "PASS",
+      "evidence": "Full init.sql executed once in absent DB; markers 001-005 present; running all migrations on fresh schema leaves columns unchanged"
+    },
+    {
+      "case_id": "DB-UPGRADE",
+      "requirement": "SYS-NFR-004/009",
+      "status": "PASS",
+      "evidence": "Full e1752fa legacy DDL with representative seller/buyer/product/order/audit fixtures upgraded with 001-005; all column schemas match fresh init; legacy values and NULL snapshots retained"
+    },
+    {
+      "case_id": "DB-RETRY",
+      "requirement": "SYS-NFR-004",
+      "status": "PASS",
+      "evidence": "All migrations rerun without duplicate columns/markers; unique checkout index and seller snapshot FK confirmed"
+    },
+    {
+      "case_id": "DB-FAILURE",
+      "requirement": "SYS-NFR-004",
+      "status": "PASS",
+      "evidence": "Missing audit_logs intentionally fails 003; no false version marker; earlier DDL persists as documented; add missing precondition and rerun 003-005 succeeds with business rows retained"
+    },
+    {
+      "case_id": "AUTH-LIVE",
+      "requirement": "SYS-FR-001/002/003/SYS-NFR-003",
+      "status": "PASS",
+      "evidence": "Real HTTP to Uvicorn with real settings/Base engine: health, register, login, me, refresh, missing-CSRF denial, logout and subsequent me denial; revoked session and LOGIN audit checked"
+    },
+    {
+      "case_id": "REGRESSION",
+      "requirement": "SYS-FR-001-013/015/017-020",
+      "status": "PASS",
+      "evidence": "57 existing unit/integration cases in Linux image against dedicated MySQL, including audit-injected rollback, concurrent stock/order cancellation, role/deactivation token revocation, image fakes and CSRF"
+    },
+    {
+      "case_id": "DEPS",
+      "requirement": "SYS-NFR-006",
+      "status": "PASS",
+      "evidence": "All 127 frozen versions match installed distributions; no unexpected distributions other than base packaging tools; pip check passes; jose/ecdsa modules absent"
+    }
+  ],
+  "configuration_checks": {
+    "valid": "PASS",
+    "wrong_algorithm": "PASS",
+    "missing_secret": "PASS",
+    "empty_secret": "PASS",
+    "invalid_lifetime": "PASS",
+    "insecure_production_cookie": "PASS"
+  },
+  "schema_checks": {
+    "mysql_version": "8.0.46",
+    "fresh_init_and_migration_rerun": "PASS",
+    "legacy_upgrade_preservation_schema_indexes_rerun": "PASS",
+    "migration_failure_no_false_marker_and_resumable_ddl": "PASS",
+    "live_uvicorn_mysql_register_login_refresh_logout_csrf": "PASS"
+  },
+  "regression": {
+    "tests": 57,
+    "passed": 57,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 22.727,
+    "junit": "docs/acceptance/phase1-docker-mysql-junit.xml",
+    "evidence_boundary": "Authentication smoke uses real network HTTP/Uvicorn/config/DB engine. Existing regression uses real routers/services with ASGI test clients, isolated config/session overrides and real MySQL; failure paths use deliberate test injections. GCS calls use fakes, not cloud integration."
+  },
+  "observed_defects": [
+    {
+      "id": "PH1-001",
+      "status": "FIXED_AND_RETESTED",
+      "file": "database/migrations/003_order_lifecycle.sql",
+      "observed": "Full fresh init succeeded, but rerunning migration 003 failed with MySQL 1267: implicit utf8mb4_unicode_ci versus utf8mb4_0900_ai_ci in audit target ID equality.",
+      "fix": "CAST order ID with explicit utf8mb4 character set and utf8mb4_unicode_ci collation; does not change schema, values, lifecycle policy or valid identifier equality.",
+      "retest": "PASS full fresh + upgrade + rerun + recovery plus existing Linux regression on a new empty owned attempt-2 volume."
+    },
+    {
+      "id": "PH1-002",
+      "status": "FIXED_AND_RETESTED",
+      "file": "docker-compose.integration.yml",
+      "observed": "Official MySQL image VOLUME /var/lib/mysql created an unused anonymous volume when test volume was mounted elsewhere. Isolation check stopped before init.",
+      "fix": "Mount dedicated volume at /var/lib/mysql and use test subdirectory datadir; confirm one actual MySQL mount.",
+      "retest": "PASS runtime isolation; unused anonymous resource proven owned and no longer referenced before removal."
+    }
+  ],
+  "migration_notes": [
+    "init.sql contains DROP DATABASE for fixed schema; executed only after isolation and absent-business-DB checks. Never use it for upgrades.",
+    "Fresh init already records 001-005. Existence checks make reapplying scripts safe in tested schema; init.sql itself is not a reusable upgrade script.",
+    "MySQL DDL auto-commits; failed migration is not transactionally undone. Pause writes, use a single runner, do not use --force, correct prerequisite and rerun.",
+    "Schema equality in this check compares all columns/types/null/defaults, plus named critical index/FK checks; no assertion of exhaustive equivalence of every noncritical index/comment."
+  ],
+  "remaining_dependency_findings": [
+    {
+      "id": "GHSA-5239-wwwm-4pmq",
+      "severity": "LOW",
+      "packages": [
+        {
+          "name": "Pygments",
+          "version": "2.19.2"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Installed through development/transitive dependencies; pytest uses highlighting, no public GUID highlighting API found. Test source is trusted; ReDoS finding remains open."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-5239-wwwm-4pmq"
+    },
+    {
+      "id": "GHSA-54p9-h82j-f925",
+      "severity": "MODERATE",
+      "packages": [
+        {
+          "name": "multidict",
+          "version": "6.7.1"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Installed as aiohttp dependency. No application items-view union/subtraction path found. Internal single-user test environment limits exposure; reference-leak finding remains open."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-54p9-h82j-f925"
+    },
+    {
+      "id": "GHSA-6w46-j5rx-g56g",
+      "severity": "MODERATE",
+      "packages": [
+        {
+          "name": "pytest",
+          "version": "8.4.1"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Installed in current backend image, not invoked by Uvicorn. Dedicated container filesystem has no shared hostile tmpdir users. Requires disposition before shared CI or deployment; not risk accepted."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-6w46-j5rx-g56g"
+    },
+    {
+      "id": "GHSA-8rfp-98v4-mmr6",
+      "severity": "LOW",
+      "packages": [
+        {
+          "name": "bleach",
+          "version": "6.2.0"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Runtime sanitizer is used, but tags=[] and attributes={} remove URI attributes implicated by both advisories. These paths were not found exposed; no blanket safety claim. Rich-text enablement requires patch/review."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-8rfp-98v4-mmr6"
+    },
+    {
+      "id": "GHSA-gj48-438w-jh9v",
+      "severity": "MODERATE",
+      "packages": [
+        {
+          "name": "bleach",
+          "version": "6.2.0"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Runtime sanitizer is used, but tags=[] and attributes={} remove URI attributes implicated by both advisories. These paths were not found exposed; no blanket safety claim. Rich-text enablement requires patch/review."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-gj48-438w-jh9v"
+    },
+    {
+      "id": "GHSA-mf5v-w3w3-f6cg",
+      "severity": "MODERATE",
+      "packages": [
+        {
+          "name": "opentelemetry-api",
+          "version": "1.40.0"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Installed, but application has no tracing instrumentation/traceparent/tracestate extraction middleware. Enabling telemetry in deployment requires coordinated remediation; denial-of-service findings remain open."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-mf5v-w3w3-f6cg"
+    },
+    {
+      "id": "GHSA-xcq7-p3pf-p88h",
+      "severity": "MODERATE",
+      "packages": [
+        {
+          "name": "opentelemetry-api",
+          "version": "1.40.0"
+        }
+      ],
+      "status": "UNRESOLVED",
+      "risk_accepted": false,
+      "installed_in_backend_image": true,
+      "phase1_assessment": [
+        "Installed, but application has no tracing instrumentation/traceparent/tracestate extraction middleware. Enabling telemetry in deployment requires coordinated remediation; denial-of-service findings remain open."
+      ],
+      "source": "https://osv.dev/vulnerability/GHSA-xcq7-p3pf-p88h"
+    }
+  ],
+  "dependency_risk_conclusion": "No new package upgrade or vulnerability scan performed. Seven prior Moderate/Low findings remain UNRESOLVED. No affected HTTP trigger identified for current configuration; this is not a risk waiver or formal security acceptance. Development tools are physically installed in current image.",
+  "warnings": [
+    "Starlette TestClient/httpx deprecation",
+    "Passlib uses deprecated crypt on Python 3.11; no failure",
+    "google-api-core warns about future Python 3.11 support end in 2027"
+  ],
+  "not_run": [
+    "Real GCS bucket/IAM/upload/delete/restore integration",
+    "Frontend image/browser/mobile integration",
+    "TLS/browser SameSite behavior outside container namespace",
+    "Image/OS vulnerability scanning and a fresh dependency advisory scan",
+    "Backup/restore/RTO/RPO",
+    "Performance/capacity/P95 acceptance"
+  ],
+  "next_phase": "No remaining blocker identified in executed backend Docker/MySQL scope after fix. GCS requires dedicated test bucket/credentials/IAM and deletion disabled; frontend/TLS acceptance remains pending. Do not infer formal system acceptance.",
+  "reproduction": {
+    "compose": "docker --config <empty-test-docker-config> compose --env-file <generated-test-env> -f docker-compose.integration.yml -p <unique-coffeehub-phase1-project>",
+    "required_environment": [
+      "PHASE1_RUN_ID",
+      "PHASE1_ATTEMPT",
+      "PHASE1_MYSQL_PASSWORD",
+      "PHASE1_JWT_KEY",
+      "PHASE1_BUILD_CONTEXT",
+      "PHASE1_SQL_DIR",
+      "PHASE1_FIXTURE_DIR"
+    ],
+    "fixtures": "SQL dir contains current init.sql/migrations and git show e1752fa:database/init.sql as legacy.sql. Fixture dir contains phase1_acceptance.py and python-jose-3.5.0-generated HS256 test-only corpus as legacy-hs256.json.",
+    "steps": [
+      "Check config and absence of project containers/volumes/networks before creation; verify every bind source is dedicated TEMP and there are no env_file/credential mounts",
+      "build backend; up -d --no-build --wait; inspect actual ownership/mounts/internal network before writes",
+      "exec -T backend python /acceptance/phase1_acceptance.py (refuses any existing business database)",
+      "exec -T backend python -m pytest tests/unit tests/integration/test_account_lifecycle_mysql.py tests/integration/test_checkout_mysql.py tests/integration/test_order_lifecycle_mysql.py tests/integration/test_images_mysql.py tests/integration/test_audit_security_mysql.py -q --junitxml=/tmp/phase1-regression.xml",
+      "collect evidence; stop only own project; retain volumes or verify ownership before optional cleanup"
+    ]
+  },
+  "sql_sha256": {
+    "database\\init.sql": "502af7d2d8bca6b2d1c2a7f3509a220bcc9bc2cac18422188a16e5c9dcca31f9",
+    "database\\migrations\\001_account_lifecycle.sql": "9af0eec1f3dfe5bf01d46909b52c2af0a0a5110ad47696771f4aa23b92b8d2ca",
+    "database\\migrations\\002_simulated_checkout.sql": "eab6e19ba20684db838d85de87b890bedc16e7210c888f4dd3b57eccdeba1b0e",
+    "database\\migrations\\003_order_lifecycle.sql": "a1f7b1548e1c74eb6171f3995f123ddeca90b30ccb2b9af9e41efc895e6b9ff0",
+    "database\\migrations\\004_image_assets.sql": "a1b7f0fbb6535ef7df23bd8ef550ca6f93437f5b68fa88dd4d5886bf147f9fc4",
+    "database\\migrations\\005_audit_security.sql": "9df27cbbbd5602132f06980b8e028e00fcccfa24e8cc3d47bf84441e49bf81bd"
+  }
+}
