@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import api from "@/api";
+import { productImageSource } from '@/utils/productImage';
 
 const router = useRouter()
 
@@ -11,6 +12,7 @@ const loading = ref(true)
 
 // 產品與分頁狀態
 const products = ref([])        // 存放後端回傳的產品
+const failedImages = ref(new Set())
 const currentPage = ref(1)      // 目前頁碼
 const pageSize = ref(8)         // 每頁顯示幾筆
 const totalProducts = ref(0)    // 總商品數
@@ -179,13 +181,17 @@ onMounted(() => {
         <div v-if="products.length > 0" class="product-grid">
           <div class="product-card" v-for="item in products" :key="item.product_id">
             <div class="image-box" @click="goDetail(item.product_id)" style="cursor: pointer;">
-              <img :src="item.main_image || '/images/default-coffee.jpg'" :alt="item.name" />
+              <img v-if="productImageSource(item) && !failedImages.has(productImageSource(item))"
+                :src="productImageSource(item)" :alt="item.name" @error="failedImages.add(productImageSource(item))" />
+              <div v-else class="image-placeholder" role="img" :aria-label="`${item.name}：暫無圖片`">暫無圖片</div>
             </div>
 
             <div class="card-content">
               <span class="category-tag">{{ item.product_category === 'green_bean' ? '生豆' : '熟豆' }}</span>
               <h4 class="product-title" @click="goDetail(item.product_id)">{{ item.name }}</h4>
-              <p class="info-text">{{ item.country }} | {{ item.roast_level }}</p>
+              <p v-if="item.country?.trim() || item.roast_level?.trim()" class="info-text">
+                {{ [item.country, item.roast_level].map(value => value?.trim()).filter(Boolean).join(' | ') }}
+              </p>
               <p class="price">NT$ {{ item.price }}</p>
               <button class="buy-btn">加入購物車</button>
             </div>
@@ -400,6 +406,15 @@ onMounted(() => {
   height: 100%;
   object-fit: cover;
   transition: transform 0.5s;
+}
+
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  background: #eee;
 }
 
 .card-content {

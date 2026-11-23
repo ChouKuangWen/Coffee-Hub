@@ -1,0 +1,10 @@
+# Use with integration + local Compose files, a unique project/env and NEW volumes.
+# Initialize the verified empty database once with the unchanged init.sql + seed.sql.
+services:
+  frontend:
+    build:
+      args:
+        VITE_LOCAL_PRODUCT_IMAGES: "true"
+    volumes:
+      - ${PHASE1_FIXTURE_DIR:?}/nginx.demo.conf:/etc/nginx/local/demo-images.conf:ro
+      - ./frontend/public/images/products:/usr/share/nginx/html/images/products:ro

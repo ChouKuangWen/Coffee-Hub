@@ -3,12 +3,14 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useCartStore } from '@/stores/cart';
 import api from "@/api";
+import { productImageSource } from '@/utils/productImage';
 
 const route = useRoute();
 const router = useRouter();
 const cartStore = useCartStore();
 
 const product = ref(null);
+const imageFailed = ref(false);
 const loading = ref(true);
 const cartLoading = ref(false); 
 const error = ref(null);
@@ -19,6 +21,7 @@ const fetchProduct = async () => {
   try {
     const res = await api.get(`/products/${route.params.id}`);
     product.value = res.data;
+    imageFailed.value = false;
     // 修正：如果庫存為 0，預設數量也要設為 0
     if (product.value.stock === 0) qty.value = 0;
   } catch (err) {
@@ -95,7 +98,9 @@ const categoryText = computed(() => {
     <main v-else-if="product" class="product-container">
       <section class="image-gallery">
         <div class="main-image">
-          <img :src="product.main_image || '/images/default-coffee.jpg'" :alt="product.name" />
+          <img v-if="productImageSource(product) && !imageFailed" :src="productImageSource(product)"
+            :alt="product.name" @error="imageFailed = true" />
+          <div v-else class="image-placeholder" role="img" :aria-label="`${product.name}：暫無圖片`">暫無圖片</div>
         </div>
       </section>
 
@@ -103,7 +108,9 @@ const categoryText = computed(() => {
         <header class="product-header">
           <span class="category-badge">{{ categoryText }}</span>
           <h1>{{ product.name }}</h1>
-          <p class="origin-info">{{ product.country }} | {{ product.region || '精選產區' }}</p>
+          <p class="origin-info">
+            {{ [product.country, product.region].map(value => value?.trim()).filter(Boolean).join(' | ') || '精選產區' }}
+          </p>
           <p class="price">NT$ {{ product.price }}</p>
         </header>
 
@@ -149,7 +156,7 @@ const categoryText = computed(() => {
         <div class="physical-specs" v-if="product.moisture_content || product.density">
           <p>
             <span v-if="product.moisture_content">含水量: {{ product.moisture_content }}%</span>
-            <span v-if="product.density"> | 密度: {{ product.density }}g/L</span>
+            <span v-if="product.density">{{ product.moisture_content ? ' | ' : '' }}密度: {{ product.density }}g/L</span>
           </p>
         </div>
 
@@ -196,6 +203,16 @@ const categoryText = computed(() => {
 }
 
 /* 圖片 */
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  border-radius: 12px;
+  color: #666;
+  background: #eee;
+}
+
 .main-image img {
   width: 100%;
   max-width: 400px; /* 限制圖片最大寬度 */

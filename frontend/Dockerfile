@@ -5,6 +5,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . . 
+ARG VITE_LOCAL_PRODUCT_IMAGES=false
+ENV VITE_LOCAL_PRODUCT_IMAGES=$VITE_LOCAL_PRODUCT_IMAGES
 RUN npm run build
 
 # ------------ 2. Nginx Production Stage ------------ 
