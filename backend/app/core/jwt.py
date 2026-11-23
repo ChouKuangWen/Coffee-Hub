@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import uuid
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from fastapi import HTTPException, Request
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,13 +25,23 @@ def credentials_exception():
 def decode_token(token: str, token_type: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM],
-                             options={"require_exp": True, "require_sub": True, "require_jti": True})
+                             options={"require": ["exp", "sub", "jti"],
+                                      "verify_exp": False, "verify_iat": False})
+        # 簽章先由 PyJWT 驗證，再保留舊版整秒 exp < now 的到期規則；沒有額外寬限。
+        if int(payload["exp"]) < int(datetime.now(timezone.utc).timestamp()):
+            raise credentials_exception()
+        # 舊版 iat 只檢查可轉整數，並未要求存在或禁止未來值。
+        if "iat" in payload:
+            int(payload["iat"])
+        # 本系統未設定 audience／OIDC access_token；舊版遇到這兩項就拒絕。
+        if "aud" in payload or "at_hash" in payload:
+            raise credentials_exception()
         if (payload.get("token_type") != token_type or int(payload["sub"]) <= 0
                 or not isinstance(payload.get("version"), int) or isinstance(payload["version"], bool)
                 or payload["version"] < 0 or not isinstance(payload.get("sid"), str) or not payload["sid"]):
             raise credentials_exception()
         return payload
-    except (JWTError, ValueError, TypeError, KeyError):
+    except (PyJWTError, ValueError, TypeError, KeyError, OverflowError):
         raise credentials_exception()
 
 

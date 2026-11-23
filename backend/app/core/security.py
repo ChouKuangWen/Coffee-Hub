@@ -17,10 +17,9 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def validate_jwt_configuration(algorithm: str, key: str | bytes) -> None:
-    """啟動時阻擋已知 JWT 金鑰混淆與不安全 ECDSA 後端；不輸出金鑰。"""
-    supported = {"HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "ES256", "ES384", "ES512"}
-    if algorithm not in supported:
-        raise ValueError("JWT 必須設定單一明確支援的簽章演算法")
+    """僅接受專案使用的 HS256，阻擋金鑰混淆；不輸出金鑰。"""
+    if algorithm != "HS256":
+        raise ValueError("本系統 JWT 僅允許設定 HS256")
     if algorithm.startswith("HS"):
         raw = key.encode("utf-8") if isinstance(key, str) else key
         if not raw or b"-----BEGIN" in raw or raw.startswith((b"ssh-", b"ecdsa-")):
@@ -39,14 +38,4 @@ def validate_jwt_configuration(algorithm: str, key: str | bytes) -> None:
                 # 可識別為金鑰、但演算法不受支援，也不能當作共享密鑰。
                 raise ValueError("HMAC 金鑰不得使用 DER 公鑰") from None
             raise ValueError("HMAC 金鑰不得使用 DER 公鑰")
-    elif algorithm.startswith("ES"):
-        from jose import jwk
-        from jose.backends.cryptography_backend import CryptographyECKey
-        if jwk.get_key(algorithm) is not CryptographyECKey:
-            raise ValueError("ECDSA 簽章必須使用 cryptography 後端，禁止不安全的回退後端")
-
-
-
-
-
 
