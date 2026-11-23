@@ -1,0 +1,46 @@
+# Combine ONLY with docker-compose.integration.yml and a new unique project/env.
+services:
+  mysql:
+    networks:
+      phase1:
+        aliases: [backend]
+  backend:
+    environment:
+      IMAGE_STORAGE_ENABLED: "true"
+      GCS_IMAGE_BUCKET: coffeehub-local-images
+      STORAGE_EMULATOR_HOST: http://gcs:4443
+      GOOGLE_CLOUD_PROJECT: coffeehub-local-only
+      CORS_ORIGINS: '["http://localhost:${PHASE2_PORT:?}"]'
+      GCS_IMAGE_PUBLIC_BASE_URL: http://localhost:${PHASE2_PORT:?}/storage
+    depends_on:
+      gcs:
+        condition: service_started
+  frontend:
+    build:
+      context: ${PHASE2_FRONTEND_CONTEXT:?curated frontend source required}
+    ports:
+      - "127.0.0.1:${PHASE2_PORT:?}:80"
+    networks: [phase1, local_ui]
+    volumes:
+      - ${PHASE1_FIXTURE_DIR:?}/nginx.local.conf:/etc/nginx/local/image-proxy.conf:ro
+    depends_on: [backend]
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}
+  gcs:
+    image: fsouza/fake-gcs-server:1.54.0
+    command: ["-scheme", "http", "-backend", "filesystem", "-filesystem-root", "/storage", "-external-url", "http://gcs:4443"]
+    volumes:
+      - local_gcs:/storage
+    networks: [phase1]
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}
+volumes:
+  local_gcs:
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}
+networks:
+  # Docker Desktop does not publish ports on an internal-only network.
+  # Only nginx joins this network; MySQL/backend/emulator remain isolated.
+  local_ui:
+    labels:
+      coffeehub.acceptance.run: ${PHASE1_RUN_ID:?}

@@ -3,6 +3,8 @@ import hashlib
 import json
 import re
 import logging
+import os
+from urllib.parse import urlsplit
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from uuid import uuid4
@@ -47,6 +49,22 @@ def _scope():
             or not re.fullmatch(r"[a-z0-9_-]{1,30}", environment)):
         raise HTTPException(status_code=503, detail="圖片儲存尚未設定獨立環境與 bucket")
     return bucket, environment, f"coffeehub-managed/{environment}/"
+
+
+def _public_image_base():
+    base = getattr(settings, "GCS_IMAGE_PUBLIC_BASE_URL", "").rstrip("/")
+    if base:
+        parsed = urlsplit(base)
+        if (getattr(settings, "APP_ENV", "") != "test"
+                or not os.getenv("STORAGE_EMULATOR_HOST")
+                or parsed.scheme not in ("http", "https")
+                or parsed.hostname not in ("localhost", "127.0.0.1", "::1")
+                or parsed.username or parsed.password or parsed.query or parsed.fragment):
+            raise HTTPException(status_code=503, detail="模擬圖片網址僅允許隔離測試的本機介面")
+        return base
+    if os.getenv("STORAGE_EMULATOR_HOST"):
+        raise HTTPException(status_code=503, detail="模擬圖片儲存必須設定本機預覽網址")
+    return "https://storage.googleapis.com"
 
 
 def normalize_image(contents, declared_type):
@@ -137,7 +155,7 @@ async def upload_product_image(db, request, actor, product_id, contents, declare
         object_name = f"{prefix}{product_id}/{image_id}.{extension}"
         asset = ImageAsset(image_id=image_id, product_id=product_id, uploaded_by=actor.user_id,
             environment=environment, bucket=bucket, object_name=object_name,
-            public_url=f"https://storage.googleapis.com/{bucket}/{object_name}",
+            public_url=f"{_public_image_base()}/{bucket}/{object_name}",
             content_sha256=hashlib.sha256(normalized).hexdigest(), content_type=mime,
             size_bytes=len(normalized), width=width, height=height, cleanup_after=_after(_grace()))
         db.add(asset)

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     # 圖片使用獨立、顯式設定的 bucket，不回退到舊 GCP_BUCKET_NAME。
     IMAGE_STORAGE_ENABLED: bool = False
     GCS_IMAGE_BUCKET: str = ""
+    GCS_IMAGE_PUBLIC_BASE_URL: str = ""  # 僅本機模擬測試使用，不能指向外部主機。
     IMAGE_MAX_DIMENSION: int = Field(8192, ge=1, le=8192)
     IMAGE_MAX_PIXELS: int = Field(20_000_000, ge=1, le=20_000_000)
     IMAGE_CLEANUP_GRACE_DAYS: int = Field(7, ge=7)

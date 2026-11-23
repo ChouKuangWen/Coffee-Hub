@@ -10,6 +10,26 @@ from fastapi import HTTPException
 from tests.unit.test_account_permissions import isolated_app
 
 
+def test_local_preview_base_requires_test_emulator(isolated_app, monkeypatch):
+    from app.services import image_service
+    monkeypatch.delenv('STORAGE_EMULATOR_HOST', raising=False)
+    monkeypatch.setattr(image_service.settings, 'GCS_IMAGE_PUBLIC_BASE_URL', '', raising=False)
+    assert image_service._public_image_base() == 'https://storage.googleapis.com'
+    monkeypatch.setenv('STORAGE_EMULATOR_HOST', 'http://gcs:4443')
+    with pytest.raises(HTTPException):
+        image_service._public_image_base()
+    monkeypatch.setattr(image_service.settings, 'APP_ENV', 'test', raising=False)
+    monkeypatch.setattr(image_service.settings, 'GCS_IMAGE_PUBLIC_BASE_URL', 'http://localhost:18880/storage')
+    assert image_service._public_image_base() == 'http://localhost:18880/storage'
+    monkeypatch.setattr(image_service.settings, 'GCS_IMAGE_PUBLIC_BASE_URL', 'https://external.example/storage')
+    with pytest.raises(HTTPException):
+        image_service._public_image_base()
+    monkeypatch.setattr(image_service.settings, 'GCS_IMAGE_PUBLIC_BASE_URL', 'http://localhost:18880/storage')
+    monkeypatch.setattr(image_service.settings, 'APP_ENV', 'production')
+    with pytest.raises(HTTPException):
+        image_service._public_image_base()
+
+
 @pytest.mark.parametrize('fmt,mime', [('JPEG','image/jpeg'), ('PNG','image/png'), ('WEBP','image/webp')])
 def test_normalize_supported_content_and_strip_metadata(isolated_app, fmt, mime):
     from app.services.image_service import normalize_image

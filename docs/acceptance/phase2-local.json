@@ -1,0 +1,174 @@
+{
+  "phase": "Phase 2 本機 Docker、圖片模擬與 Vue API 串接驗收",
+  "date": "2026-11-23",
+  "branch": "test/integration-phase2-local",
+  "base_commit": "928e4ab6829be5481401f8d0783b5076f387756e",
+  "scope": "僅本機隔離驗收；不代表正式部署或安全驗收通過。",
+  "environment": {
+    "project": "coffeehub-phase2-66a1__aw-final",
+    "url": "http://localhost:18880",
+    "services": [
+      "FastAPI",
+      "MySQL 8.0",
+      "Vue / Nginx",
+      "fake-gcs-server 1.54.0"
+    ],
+    "isolation": "新專案、新 MySQL 與模擬圖片 Volume；只有 Nginx 綁定 127.0.0.1:18880。後端、MySQL、模擬器僅連內部網路。",
+    "credentials": "隨機測試密碼與 JWT 金鑰只存於工作目錄以外的暫存檔；未使用真實 GCP 憑證。",
+    "deletion": "IMAGE_DELETE_ENABLED=false；Admin 清理預設 dry-run。未執行模擬器或真實 GCS 物件刪除。Mock 刪除只操作記憶體替身。",
+    "resources": "最終專案保留運行供審查。先前本次嘗試專案已停止，所有 Volume 保留；原 Phase 1 資源未清理或覆寫。"
+  },
+  "build": {
+    "backend": "PASS：Linux Python 3.11 Docker 映像，不使用本機 venv。",
+    "frontend": "PASS：Linux Node 20 Docker 執行 npm ci 與 npm run build，Nginx 提供編譯資產。",
+    "database": "PASS：確認獨立容器、Volume 標記及 datadir，僅於全新空白測試庫套用 init.sql。未重跑 Phase 1 全套遷移驗收。"
+  },
+  "necessary_fixes": [
+    "Nginx 補上 cart、upload、audit-logs 及無尾斜線 API 代理，避免請求落入 SPA HTML。",
+    "Nginx 容納 5 MiB 圖片及 multipart 開銷，後端仍執行實際格式與大小檢查。",
+    "沿用 GCS SDK 的 STORAGE_EMULATOR_HOST 與匿名驗證；本機預覽 URL 只允許 test、模擬器設定及 loopback 主機。一般儲存 URL 規則維持原狀。",
+    "Compose 增加本機模擬器、圖片代理與明確 localhost Origin；僅 Nginx 額外加入可發布本機連接埠的網路。",
+    "前端 Docker 安裝改用 npm ci，確保依 lockfile 建置。"
+  ],
+  "http_checks": [
+    {
+      "check": "emulator bucket created without cloud credentials",
+      "status": "SIMULATED"
+    },
+    {
+      "check": "Customer registration and three cookie sessions",
+      "status": "PASS"
+    },
+    {
+      "check": "cookie write without CSRF rejected",
+      "status": "PASS"
+    },
+    {
+      "check": "Seller application approval and old session revocation",
+      "status": "PASS"
+    },
+    {
+      "check": "image permission, spoofed format and oversized rejection through nginx",
+      "status": "PASS"
+    },
+    {
+      "check": "registered image associated",
+      "status": "SIMULATED"
+    },
+    {
+      "check": "local preview bytes and stripped EXIF",
+      "status": "SIMULATED"
+    },
+    {
+      "check": "failed replacement preserves previous image",
+      "status": "PASS"
+    },
+    {
+      "check": "retired image has seven-day safety period",
+      "status": "PASS"
+    },
+    {
+      "check": "default cleanup dry-run skips safety-period images",
+      "status": "PASS"
+    },
+    {
+      "check": "Customer cart and simulated checkout",
+      "status": "PASS"
+    },
+    {
+      "check": "Seller item shipment through frontend proxy",
+      "status": "PASS"
+    },
+    {
+      "check": "Admin cancellation approval restores stock",
+      "status": "PASS"
+    },
+    {
+      "check": "Admin member and audit queries; Customer denied",
+      "status": "PASS"
+    },
+    {
+      "check": "unlisted product absent from public API",
+      "status": "PASS"
+    },
+    {
+      "check": "Vue entry served by nginx",
+      "status": "PASS"
+    },
+    {
+      "check": "compiled Vue assets served",
+      "status": "PASS"
+    },
+    {
+      "check": "Refresh, Logout and revoked session through nginx",
+      "status": "PASS"
+    },
+    {
+      "check": "host localhost cookie login Admin",
+      "status": "PASS"
+    },
+    {
+      "check": "host localhost cookie login Customer",
+      "status": "PASS"
+    },
+    {
+      "check": "host localhost cookie login Seller",
+      "status": "PASS"
+    },
+    {
+      "check": "valid PNG above 1 MiB and local preview through published port",
+      "status": "SIMULATED"
+    }
+  ],
+  "targeted_tests": {
+    "command": "docker compose exec -T backend env -u STORAGE_EMULATOR_HOST python -m pytest tests/unit/test_image_security.py tests/integration/test_images_mysql.py -q",
+    "result": "PASS",
+    "passed": 8,
+    "failed": 0,
+    "warnings": 3,
+    "storage_evidence": "SIMULATED / Mock：MySQL 為隔離真實容器，GCS 為記憶體測試替身。取消 emulator 環境變數僅針對此 Mock 測試程序。",
+    "coverage": [
+      "JPEG / PNG / WebP、EXIF、像素、動畫與格式偽裝",
+      "本機預覽設定限制",
+      "跨 Seller 與停用權限、圖片數量",
+      "上傳及審計失敗保留舊關聯與持久化意圖",
+      "安全期、有效引用、保留標記、未登記圖片",
+      "24 小時失敗重試與 generation 條件呼叫",
+      "下架及 Seller 停用不刪圖片、公開回應隱藏 URL"
+    ],
+    "warning_details": [
+      "Starlette TestClient 的 httpx 棄用提示",
+      "Passlib 使用的 crypt 棄用提示",
+      "Google API Core 對 Python 3.11 未來支援期限提示"
+    ]
+  },
+  "role_verification": {
+    "Customer": "PASS：註冊、Cookie 登入、購物車、模擬結帳、取消申請、Refresh / Logout，經 Vue Nginx 入口的 HTTP 請求。",
+    "Seller": "PASS / SIMULATED：申請與核准後重新登入、商品管理、圖片上傳與替換、本人品項出貨。圖片儲存使用本機模擬器。",
+    "Admin": "PASS：Seller 核准、會員資料查詢、取消核准與退庫存、Audit Log 查詢；非 Admin 被拒絕。",
+    "limitation": "以上為 HTTP 串接驗證，不代表已用瀏覽器操作 Vue 元件。"
+  },
+  "not_run": [
+    "瀏覽器 Vue 點選、JavaScript 執行與實際圖片元件顯示：沒有可用的瀏覽器自動化工具。",
+    "手機尺寸人工操作與視覺驗收。",
+    "真實 GCS IAM、Generation 競爭語義、保留政策與條件刪除：本階段禁止使用真實 GCS；Mock 條件斷言不能替代雲端驗收。",
+    "完整 E2E、效能壓測及 Phase 1 全套測試：依本階段範圍不重跑。"
+  ],
+  "manual_checklist": [
+    "localhost 開啟後，以 Customer 註冊／登入，加入購物車並模擬結帳；確認 Refresh、登出與錯誤提示。",
+    "Customer 提出 Seller 申請；Admin 核准後重新登入，新增／編輯商品、上傳與替換圖片並儲存，確認預覽。",
+    "Seller 查看銷售訂單並標記本人品項出貨；Admin 處理未出貨訂單取消申請、會員管理及審計分頁。",
+    "以約 390 × 844 手機尺寸確認導覽、表單、圖片按鈕與訂單表格可操作且無遮擋。"
+  ],
+  "security_baseline": {
+    "source": "docs/security/batch6-dependency-review.json",
+    "remaining": 7,
+    "severity": {
+      "MODERATE": 5,
+      "LOW": 2
+    },
+    "status": "UNRESOLVED：未修改原公告或處置歷史，本階段未重新掃描或升級套件。",
+    "assessment": "未觀察到阻擋本機測試的問題；不等同排除可利用性或接受正式部署風險。pytest 暫存目錄、Bleach、multidict、Pygments 與 OpenTelemetry 風險仍依原追蹤紀錄處理。"
+  },
+  "outcome": "本階段已執行項目無 FAIL。沒有發現阻擋後續本機驗收的功能問題；瀏覽器與手機人工項目尚待執行。未 Commit、Merge、Push、操作正式資料或使用付費雲端。"
+}
